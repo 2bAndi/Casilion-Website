@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    actor C as Customer (browser)
+    participant W as Cassilion platform (Django)
+    participant Q as Worker + license signer
+    participant P as Payment provider
+    C->>W: Register, verify e-mail, create account (person or company)
+    W->>Q: Issue Community entitlement (EUR 0)
+    Q-->>W: Signed license file
+    W-->>C: Customer area: license and downloads unlocked
+    C->>W: Choose a paid plan (10 / 100 / 1000 EUR per year)
+    W->>P: Create checkout (account, plan, country, VAT ID)
+    P-->>C: Hosted checkout: payment, tax, strong authentication
+    C->>P: Pay
+    P-)W: Webhook: subscription active (signed)
+    W->>W: Verify signature, deduplicate, update subscription and entitlement
+    W->>Q: Re-issue license for the new plan
+    Q-->>W: Signed license file
+    W-->>C: E-mail and portal: new license, support unlocked
+    Note over W,P: Renewal, failed payment and cancellation arrive the same way
+    P-)W: Webhook: renewed / past due / cancelled
+    W->>W: Update entitlement (grace period, then back to Community)

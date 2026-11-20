@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 690" width="1200" height="690" class="cdg" role="img" aria-labelledby="t-ctx d-ctx">
+<title id="t-ctx">Cassilion web platform - system context</title>
+<desc id="d-ctx">Visitors, customers, customer AI agents and the installed Cassilion database on the left; the web platform with its isolated AI support enclave in the centre; payment provider, e-mail delivery, operators and the product repository on the right.</desc>
+<style>
+.cdg text{font-family:Arial, "Helvetica Neue", Helvetica, sans-serif;fill:#1c2230}
+.cdg .cd-fig{font-size:15px;font-weight:700;fill:#1c2230}
+.cdg .cd-title{font-size:13px;font-weight:700}
+.cdg .cd-sub{font-size:11.5px;fill:#465064}
+.cdg .cd-zone{font-size:11px;font-weight:700;letter-spacing:.07em}
+.cdg .cd-zc-ext{fill:#5b6577}
+.cdg .cd-zc-app{fill:#2f59b0}
+.cdg .cd-zc-ai{fill:#6540b8}
+.cdg .cd-zc-ops{fill:#23794e}
+.cdg .cd-lab{font-size:11px;fill:#2b3345}
+.cdg .cd-note{font-size:11.5px;fill:#465064}
+.cdg .cd-num{font-size:11.5px;font-weight:700;fill:#ffffff}
+.cdg .cd-badge{fill:#1c2230}
+.cdg .cd-badge-g{fill:#c2255c}
+.cdg .cd-bg{fill:#ffffff}
+.cdg .cd-box{fill:#ffffff;stroke:#5b6577;stroke-width:1.2}
+.cdg .cd-infra{fill:#f6f8fb;stroke:#5b6577;stroke-width:1.2;stroke-dasharray:4 3}
+.cdg .cd-ext{fill:#f1f3f6;stroke:#7c8698;stroke-width:1.2}
+.cdg .cd-prod{fill:#ffffff;stroke:#7c8698;stroke-width:1.2;stroke-dasharray:5 4}
+.cdg .cd-3p{fill:#fff4dc;stroke:#c98a12;stroke-width:1.2}
+.cdg .cd-opsbox{fill:#e8f6ee;stroke:#2e9460;stroke-width:1.2}
+.cdg .cd-z-ext{fill:#f1f3f6;stroke:#9aa3b2;stroke-width:1}
+.cdg .cd-z-app{fill:#eaf1fd;stroke:#3f6fd1;stroke-width:1.2}
+.cdg .cd-z-ai{fill:#f2ecfe;stroke:#7a52d1;stroke-width:1.2}
+.cdg .cd-z-ops{fill:#e8f6ee;stroke:#2e9460;stroke-width:1.2}
+.cdg .cd-grp{fill:none;stroke:#7a52d1;stroke-width:1;stroke-dasharray:3 3}
+.cdg .cd-guard{fill:#fff5f8;stroke:#c2255c;stroke-width:2}
+.cdg .cd-line{stroke:#3d4658;stroke-width:1.4;fill:none}
+.cdg .cd-dash{stroke-dasharray:5 4}
+.cdg .cd-head{fill:#3d4658}
+.cdg .cd-lbg{fill:#ffffff;opacity:.92}
+</style>
+<defs><marker id="ah-ctx" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="cd-head"/></marker></defs>
+<rect x="0" y="0" width="1200" height="690" class="cd-bg"/>
+<text x="30" y="30" class="cd-fig" text-anchor="start">Figure 1 — System context</text>
+<rect x="365" y="52" width="470" height="608" rx="14" class="cd-z-app"/>
+<text x="385" y="76" class="cd-zone cd-zc-app" text-anchor="start">CASSILION WEB PLATFORM (SYSTEM BOUNDARY)</text>
+<rect x="390" y="100" width="420" height="56" rx="8" class="cd-box"/>
+<text x="600.0" y="124.5" class="cd-title" text-anchor="middle">Public site &amp; documentation</text>
+<text x="600.0" y="141.5" class="cd-sub" text-anchor="middle">product pages · docs · pricing · legal</text>
+<rect x="390" y="170" width="420" height="56" rx="8" class="cd-box"/>
+<text x="600.0" y="194.5" class="cd-title" text-anchor="middle">Customer area &amp; shop</text>
+<text x="600.0" y="211.5" class="cd-sub" text-anchor="middle">accounts · plans · licenses · downloads · invoices</text>
+<rect x="390" y="240" width="420" height="56" rx="8" class="cd-box"/>
+<text x="600.0" y="264.5" class="cd-title" text-anchor="middle">Support desk</text>
+<text x="600.0" y="281.5" class="cd-sub" text-anchor="middle">tickets · input guardrails · release gate · sent log</text>
+<rect x="390" y="310" width="420" height="56" rx="8" class="cd-box"/>
+<text x="600.0" y="334.5" class="cd-title" text-anchor="middle">Customer MCP</text>
+<text x="600.0" y="351.5" class="cd-sub" text-anchor="middle">the same functions for the customer&#x27;s AI agent</text>
+<rect x="390" y="380" width="420" height="56" rx="8" class="cd-box"/>
+<text x="600.0" y="404.5" class="cd-title" text-anchor="middle">Backoffice &amp; operator MCP</text>
+<text x="600.0" y="421.5" class="cd-sub" text-anchor="middle">review queue · bug alerts · sales · audit</text>
+<rect x="390" y="456" width="420" height="186" rx="10" class="cd-z-ai"/>
+<text x="406" y="478" class="cd-zone cd-zc-ai" text-anchor="start">AI SUPPORT ENCLAVE (ISOLATED)</text>
+<rect x="410" y="490" width="380" height="62" rx="8" class="cd-box"/>
+<text x="600.0" y="517.5" class="cd-title" text-anchor="middle">First-level support AI</text>
+<text x="600.0" y="534.5" class="cd-sub" text-anchor="middle">analyst → bridge → responder → output guard</text>
+<rect x="410" y="564" width="380" height="62" rx="8" class="cd-box"/>
+<text x="600.0" y="591.5" class="cd-title" text-anchor="middle">Knowledge base</text>
+<text x="600.0" y="608.5" class="cd-sub" text-anchor="middle">public docs + private source snapshot (never leaves)</text>
+<rect x="30" y="100" width="210" height="56" rx="8" class="cd-ext"/>
+<text x="135.0" y="124.5" class="cd-title" text-anchor="middle">Visitor</text>
+<text x="135.0" y="141.5" class="cd-sub" text-anchor="middle">anonymous · reads site and docs</text>
+<rect x="30" y="170" width="210" height="56" rx="8" class="cd-ext"/>
+<text x="135.0" y="194.5" class="cd-title" text-anchor="middle">Customer</text>
+<text x="135.0" y="211.5" class="cd-sub" text-anchor="middle">person or company member</text>
+<rect x="30" y="240" width="210" height="56" rx="8" class="cd-prod"/>
+<text x="135.0" y="264.5" class="cd-title" text-anchor="middle">Cassilion DB at the customer</text>
+<text x="135.0" y="281.5" class="cd-sub" text-anchor="middle">checks its license file offline</text>
+<rect x="30" y="310" width="210" height="56" rx="8" class="cd-ext"/>
+<text x="135.0" y="334.5" class="cd-title" text-anchor="middle">Customer&#x27;s AI agent</text>
+<text x="135.0" y="351.5" class="cd-sub" text-anchor="middle">any MCP client (IDE, assistant)</text>
+<rect x="960" y="170" width="210" height="56" rx="8" class="cd-3p"/>
+<text x="1065.0" y="194.5" class="cd-title" text-anchor="middle">Payment provider</text>
+<text x="1065.0" y="211.5" class="cd-sub" text-anchor="middle">checkout · tax · invoices</text>
+<rect x="960" y="240" width="210" height="56" rx="8" class="cd-3p"/>
+<text x="1065.0" y="264.5" class="cd-title" text-anchor="middle">E-mail delivery</text>
+<text x="1065.0" y="281.5" class="cd-sub" text-anchor="middle">SMTP relay</text>
+<rect x="960" y="380" width="210" height="56" rx="8" class="cd-opsbox"/>
+<text x="1065.0" y="404.5" class="cd-title" text-anchor="middle">Operators (Cassilion team)</text>
+<text x="1065.0" y="421.5" class="cd-sub" text-anchor="middle">VPN / allow-list + MFA</text>
+<rect x="960" y="564" width="210" height="62" rx="8" class="cd-opsbox"/>
+<text x="1065.0" y="591.5" class="cd-title" text-anchor="middle">Product repo, docs &amp; CI</text>
+<text x="1065.0" y="608.5" class="cd-sub" text-anchor="middle">private Git · signed builds</text>
+<path d="M240,128 L390,128" class="cd-line" marker-end="url(#ah-ctx)"/>
+<rect x="282.8" y="109" width="38.5" height="16" rx="3" class="cd-lbg"/>
+<text x="302" y="121" class="cd-lab" text-anchor="middle">HTTPS</text>
+<path d="M240,198 L390,198" class="cd-line" marker-end="url(#ah-ctx)"/>
+<rect x="242.8" y="179" width="118.3" height="16" rx="3" class="cd-lbg"/>
+<text x="302" y="191" class="cd-lab" text-anchor="middle">HTTPS · login + MFA</text>
+<path d="M240,268 L390,268" class="cd-line cd-dash" marker-end="url(#ah-ctx)"/>
+<rect x="245.7" y="249" width="112.6" height="16" rx="3" class="cd-lbg"/>
+<text x="302" y="261" class="cd-lab" text-anchor="middle">diagnostics bundle</text>
+<path d="M240,338 L390,338" class="cd-line" marker-end="url(#ah-ctx)"/>
+<rect x="254.2" y="319" width="95.5" height="16" rx="3" class="cd-lbg"/>
+<text x="302" y="331" class="cd-lab" text-anchor="middle">MCP · OAuth 2.1</text>
+<path d="M810,198 L960,198" class="cd-line" marker-end="url(#ah-ctx)" marker-start="url(#ah-ctx)"/>
+<rect x="838.9" y="179" width="118.3" height="16" rx="3" class="cd-lbg"/>
+<text x="898" y="191" class="cd-lab" text-anchor="middle">checkout · webhooks</text>
+<path d="M810,268 L960,268" class="cd-line" marker-end="url(#ah-ctx)"/>
+<rect x="841.7" y="249" width="112.6" height="16" rx="3" class="cd-lbg"/>
+<text x="898" y="261" class="cd-lab" text-anchor="middle">transactional mail</text>
+<path d="M810,408 L960,408" class="cd-line" marker-end="url(#ah-ctx)" marker-start="url(#ah-ctx)"/>
+<rect x="850.2" y="389" width="95.5" height="16" rx="3" class="cd-lbg"/>
+<text x="898" y="401" class="cd-lab" text-anchor="middle">review · alerts</text>
+<path d="M790,595 L960,595" class="cd-line" marker-end="url(#ah-ctx)"/>
+<rect x="847.4" y="576" width="101.2" height="16" rx="3" class="cd-lbg"/>
+<text x="898" y="588" class="cd-lab" text-anchor="middle">fetches snapshot</text>
+<path d="M410,521 L378,521 L378,280 L390,280" class="cd-line" marker-end="url(#ah-ctx)"/>
+<text x="356" y="452" class="cd-lab" text-anchor="middle" transform="rotate(-90 356 452)">pulls jobs · returns drafts</text>
+<text x="30" y="676" class="cd-note" text-anchor="start">Arrows point from the side that opens the connection. Dashed: carried by the customer inside a ticket. Amber: third-party services. Green: operator side.</text>
+</svg>

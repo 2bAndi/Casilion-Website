@@ -1,0 +1,44 @@
+erDiagram
+    direction LR
+    TICKET ||--o{ MESSAGE : contains
+    TICKET ||--o{ AI_RUN : "analysed by"
+    MESSAGE ||--o| REVIEW : "released by"
+    AI_RUN ||--o| FINDING : produces
+    AI_RUN ||--o{ GUARD_VERDICT : records
+
+    TICKET {
+        uuid id PK
+        uuid account_id FK
+        uuid author_user_id FK
+        string status
+        string channel "web or mcp"
+        string product_version
+        string classification
+    }
+    MESSAGE {
+        uuid id PK
+        string author_kind "customer, ai, operator"
+        text body
+        datetime sent_at
+    }
+    AI_RUN {
+        uuid id PK
+        string model
+        string prompt_version
+        int tokens_total
+    }
+    FINDING {
+        string classification
+        string confidence
+        json public_refs
+        json source_pointers "no code"
+    }
+    GUARD_VERDICT {
+        string check_name
+        string verdict "pass, flag, block"
+    }
+    REVIEW {
+        uuid reviewer_user_id FK
+        string action "approve, edit, reject, auto"
+        datetime decided_at
+    }

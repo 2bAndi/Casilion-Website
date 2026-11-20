@@ -1,0 +1,24 @@
+{% load cassilion %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Ticket</th><th>Subject</th><th>Customer</th><th>Status</th><th>AI says</th><th>Opened</th></tr></thead>
+    <tbody>
+    {% for ticket in tickets %}
+      <tr>
+        <td><a class="strong" href="{% url 'backoffice:ticket' ticket.public_id %}">{{ ticket.public_id }}</a></td>
+        <td>
+          {{ ticket.subject }}
+          {% if ticket.priority == "critical" %}<span class="tag alert">Critical</span>{% endif %}
+          {% if ticket.flagged %}<span class="tag action">Guard flag</span>{% endif %}
+          {% if ticket.needs_human %}<span class="tag">Needs a person</span>{% endif %}
+          {% if ticket.bug_report %}<span class="tag quiet">Bug report</span>{% endif %}
+        </td>
+        <td>{{ ticket.account.name }}</td>
+        <td><span class="tag {{ ticket.status|tone }}">{{ ticket.get_status_display }}</span></td>
+        <td>{% if ticket.classification %}{{ ticket.classification|spaced }} <span class="muted">({{ ticket.confidence }})</span>{% else %}<span class="muted">not analysed</span>{% endif %}</td>
+        <td class="num">{{ ticket.created_at|date:"j M, H:i" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>

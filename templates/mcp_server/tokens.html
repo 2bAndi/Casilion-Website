@@ -1,0 +1,60 @@
+{% extends "accounts/base.html" %}
+{% block page_title %}AI agents{% endblock %}
+{% block heading %}AI agents{% endblock %}
+{% block intro %}<p>Let your AI agent work with Cassilion's support over MCP: documentation, license, downloads and tickets, signed in as this account.</p>{% endblock %}
+
+{% block content %}
+{% if new_token %}
+  <div class="notice success">
+    <p><strong>Your new agent token.</strong> Copy it now; it is shown only this once.</p>
+    <p class="secret">{{ new_token }}</p>
+  </div>
+{% endif %}
+
+<div class="measure">
+  <h2>Connect an agent</h2>
+  <p>Add Cassilion as an MCP server in your agent, with these two values:</p>
+<pre><code>URL      {{ mcp_url }}
+Header   Authorization: Bearer &lt;agent token&gt;</code></pre>
+  <p>A token acts for <strong>{{ current_account.name }}</strong> with your rights. Keep it like a password, and revoke it here when an agent no longer needs it.</p>
+
+  {% if mfa_missing %}
+    <div class="notice warning"><p>Turn on <a href="{% url 'mfa_index' %}">two-factor authentication</a> before you create a token.</p></div>
+  {% else %}
+    <form method="post" action="{% url 'mcp_server:create' %}">
+      {% csrf_token %}
+      <div class="field">
+        <label for="token-name">Name for this agent</label>
+        <span class="helptext">So you can tell tokens apart later, for example “laptop” or “ops assistant”.</span>
+        <input type="text" id="token-name" name="name" maxlength="80">
+      </div>
+      <button type="submit">Create agent token</button>
+    </form>
+    {% if not mfa_required %}<p class="muted small">Two-factor authentication is not required for tokens in this installation (development setting).</p>{% endif %}
+  {% endif %}
+</div>
+
+<h2>Agent tokens</h2>
+{% if tokens %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Token</th><th>Name</th><th>Created by</th><th>Created</th><th>Last used</th><th>Expires</th><th></th></tr></thead>
+      <tbody>
+      {% for token in tokens %}
+        <tr>
+          <td><code>{{ token.prefix }}…</code></td>
+          <td>{{ token.name|default:"–" }}</td>
+          <td>{{ token.user.email }}</td>
+          <td class="num">{{ token.created_at|date:"j M Y" }}</td>
+          <td class="num">{{ token.last_used_at|date:"j M Y, H:i"|default:"never" }}</td>
+          <td class="num">{{ token.expires_at|date:"j M Y"|default:"never" }}</td>
+          <td><form method="post" action="{% url 'mcp_server:revoke' token.pk %}">{% csrf_token %}<button type="submit" class="danger small">Revoke</button></form></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>No agent tokens yet.</p>
+{% endif %}
+{% endblock %}

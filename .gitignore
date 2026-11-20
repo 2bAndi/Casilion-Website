@@ -1,0 +1,29 @@
+# Runtime state: database, signing keys, release files, collected static files, dev credentials
+var/
+.env
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# The product's source code is mounted into the AI worker, never copied into this repository
+knowledge/internal/repo/
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+.DS_Store
+# Leftovers from file transfers; safe to delete
+_to_delete/
+
+# Server: database files, runtime data and backups of the Docker stack
+data/
+backups/

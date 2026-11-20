@@ -1,0 +1,30 @@
+sequenceDiagram
+    autonumber
+    actor C as Customer or agent
+    participant P as Platform intake (web, MCP)
+    participant S as Support desk (release gate)
+    participant E as AI enclave
+    actor Op as Operators
+    C->>P: create_ticket(text, version, logs)
+    P->>P: G1 entitlement + quota, G2 input guard
+    alt rejected
+        P-->>C: Canned reply
+    else accepted (possibly flagged)
+        P->>S: Store ticket, queue job
+        S-->>C: Ticket id, status "analysing"
+    end
+    E->>S: Claim job (outbound pull)
+    Note over E: Analyst: docs + source at the customer's release<br/>G3 bridge: schema only, no source text<br/>Responder: draft from public docs<br/>G4 output guard: secrets, fingerprint, grounding, policy
+    E->>S: Finding (pointers), draft, guard report
+    alt usage or config, confident, guards green, auto-send on
+        S-->>C: Reply, marked as AI-generated
+        S-)Op: Sent log entry
+    else suspected bug or security issue
+        S-)Op: Alert, internal finding, draft issue
+        S-->>C: Templated acknowledgement
+        Op->>S: Confirm or dismiss, reply
+    else low confidence, guard flag or doc gap
+        S-)Op: Review queue
+        Op->>S: Approve, edit or reject
+        S-->>C: Released reply
+    end

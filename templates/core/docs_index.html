@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Documentation – Cassilion{% endblock %}
+{% block band %}<div class="wrap page-head"><h1>Documentation</h1></div>{% endblock %}
+
+{% block content %}
+<form class="search" method="get" role="search">
+  <input type="search" name="q" value="{{ query }}" placeholder="Search the documentation" aria-label="Search the documentation">
+  <button type="submit">Search</button>
+</form>
+
+{% if query %}
+  <h2>Results for “{{ query }}”</h2>
+  {% if results %}
+    <ul class="results">
+      {% for passage, score in results %}
+        <li>
+          <a href="{% url 'core:doc' passage.doc %}#{{ passage.anchor }}">{{ passage.heading }}</a>
+          <span class="muted">in {{ passage.doc_title }}</span>
+          <p>{{ passage.excerpt }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Nothing found. Try other words, or browse the pages below.</p>
+  {% endif %}
+{% endif %}
+
+<h2>Pages</h2>
+<ul class="results">
+  {% for page in docs %}
+    <li><a href="{% url 'core:doc' page.slug %}">{{ page.title }}</a><p>{{ page.summary }}</p></li>
+  {% endfor %}
+</ul>
+
+<h2>Known issues</h2>
+{% if known_issues %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Issue</th><th>Affects</th><th>Fixed in</th><th>Workaround</th></tr></thead>
+      <tbody>
+      {% for issue in known_issues %}
+        <tr>
+          <td><strong>{{ issue.id }}</strong><br>{{ issue.title }}</td>
+          <td class="num">{{ issue.versions|join:", " }}</td>
+          <td class="num">{{ issue.fixed_in|default:"open" }}</td>
+          <td>{{ issue.workaround }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>No known issues at the moment.</p>
+{% endif %}
+{% endblock %}

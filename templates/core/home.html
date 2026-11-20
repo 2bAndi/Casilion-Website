@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+{% load static humanize %}
+{% comment %}
+  The landing page. Ported from the static draft in site/index.html: same sections and wording,
+  styles and script moved to static files, the plans section fed from the database.
+{% endcomment %}
+{% block title %}Cassilion Database{% endblock %}
+{% block meta %}<meta name="description" content="Cassilion is a distributed multi-model database written in C++17: tables, full-text, vectors, geospatial data, property graphs and rule-based reasoning in one engine.">{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/landing.css' %}">{% endblock %}
+{% block nav_label %}Sections{% endblock %}
+{% block nav %}
+      <a href="#why">Why now</a>
+      <a href="#platform">Platform</a>
+      <a href="#positioning">Positioning</a>
+      <a href="#compare">Compare</a>
+      <a href="#security">Security</a>
+      <a href="#status">Status</a>
+      <a class="site" href="{% url 'core:docs' %}">Docs</a>
+      <a class="site" href="{% url 'billing:pricing' %}">Plans</a>
+{% endblock %}
+{% block foot_links %}<a href="#platform">Platform</a>
+      <a href="#positioning">Positioning</a>
+      <a href="#status">Status</a>{% endblock %}
+
+{% block shell %}
+<main id="main">
+{% if messages %}<div class="wrap">{% for message in messages %}<div class="flash" role="status">{{ message }}</div>{% endfor %}</div>{% endif %}
+<div class="hero">
+  {# Background: the rotating node globe. Decorative; started by landing.js only when motion is welcome. #}
+  <video class="hero-globe" id="hero-globe" muted loop playsinline disablepictureinpicture preload="metadata" poster="{% static 'img/node-globe.jpg' %}" aria-hidden="true" tabindex="-1">
+    <source src="{% static 'video/node-globe.webm' %}" type="video/webm">
+    <source src="{% static 'video/node-globe.mp4' %}" type="video/mp4">
+  </video>
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="pill"><i></i>Version 1.0 · release qualification in progress</span>
+      <h1>One database for rows, vectors, graphs <em>and rules.</em></h1>
+      <p class="lead">Cassilion is a distributed multi-model database written in C++17. It stores operational data, searches text and embeddings, evaluates geospatial queries, traverses graphs and reasons over rules. One cluster, one security model, spoken over the Cassandra native protocol v5.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#access">Request early access</a>
+        <a class="btn btn-ghost" href="#positioning">See where it stands</a>
+      </div>
+    </div>
+
+    <div class="merge" role="img" aria-label="Diagram: five separate systems of a typical AI data stack on the left are replaced by one Cassilion cluster on the right.">
+      <div class="merge-col">
+        <p class="merge-cap">A typical AI data stack</p>
+        <ul class="stack-list">
+          <li><b>Wide-column store</b><span>operational writes</span></li>
+          <li><b>Search engine</b><span>keywords, BM25</span></li>
+          <li><b>Vector database</b><span>embeddings</span></li>
+          <li><b>Graph database</b><span>relationships</span></li>
+          <li><b>Rules engine</b><span>policies, inference</span></li>
+        </ul>
+        <p class="merge-note">Five systems, five permission models, sync pipelines in between.</p>
+      </div>
+      <div class="merge-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+      </div>
+      <div class="merge-col core">
+        <p class="merge-cap">Cassilion</p>
+        <div class="core-box">
+          <div class="core-row">ZQL · native protocol v5</div>
+          <div class="core-models">
+            <span>Tables</span><span>Text</span><span>Vectors</span><span>Geo</span><span>Graphs</span><span>Rules</span>
+          </div>
+          <div class="core-row">LSM · B+tree · Columnar</div>
+          <div class="core-row">Replication · Consensus · Audit</div>
+        </div>
+        <p class="merge-note">One cluster, one authorization model, one audit trail.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="facts" aria-label="Cassilion in numbers">
+  <div class="wrap">
+    <ul>
+      <li><b>8</b><span>data capabilities in one engine</span></li>
+      <li><b>3</b><span>storage engines, chosen per table</span></li>
+      <li><b>4</b><span>vector index strategies, plus AUTO</span></li>
+      <li><b>8</b><span>consistency levels, never silently weakened</span></li>
+      <li><b>3</b><span>first-party drivers: C++, Java, Python</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Why now</span>
+      <h2>AI changed what a database is asked to do</h2>
+      <p class="lead">Agents read, write and decide, and every step leaves a trail that someone will have to explain later. Six demands follow from that. Most stacks answer them with several products. Cassilion answers them in one.</p>
+    </div>
+
+    <div class="grid g3">
+      <article class="card">
+        <span class="tag">01</span>
+        <h3 class="verb">Ingest</h3>
+        <p class="need">Agents, events and sensors write all the time.</p>
+        <p>A log-structured engine with a durable commit log takes the writes. A write is acknowledged only after the required commit-log synchronisation. TTL and tombstones are part of the data model.</p>
+      </article>
+      <article class="card">
+        <span class="tag">02</span>
+        <h3 class="verb">Query</h3>
+        <p class="need">Retrieval mixes keywords, meaning, place and relationships.</p>
+        <p>ZQL covers BM25 text search, exact and approximate vector search, hybrid ranking, spatial predicates and graph traversal. Index results are always reconciled with the authoritative rows.</p>
+      </article>
+      <article class="card">
+        <span class="tag">03</span>
+        <h3 class="verb">Trace</h3>
+        <p class="need">Someone will ask how an answer came about.</p>
+        <p>Cross-model queries carry lineage at three levels: none, summary or full. Knowledge-base queries can be explained. Requests emit sampled OpenTelemetry traces.</p>
+      </article>
+      <article class="card">
+        <span class="tag">04</span>
+        <h3 class="verb">Track</h3>
+        <p class="need">Auditors ask who saw or changed what.</p>
+        <p>The security audit log is hash-chained and signed per segment. Column-level permissions and masking are checked for every statement and again for every result page.</p>
+      </article>
+      <article class="card">
+        <span class="tag">05</span>
+        <h3 class="verb">Scale</h3>
+        <p class="need">Data and query volume grow without asking first.</p>
+        <p>Data is partitioned by token and replicated across nodes and data centres. Nodes join, move, are replaced or decommissioned through staged, controlled topology changes.</p>
+      </article>
+      <article class="card">
+        <span class="tag">06</span>
+        <h3 class="verb">Survive</h3>
+        <p class="need">Nodes fail, disks corrupt, networks split.</p>
+        <p>Replication comes with repair and resumable, verified streaming. Corrupt files are detected and quarantined. Backup and restore verify digests before anything is activated.</p>
+      </article>
+    </div>
+
+    <div class="grid g4 signals">
+      <div class="signal">
+        <span class="tag">Retrieval</span>
+        <p>Enterprise RAG teams are converging on hybrid retrieval, and VB Pulse data shows the standalone vector databases losing adoption share.</p>
+        <a href="https://venturebeat.com/data/the-retrieval-rebuild-why-hybrid-retrieval-intent-tripled-as-enterprise-rag-programs-hit-the-scale-wall">VentureBeat, 2026</a>
+      </div>
+      <div class="signal">
+        <span class="tag">Agents</span>
+        <p>Futurum Research sees the large vendors re-architecting for agents that write as well as read: many concurrent sessions, strict consistency, tiered memory.</p>
+        <a href="https://futurumgroup.com/press-release/from-storage-to-action-why-autonomous-ai-is-forcing-a-database-revolution/">Futurum Group, June 2026</a>
+      </div>
+      <div class="signal">
+        <span class="tag">Regulation</span>
+        <p>The EU AI Act obliges high-risk AI systems to log events for traceability. After the Digital Omnibus, stand-alone systems must comply from 2 December 2027.</p>
+        <a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-eu-ai-act-omnibus-vii-deadline-delay-20260/">Cloud Security Alliance, 2026</a>
+      </div>
+      <div class="signal">
+        <span class="tag">Reasoning</span>
+        <p>Regulated industries pair language models with explicit rules and knowledge graphs, so that a decision path can be inspected and audited.</p>
+        <a href="https://www.pymnts.com/artificial-intelligence-2/2026/neurosymbolic-ai-aims-to-make-ai-safe-for-the-c-suite/">PYMNTS, 2026</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="platform" class="band">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Platform</span>
+      <h2>Everything shares one storage, replication and security core</h2>
+      <p class="lead">Indexes, graphs and knowledge bases are built on the same replicated tables. They inherit consistency, TTL, deletion and authorization instead of reinventing them.</p>
+    </div>
+
+    <div class="bento">
+      <article class="card w3">
+        <span class="tag">Tables and storage</span>
+        <h3>Three storage engines, one row model</h3>
+        <p>Keyspaces, tables, composite partition keys and ordered clustering keys with typed columns, collections and user-defined types. Each table picks its engine when it is created.</p>
+        <dl class="engines">
+          <dt>LSM</dt><dd>General and write-heavy operational data</dd>
+          <dt>B+tree</dt><dd>Point, prefix and range lookups</dd>
+          <dt>Columnar</dt><dd>Projections, filters and aggregates</dd>
+        </dl>
+      </article>
+      <article class="card w3">
+        <span class="tag">Consistency</span>
+        <h3>Tunable per request, linearizable where you ask for it</h3>
+        <p>Eight consistency levels from <code>ONE</code> to <code>EACH_QUORUM</code>. Conditional writes such as <code>INSERT … IF NOT EXISTS</code> run on a Paxos protocol and report <code>[applied]</code>. Schema, membership and permissions are ordered by a Raft-backed metadata authority with three or five voters.</p>
+        <div class="chips"><span>QUORUM</span><span>LOCAL_QUORUM</span><span>SERIAL</span><span>Raft metadata</span></div>
+      </article>
+
+      <article class="card">
+        <span class="tag">Search</span>
+        <h3>Structured and full-text</h3>
+        <p>Equality, ranges and collection membership on structured indexes. Lexical search with phrases, proximity, prefix, suffix and substring matching, bounded fuzzy matching and BM25 ranking.</p>
+        <div class="chips"><span>BM25</span><span>Unicode analysis</span><span>stemming</span></div>
+      </article>
+      <article class="card">
+        <span class="tag">Vectors</span>
+        <h3>Exact and approximate</h3>
+        <p>FLAT for exact search, HNSW, IVF-PQ and DiskANN-PQ for approximate search, or AUTO. Candidates are rescored exactly against the stored values.</p>
+        <div class="chips"><span>float32</span><span>float16</span><span>int8</span><span>bit vectors</span><span>cosine</span><span>dot</span><span>L2</span></div>
+      </article>
+      <article class="card">
+        <span class="tag">Hybrid</span>
+        <h3>Fused ranking in one request</h3>
+        <p>A single <code>SEARCH</code> combines up to four retrieval clauses. Results are fused by reciprocal-rank fusion or by explicit weights, with deterministic deduplication.</p>
+        <div class="chips"><span>RRF</span><span>weighted fusion</span><span>top-K</span></div>
+      </article>
+
+      <article class="card">
+        <span class="tag">Geospatial</span>
+        <h3>Geometry and geography types</h3>
+        <p>Exact predicates, distance and nearby top-K, buffers, unions and intersections, CRS transformation, bounded spatial joins and H3 cells.</p>
+        <div class="chips"><span>WKT</span><span>WKB</span><span>GeoJSON</span><span>EPSG</span><span>H3</span></div>
+      </article>
+      <article class="card">
+        <span class="tag">Graphs</span>
+        <h3>Native property graphs</h3>
+        <p>Typed vertices and edges, stored in ordinary replicated tables. Bounded traversals, neighbourhoods, shortest paths and connecting subgraphs. Text, vector and hybrid searches can seed a traversal.</p>
+        <div class="chips"><span>typed labels</span><span>shortest path</span></div>
+      </article>
+      <article class="card">
+        <span class="tag">Reasoning</span>
+        <h3>Knowledge bases in Prolog</h3>
+        <p>Facts and rules in pure Horn logic, published as immutable generations and evaluated across the cluster. Rules read tables, indexes, graphs and spatial data through typed, read-only relations.</p>
+        <div class="chips"><span>unification</span><span>recursion</span><span>tabling</span></div>
+      </article>
+
+      <article class="card w3">
+        <span class="tag">Developers</span>
+        <h3>First-party drivers with the same semantics</h3>
+        <p>C++, Java and Python drivers share one feature catalogue: pooling, token-aware routing, prepared statements, paging, deadlines, cancellation and tracing. A local development profile starts a single loopback node with TLS and authorization still switched on.</p>
+        <div class="chips"><span>C++</span><span>Java</span><span>Python</span><span>OAuth bearer tokens</span></div>
+      </article>
+      <article class="card w3">
+        <span class="tag">Operations</span>
+        <h3>An admin API instead of a bag of scripts</h3>
+        <p>An HTTPS admin API with durable asynchronous operations, snapshots, backup and restore, and OpenTelemetry metrics, traces and logs. Servers run on Windows and Linux. Deployment automation targets IONOS Cloud, Hetzner Cloud, AWS, Azure and Google Cloud; live-provider qualification is in progress.</p>
+        <div class="chips"><span>/admin/v1</span><span>OTLP</span><span>OpenTofu</span><span>Ansible</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="compose">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Cross-model queries</span>
+      <h2>One request across four models</h2>
+      <p class="lead">A rule can read from search, graphs and tables in a single request. There is no glue service in between and no second permission model to keep in step.</p>
+    </div>
+    <ol class="flow">
+      <li class="step"><span class="num">01</span><h3>Seed</h3><p>BM25 and vector retrieval find the entry points.</p><small>Hybrid search</small></li>
+      <li class="step"><span class="num">02</span><h3>Expand</h3><p>A bounded traversal follows typed edges from those hits.</p><small>Property graph</small></li>
+      <li class="step"><span class="num">03</span><h3>Fetch</h3><p>Rows are read with column permissions and masking applied.</p><small>Tables</small></li>
+      <li class="step"><span class="num">04</span><h3>Decide</h3><p>A knowledge base evaluates the collected facts against its rules.</p><small>Reasoning</small></li>
+    </ol>
+    <div class="flow-out">
+      <div class="states" aria-label="Possible outcomes"><span>TRUE</span><span>FALSE</span><span>UNKNOWN</span></div>
+      <p>Every answer states how complete it is and, on request, where it came from. One deadline and one resource budget cover the whole request. Data that cannot be reached is reported as unknown, never as false.</p>
+    </div>
+  </div>
+</section>
+
+<section id="positioning" class="band">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Positioning</span>
+      <h2>Where Cassilion stands</h2>
+      <p class="lead">Two views of the market. The scores are our own assessment, based on public documentation as of November 2026. They are not benchmark results.</p>
+    </div>
+
+    <div class="charts">
+      <figure class="chart-card">
+        <h3>Breadth and expected speed</h3>
+        <div class="chart-scroll"><svg id="chart-speed" viewBox="0 0 560 452" role="img" aria-label="Quadrant chart. Cassilion sits at the far right with all eight capabilities and a high expected speed. ScyllaDB and Google Spanner score similarly on speed with fewer capabilities. Other products sit lower or further left."></svg></div>
+        <figcaption>Horizontal: capabilities available in one engine, counted from the table below (partial support counts half). Vertical: our reading of each performance architecture, judged on native code without a garbage-collected runtime, shared-nothing scale-out, storage layout matched to the workload and vector indexes that work from disk.</figcaption>
+      </figure>
+      <figure class="chart-card">
+        <h3>Operational backbone and AI capability</h3>
+        <div class="chart-scroll"><svg id="chart-ai" viewBox="0 0 560 452" role="img" aria-label="Quadrant chart. Cassilion sits in the upper right, combining a strong operational backbone with the highest AI capability. Google Spanner is closest. Cassandra and ScyllaDB are strong on backbone, Neo4j and SurrealDB on AI capability."></svg></div>
+        <figcaption>Horizontal: ingest, scale-out and resilience as a system of record. Vertical: how much of retrieve, relate, reason and trace the engine covers by itself, without a second product.</figcaption>
+      </figure>
+    </div>
+
+    <div class="legend">
+      <span><i class="lg-me"></i>Cassilion: design target. Version 1.0 is in release qualification; benchmarks will be published afterwards.</span>
+      <span><i class="lg-ot"></i>Other products, as publicly documented</span>
+    </div>
+
+    <div class="grid g3 reading">
+      <div class="card"><span class="tag">Closest in breadth</span><p><b>Google Spanner</b> unites relational, graph, vector, full-text and columnar processing, and now also ships as self-managed Spanner Omni.</p></div>
+      <div class="card"><span class="tag">Benchmark to beat</span><p><b>ScyllaDB</b> has published billion-vector results with single-digit-millisecond P99 latency on its shard-per-core engine.</p></div>
+      <div class="card"><span class="tag">What sets Cassilion apart</span><p>The full breadth, including geospatial depth and <b>rule-based reasoning</b>, on a Cassandra-style replicated core that you run yourself.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Compare</span>
+      <h2>Capability by capability</h2>
+      <p class="lead">The table behind the horizontal axis above. A full mark means the capability is part of the core engine. A half mark means partial support, a separately installed extension, a separate service, or a cloud-only feature.</p>
+    </div>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Capability comparison table, scrolls horizontally">
+      <table id="matrix"><caption class="sr">Capabilities of Cassilion and nine other database products</caption></table>
+    </div>
+    <div class="notes">
+      <div class="key">
+        <span><i class="m m-2"></i>part of the core engine</span>
+        <span><i class="m m-1"></i>partial, extension, separate service or cloud-only</span>
+        <span><i class="m m-0"></i>not available</span>
+      </div>
+      <p>ScyllaDB: vector and full-text search are offered in ScyllaDB Cloud. PostgreSQL: capabilities come from separately installed extensions such as pgvector, PostGIS, Apache AGE and Citus. Apache Cassandra: version 6.0, in alpha, adds ACID transactions. Dedicated knowledge-graph stores also offer inference; they are left out because they do not serve operational workloads.</p>
+      <p>Based on public vendor documentation, November 2026. All product names are trademarks of their owners. Found an error? Write to info@cassilion.com and we will correct it.</p>
+    </div>
+  </div>
+</section>
+
+<section id="security" class="sec band">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Security and longevity</span>
+      <h2>Built for the audit that comes later</h2>
+      <p class="lead">Data written today will be read, questioned and attacked for years. These properties are part of the engine, not add-ons.</p>
+    </div>
+    <div class="grid g3">
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Post-quantum key exchange</h3>
+        <p>TLS 1.3 everywhere. Traffic between nodes and to the admin API requires mutual TLS with the hybrid <code>X25519MLKEM768</code> group. A classical fallback for clients must be permitted explicitly and is audited.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18M3 12h18M3 19h18M9 5v14M15 5v14"/></svg>Column security in the query</h3>
+        <p>Authorization and masking apply to projections, predicates, ordering, grouping and aggregates. A statement with one unauthorized use is rejected as a whole. Indexes cannot bypass the checks.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Identity from your provider</h3>
+        <p>OAuth access tokens are validated against your issuer. Users and groups are provisioned over SCIM. Emergency access is a dual-custodian, time-limited and audited procedure.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a3 3 0 0 1 3-3h4a3 3 0 0 1 0 6h-1"/><path d="M15 12a3 3 0 0 1-3 3H8a3 3 0 0 1 0-6h1"/></svg>Tamper-evident audit</h3>
+        <p>The security audit is durable, hash-chained and signed per segment. High-impact actions wait until their audit record is admitted.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>A durable format with a version</h3>
+        <p>On-disk data uses explicitly versioned, canonical encodings with CRC32C checks and SHA-256-bound manifests. Files are staged and verified before they become visible.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>Licences signed twice</h3>
+        <p>Licence files carry a classical ES256 signature and a post-quantum ML-DSA-65 signature. They are verified offline by the cluster.</p>
+      </article>
+    </div>
+    <p class="aside">Hybrid key exchange protects recorded traffic against later decryption. It is not post-quantum peer authentication, and Cassilion makes no FIPS validation claim. The same hybrid group is arriving across the industry, for example in <a href="https://dev.mysql.com/doc/refman/26.7/en/post-quantum-crytpography-ssl.html">MySQL</a>, <a href="https://mariadb.com/docs/server/security/encryption/data-in-transit-encryption/post-quantum-cryptography-in-mariadb-tls">MariaDB</a> and <a href="https://neo4j.com/docs/operations-manual/current/security/ssl-post-quantum/">Neo4j</a>. Cassilion makes it mandatory between nodes.</p>
+  </div>
+</section>
+
+<section id="status">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Status</span>
+      <h2>What 1.0 is, and what it is not</h2>
+      <p class="lead">Cassilion offers bounded, explicit interfaces. We would rather list the limits here than have you find them in production.</p>
+    </div>
+    <div class="two">
+      <div class="card">
+        <h3>Deliberate boundaries</h3>
+        <ul class="list">
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No promise of full SQL, CQL, Gremlin or PostGIS compatibility. ZQL is a bounded language.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No cross-partition or cross-table transactions. Conditional operations are linearizable within one partition.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No general relational joins, window functions or user-defined functions.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No online conversion between storage engines. The engine is chosen when the table is created.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No mixed clusters with Apache Cassandra and no reading of its SSTables. Cassilion shares the client protocol, not the internals.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>Prolog without cut, negation-as-failure, dynamic predicates or side effects.</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Release status, November 2026</h3>
+        <ul class="list">
+          <li><span class="st st-done">Done</span><span>Storage, query, clustering, replication and conditional operations</span></li>
+          <li><span class="st st-done">Done</span><span>LSM, B+tree and columnar engines; structured, lexical, vector, hybrid and spatial search</span></li>
+          <li><span class="st st-done">Done</span><span>Property graph, distributed Prolog and cross-model relations</span></li>
+          <li><span class="st st-done">Done</span><span>Drivers, identity and access, licensing, audit, operations, local development</span></li>
+          <li><span class="st st-open">Open</span><span>Integrated correctness, performance and resilience release campaigns</span></li>
+          <li><span class="st st-open">Open</span><span>Live qualification on the five cloud providers</span></li>
+          <li><span class="st st-open">Open</span><span>Customer release bundles; rolling-upgrade tests need a previous stable release</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="access" class="flush-top">
+  <div class="wrap">
+    <div class="access">
+      <div class="access-copy">
+        <span class="eyebrow">Early access</span>
+        <h2>Free to run. Support when you need it.</h2>
+        <p>Cassilion will be free to download after registration, without support. Paid support plans are planned per year. Support is designed for engineers and their AI assistants: connecting your own assistant over MCP is planned.</p>
+        <div class="mail">
+          <a class="addr" href="mailto:info@cassilion.com?subject=Cassilion%20early%20access">info@cassilion.com</a>
+          <button class="btn btn-ghost btn-sm" type="button" id="copy-mail" data-copy="info@cassilion.com">Copy address</button>
+        </div>
+        <div class="cta">
+          <a class="btn btn-primary btn-sm" href="{% url 'billing:pricing' %}">Compare plans</a>
+          {% if not user.is_authenticated %}<a class="btn btn-ghost btn-sm" href="{% url 'account_signup' %}">Register</a>{% endif %}
+        </div>
+      </div>
+      {# The plans as the shop sells them; names, prices and quotas come from the database. #}
+      <div class="plans" aria-label="Licence and support plans">
+        {% for plan in plans %}
+        <a class="plan{% if forloop.last and not forloop.counter|divisibleby:2 %} wide{% endif %}" href="{% url 'billing:pricing' %}">
+          <span class="tag">{{ plan.name }}</span>
+          <b>{% if plan.is_free %}€0{% elif plan.self_service %}€{{ plan.price_eur_year|intcomma }}{% else %}By quote{% endif %}</b>
+          <span>{% if plan.self_service and not plan.is_free %}Per year. {% endif %}{{ plan.tagline }}{% if plan.has_support %} {{ plan.ticket_quota_month }} tickets a month.{% endif %}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sources" class="sources flush-top">
+  <div class="wrap">
+    <div class="head tight">
+      <span class="eyebrow">Sources</span>
+      <h3>Public material used for the market statements and the comparison</h3>
+    </div>
+    <ol>
+      <li><a href="https://venturebeat.com/data/the-retrieval-rebuild-why-hybrid-retrieval-intent-tripled-as-enterprise-rag-programs-hit-the-scale-wall">VentureBeat: The retrieval rebuild</a></li>
+      <li><a href="https://futurumgroup.com/press-release/from-storage-to-action-why-autonomous-ai-is-forcing-a-database-revolution/">Futurum Group: From Storage to Action</a></li>
+      <li><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-eu-ai-act-omnibus-vii-deadline-delay-20260/">Cloud Security Alliance: EU AI Act high-risk deadline</a></li>
+      <li><a href="https://www.pymnts.com/artificial-intelligence-2/2026/neurosymbolic-ai-aims-to-make-ai-safe-for-the-c-suite/">PYMNTS: Neurosymbolic AI for the C-suite</a></li>
+      <li><a href="https://cloud.google.com/blog/products/databases/spanner-omni-deploy-anywhere-version-of-spanner-is-now-ga">Google Cloud: Spanner Omni, now GA</a></li>
+      <li><a href="https://www.scylladb.com/press-release/scylladb-brings-massive-scale-vector-search-to-real-time-ai/">ScyllaDB: Vector Search general availability</a></li>
+      <li><a href="https://www.hpcwire.com/bigdatawire/this-just-in/scylladb-x-cloud-introduces-high-performance-full-text-search/">ScyllaDB X Cloud: Full-Text Search</a></li>
+      <li><a href="https://cassandra.apache.org/doc/latest/cassandra/vector-search/concepts.html">Apache Cassandra: Vector search concepts</a></li>
+      <li><a href="https://thenewstack.io/apache-cassandra-6-features/">The New Stack: Apache Cassandra 6.0 alpha</a></li>
+      <li><a href="https://www.mongodb.com/products/updates/now-ga-mongodb-search-and-vector-search-for-community-edition/">MongoDB: Search and Vector Search for Community Edition</a></li>
+      <li><a href="https://neo4j.com/docs/cypher-manual/current/indexes/search-indexes/">Neo4j: Search indexes</a></li>
+      <li><a href="https://www.elastic.co/what-is/hybrid-search">Elastic: Hybrid search</a></li>
+      <li><a href="https://thenewstack.io/surrealdb-3-ai-agents/">The New Stack: SurrealDB 3.0</a></li>
+      <li><a href="https://zilliz.com/ai-faq/vector-keyword-filter-hybrid-search">Zilliz: Vector, keyword and filter search in one engine</a></li>
+    </ol>
+  </div>
+</section>
+</main>
+{% endblock %}
+
+{% block extra_body %}<script src="{% static 'js/landing.js' %}"></script>{% endblock %}

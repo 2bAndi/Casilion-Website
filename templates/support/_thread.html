@@ -1,0 +1,30 @@
+{% load cassilion %}
+<ul class="who" aria-label="Who is speaking">
+  <li><span class="shape circle"></span> You or your AI agent</li>
+  <li><span class="shape square"></span> Cassilion's support AI and fixed texts</li>
+  <li><span class="shape triangle"></span> A person at Cassilion</li>
+</ul>
+<ol class="thread">
+  {% for message in thread %}
+    <li class="msg{% if message.visibility == 'internal' %} internal{% endif %}{% if message.state == 'draft' %} draft{% endif %}{% if message.state == 'rejected' %} rejected{% endif %}">
+      <span class="shape {{ message.author_kind|shape }}" aria-hidden="true"></span>
+      <div>
+        <div class="meta">
+          <span class="name">{{ message.get_author_kind_display }}</span>
+          {% if message.ai_generated %}<span class="tag">Written by AI</span>{% endif %}
+          {% if message.visibility == 'internal' %}<span class="tag action">Internal note</span>{% endif %}
+          {% if message.state == 'draft' %}<span class="tag action">Draft, not sent</span>{% elif message.state == 'rejected' %}<span class="tag quiet">Rejected</span>{% endif %}
+          <span class="when">{{ message.created_at|date:"j M Y, H:i" }}</span>
+        </div>
+        {# Customer text is shown as plain text, never rendered as HTML or Markdown. #}
+        <div class="body">{{ message|message_body }}</div>
+        {% if message.diagnostics %}
+          <details><summary>Diagnostics (secrets removed)</summary><pre>{{ message.diagnostics }}</pre></details>
+        {% endif %}
+        {% if show_redacted and message.body_redacted and message.body_redacted != message.body %}
+          <details><summary>As the AI saw it</summary><pre>{{ message.body_redacted }}</pre></details>
+        {% endif %}
+      </div>
+    </li>
+  {% endfor %}
+</ol>

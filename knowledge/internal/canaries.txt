@@ -1,0 +1,2 @@
+# One canary string per line. Lines starting with # are ignored.
+CASSILION-CANARY-7f3a91c2

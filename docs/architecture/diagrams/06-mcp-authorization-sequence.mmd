@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    participant Cl as MCP client (customer's agent)
+    participant B as Browser (customer)
+    participant RS as MCP server (resource server)
+    participant AS as Cassilion login (authorization server)
+    Cl->>RS: MCP request without token
+    RS-->>Cl: 401 with resource metadata URL and required scope
+    Cl->>RS: Fetch protected-resource metadata
+    RS-->>Cl: Authorization server = Cassilion login
+    Cl->>AS: Discover metadata, identify via Client ID Metadata Document
+    Cl->>B: Open authorization URL (PKCE, resource = MCP server URL)
+    B->>AS: Sign in (passkey or password + MFA), consent to scopes
+    AS-->>B: Redirect with authorization code and issuer
+    B-->>Cl: Authorization code
+    Cl->>AS: Token request (code verifier, resource)
+    AS-->>Cl: Access token: audience = MCP server, scopes limited by plan
+    Cl->>RS: tools/call with bearer token
+    RS->>RS: Check signature, audience, scope, entitlement, rate limit
+    RS-->>Cl: Tool result (AI-written text only after the output guard)

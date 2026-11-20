@@ -1,0 +1,47 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Switches{% endblock %}
+{% block heading %}Switches{% endblock %}
+
+{% block content %}
+<div class="measure">
+  <h2>Automatic sending</h2>
+  <p>With the switch off, every AI-written reply waits in the review queue. With it on, a reply goes out by itself only if its class is ticked below, the AI is confident, every guard passed, and the ticket is neither critical nor waiting for a person. Suspected bugs and security reports never go out automatically.</p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-fields">{{ form.as_div }}</div>
+    <button type="submit">Save switches</button>
+  </form>
+
+  <h2>Your AI assistant</h2>
+  <p>The backoffice has its own MCP server for the team. A token acts as you, and everything it does is logged under your account.</p>
+<pre><code>URL      {{ SITE_URL }}/ops/mcp
+Header   Authorization: Bearer &lt;operator token&gt;</code></pre>
+  {% if new_token %}
+    <div class="notice success"><p><strong>Your new operator token.</strong> Copy it now; it is shown only this once.</p><p class="secret">{{ new_token }}</p></div>
+  {% endif %}
+  <form method="post" action="{% url 'backoffice:operator_token_create' %}" class="actions">
+    {% csrf_token %}
+    <input type="text" name="name" placeholder="Name, for example “desktop assistant”" aria-label="Token name" maxlength="80">
+    <button type="submit">Create operator token</button>
+  </form>
+</div>
+
+{% if tokens %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Token</th><th>Name</th><th>Created</th><th>Last used</th><th></th></tr></thead>
+      <tbody>
+      {% for token in tokens %}
+        <tr>
+          <td><code>{{ token.prefix }}…</code></td>
+          <td>{{ token.name|default:"–" }}</td>
+          <td class="num">{{ token.created_at|date:"j M Y" }}</td>
+          <td class="num">{{ token.last_used_at|date:"j M Y, H:i"|default:"never" }}</td>
+          <td><form method="post" action="{% url 'backoffice:operator_token_revoke' token.pk %}">{% csrf_token %}<button type="submit" class="danger small">Revoke</button></form></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Sandbox checkout – Cassilion{% endblock %}
+{% block band %}<div class="wrap page-head"><h1>Sandbox checkout</h1><p>This page stands in for the payment provider's checkout. No money moves.</p></div>{% endblock %}
+
+{% block content %}
+<div class="measure">
+  <div class="panel">
+    <h2>Order {{ order.ref }}</h2>
+    <dl class="kv">
+      <dt>Account</dt><dd>{{ order.account.name }}</dd>
+      <dt>Plan</dt><dd>{{ order.plan.name }}, one year</dd>
+      <dt>Amount</dt><dd>€{{ order.amount_eur }}</dd>
+      <dt>Status</dt><dd>{{ order.get_status_display }}</dd>
+    </dl>
+    {% if order.status == "pending" %}
+      <form method="post" class="actions">
+        {% csrf_token %}
+        <button type="submit" name="outcome" value="pay" class="signal">Pay €{{ order.amount_eur }} (simulated)</button>
+        <button type="submit" name="outcome" value="fail" class="ghost">Let the payment fail</button>
+      </form>
+    {% else %}
+      <p><a class="btn ghost" href="{% url 'billing:overview' %}">Back to billing</a></p>
+    {% endif %}
+  </div>
+  <p class="muted small">Either button sends a signed event to the same webhook a real provider would call. Only that event changes the subscription.</p>
+</div>
+{% endblock %}

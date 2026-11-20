@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 830" width="1200" height="830" class="cdg" role="img" aria-labelledby="t-pipe d-pipe">
+<title id="t-pipe">Cassilion AI first-level support - pipeline with guardrails</title>
+<desc id="d-pipe">A ticket passes an entitlement gate and input guardrails in the application zone, is analysed and answered in the isolated AI enclave by an analyst and a responder separated by a schema-only bridge, passes output guardrails and is routed by a release gate to auto-send, operator review or bug alert.</desc>
+<style>
+.cdg text{font-family:Arial, "Helvetica Neue", Helvetica, sans-serif;fill:#1c2230}
+.cdg .cd-fig{font-size:15px;font-weight:700;fill:#1c2230}
+.cdg .cd-title{font-size:13px;font-weight:700}
+.cdg .cd-sub{font-size:11.5px;fill:#465064}
+.cdg .cd-zone{font-size:11px;font-weight:700;letter-spacing:.07em}
+.cdg .cd-zc-ext{fill:#5b6577}
+.cdg .cd-zc-app{fill:#2f59b0}
+.cdg .cd-zc-ai{fill:#6540b8}
+.cdg .cd-zc-ops{fill:#23794e}
+.cdg .cd-lab{font-size:11px;fill:#2b3345}
+.cdg .cd-note{font-size:11.5px;fill:#465064}
+.cdg .cd-num{font-size:11.5px;font-weight:700;fill:#ffffff}
+.cdg .cd-badge{fill:#1c2230}
+.cdg .cd-badge-g{fill:#c2255c}
+.cdg .cd-bg{fill:#ffffff}
+.cdg .cd-box{fill:#ffffff;stroke:#5b6577;stroke-width:1.2}
+.cdg .cd-infra{fill:#f6f8fb;stroke:#5b6577;stroke-width:1.2;stroke-dasharray:4 3}
+.cdg .cd-ext{fill:#f1f3f6;stroke:#7c8698;stroke-width:1.2}
+.cdg .cd-prod{fill:#ffffff;stroke:#7c8698;stroke-width:1.2;stroke-dasharray:5 4}
+.cdg .cd-3p{fill:#fff4dc;stroke:#c98a12;stroke-width:1.2}
+.cdg .cd-opsbox{fill:#e8f6ee;stroke:#2e9460;stroke-width:1.2}
+.cdg .cd-z-ext{fill:#f1f3f6;stroke:#9aa3b2;stroke-width:1}
+.cdg .cd-z-app{fill:#eaf1fd;stroke:#3f6fd1;stroke-width:1.2}
+.cdg .cd-z-ai{fill:#f2ecfe;stroke:#7a52d1;stroke-width:1.2}
+.cdg .cd-z-ops{fill:#e8f6ee;stroke:#2e9460;stroke-width:1.2}
+.cdg .cd-grp{fill:none;stroke:#7a52d1;stroke-width:1;stroke-dasharray:3 3}
+.cdg .cd-guard{fill:#fff5f8;stroke:#c2255c;stroke-width:2}
+.cdg .cd-line{stroke:#3d4658;stroke-width:1.4;fill:none}
+.cdg .cd-dash{stroke-dasharray:5 4}
+.cdg .cd-head{fill:#3d4658}
+.cdg .cd-lbg{fill:#ffffff;opacity:.92}
+</style>
+<defs><marker id="ah-pipe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="cd-head"/></marker></defs>
+<rect x="0" y="0" width="1200" height="830" class="cd-bg"/>
+<text x="30" y="30" class="cd-fig" text-anchor="start">Figure 7 — AI first-level support: pipeline with guardrails</text>
+<rect x="30" y="48" width="1140" height="168" rx="10" class="cd-z-app"/>
+<text x="1154" y="70" class="cd-zone cd-zc-app" text-anchor="end">APPLICATION ZONE — INTAKE</text>
+<rect x="50" y="96" width="250" height="100" rx="8" class="cd-box"/>
+<text x="175.0" y="127.5" class="cd-title" text-anchor="middle">Ticket intake</text>
+<text x="175.0" y="144.5" class="cd-sub" text-anchor="middle">web form or customer MCP</text>
+<text x="175.0" y="159.5" class="cd-sub" text-anchor="middle">text · product version · logs</text>
+<text x="175.0" y="174.5" class="cd-sub" text-anchor="middle">signed-in customers only</text>
+<circle cx="66" cy="96" r="11" class="cd-badge"/>
+<text x="66" y="100" class="cd-num" text-anchor="middle">1</text>
+<rect x="330" y="96" width="250" height="100" rx="8" class="cd-guard"/>
+<text x="455.0" y="127.5" class="cd-title" text-anchor="middle">G1 · Entitlement gate</text>
+<text x="455.0" y="144.5" class="cd-sub" text-anchor="middle">does the plan include support?</text>
+<text x="455.0" y="159.5" class="cd-sub" text-anchor="middle">quota and rate limit</text>
+<text x="455.0" y="174.5" class="cd-sub" text-anchor="middle">size and file-type limits</text>
+<circle cx="346" cy="96" r="11" class="cd-badge-g"/>
+<text x="346" y="100" class="cd-num" text-anchor="middle">2</text>
+<rect x="610" y="96" width="250" height="100" rx="8" class="cd-guard"/>
+<text x="735.0" y="127.5" class="cd-title" text-anchor="middle">G2 · Input guardrails</text>
+<text x="735.0" y="144.5" class="cd-sub" text-anchor="middle">normalise · redact secrets and PII</text>
+<text x="735.0" y="159.5" class="cd-sub" text-anchor="middle">injection + scope classifiers</text>
+<text x="735.0" y="174.5" class="cd-sub" text-anchor="middle">reject · flag for review · pass</text>
+<circle cx="626" cy="96" r="11" class="cd-badge-g"/>
+<text x="626" y="100" class="cd-num" text-anchor="middle">3</text>
+<rect x="890" y="96" width="250" height="100" rx="8" class="cd-box"/>
+<text x="1015.0" y="127.5" class="cd-title" text-anchor="middle">Ticket stored, job queued</text>
+<text x="1015.0" y="144.5" class="cd-sub" text-anchor="middle">original kept for operators</text>
+<text x="1015.0" y="159.5" class="cd-sub" text-anchor="middle">redacted copy for the AI</text>
+<text x="1015.0" y="174.5" class="cd-sub" text-anchor="middle">status: analysing</text>
+<circle cx="906" cy="96" r="11" class="cd-badge"/>
+<text x="906" y="100" class="cd-num" text-anchor="middle">4</text>
+<path d="M300,146 L330,146" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M580,146 L610,146" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M860,146 L890,146" class="cd-line" marker-end="url(#ah-pipe)"/>
+<rect x="30" y="246" width="1140" height="226" rx="10" class="cd-z-ai"/>
+<text x="1154" y="268" class="cd-zone cd-zc-ai" text-anchor="end">AI SUPPORT ENCLAVE — NO INTERNET · NO CUSTOMER DATABASE · READ-ONLY TOOLS</text>
+<rect x="42" y="282" width="444" height="172" rx="8" class="cd-grp"/>
+<rect x="714" y="282" width="444" height="172" rx="8" class="cd-grp"/>
+<text x="54" y="444" class="cd-lab" text-anchor="start">internal context — may read the private source</text>
+<text x="726" y="444" class="cd-lab" text-anchor="start">public context only — never sees private source</text>
+<rect x="50" y="304" width="204" height="106" rx="8" class="cd-box"/>
+<text x="152.0" y="338.5" class="cd-title" text-anchor="middle">Retrieve</text>
+<text x="152.0" y="355.5" class="cd-sub" text-anchor="middle">public docs + known issues</text>
+<text x="152.0" y="370.5" class="cd-sub" text-anchor="middle">source at the customer&#x27;s</text>
+<text x="152.0" y="385.5" class="cd-sub" text-anchor="middle">release tag (read-only)</text>
+<circle cx="66" cy="304" r="11" class="cd-badge"/>
+<text x="66" y="308" class="cd-num" text-anchor="middle">5</text>
+<rect x="274" y="304" width="204" height="106" rx="8" class="cd-box"/>
+<text x="376.0" y="338.5" class="cd-title" text-anchor="middle">Analyst</text>
+<text x="376.0" y="355.5" class="cd-sub" text-anchor="middle">usage error or product bug?</text>
+<text x="376.0" y="370.5" class="cd-sub" text-anchor="middle">writes a structured finding</text>
+<text x="376.0" y="385.5" class="cd-sub" text-anchor="middle">with file:line pointers</text>
+<circle cx="290" cy="304" r="11" class="cd-badge"/>
+<text x="290" y="308" class="cd-num" text-anchor="middle">6</text>
+<rect x="498" y="304" width="204" height="106" rx="8" class="cd-guard"/>
+<text x="600.0" y="338.5" class="cd-title" text-anchor="middle">G3 · Bridge</text>
+<text x="600.0" y="355.5" class="cd-sub" text-anchor="middle">schema-only hand-over:</text>
+<text x="600.0" y="370.5" class="cd-sub" text-anchor="middle">class · confidence · doc IDs</text>
+<text x="600.0" y="385.5" class="cd-sub" text-anchor="middle">no source text crosses</text>
+<circle cx="514" cy="304" r="11" class="cd-badge-g"/>
+<text x="514" y="308" class="cd-num" text-anchor="middle">7</text>
+<rect x="722" y="304" width="204" height="106" rx="8" class="cd-box"/>
+<text x="824.0" y="338.5" class="cd-title" text-anchor="middle">Responder</text>
+<text x="824.0" y="355.5" class="cd-sub" text-anchor="middle">sees public docs only</text>
+<text x="824.0" y="370.5" class="cd-sub" text-anchor="middle">drafts the customer reply</text>
+<text x="824.0" y="385.5" class="cd-sub" text-anchor="middle">with links into the docs</text>
+<circle cx="738" cy="304" r="11" class="cd-badge"/>
+<text x="738" y="308" class="cd-num" text-anchor="middle">8</text>
+<rect x="946" y="304" width="204" height="106" rx="8" class="cd-guard"/>
+<text x="1048.0" y="338.5" class="cd-title" text-anchor="middle">G4 · Output guardrails</text>
+<text x="1048.0" y="355.5" class="cd-sub" text-anchor="middle">secrets · source fingerprint</text>
+<text x="1048.0" y="370.5" class="cd-sub" text-anchor="middle">canaries · internal symbols</text>
+<text x="1048.0" y="385.5" class="cd-sub" text-anchor="middle">grounding · policy judge</text>
+<circle cx="962" cy="304" r="11" class="cd-badge-g"/>
+<text x="962" y="308" class="cd-num" text-anchor="middle">9</text>
+<path d="M254,357 L274,357" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M478,357 L498,357" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M702,357 L722,357" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M926,357 L946,357" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M1015,196 L1015,231 L152,231 L152,304" class="cd-line" marker-end="url(#ah-pipe)"/>
+<rect x="446.8" y="223" width="306.4" height="16" rx="3" class="cd-lbg"/>
+<text x="600" y="235" class="cd-lab" text-anchor="middle">the enclave pulls the job (outbound connection only)</text>
+<rect x="30" y="502" width="1140" height="286" rx="10" class="cd-z-app"/>
+<text x="1154" y="524" class="cd-zone cd-zc-app" text-anchor="end">APPLICATION ZONE + OPERATORS — RELEASE</text>
+<rect x="50" y="588" width="204" height="110" rx="8" class="cd-guard"/>
+<text x="152.0" y="624.5" class="cd-title" text-anchor="middle">G5 · Release gate</text>
+<text x="152.0" y="641.5" class="cd-sub" text-anchor="middle">routes by class,</text>
+<text x="152.0" y="656.5" class="cd-sub" text-anchor="middle">confidence and</text>
+<text x="152.0" y="671.5" class="cd-sub" text-anchor="middle">guard report</text>
+<circle cx="66" cy="588" r="11" class="cd-badge-g"/>
+<text x="66" y="592" class="cd-num" text-anchor="middle">10</text>
+<rect x="320" y="540" width="400" height="62" rx="8" class="cd-box"/>
+<text x="520.0" y="567.5" class="cd-title" text-anchor="middle">Usage, configuration or known issue</text>
+<text x="520.0" y="584.5" class="cd-sub" text-anchor="middle">confident and all guards green → sent automatically *</text>
+<rect x="320" y="616" width="400" height="62" rx="8" class="cd-opsbox"/>
+<text x="520.0" y="643.5" class="cd-title" text-anchor="middle">Low confidence, guard flag or documentation gap</text>
+<text x="520.0" y="660.5" class="cd-sub" text-anchor="middle">review queue → an operator approves, edits or rejects</text>
+<rect x="320" y="692" width="400" height="62" rx="8" class="cd-opsbox"/>
+<text x="520.0" y="719.5" class="cd-title" text-anchor="middle">Suspected bug or security issue</text>
+<text x="520.0" y="736.5" class="cd-sub" text-anchor="middle">operators alerted at once · customer gets an acknowledgement</text>
+<rect x="776" y="588" width="180" height="110" rx="8" class="cd-box"/>
+<text x="866.0" y="624.5" class="cd-title" text-anchor="middle">Sent log + audit</text>
+<text x="866.0" y="641.5" class="cd-sub" text-anchor="middle">every outgoing reply</text>
+<text x="866.0" y="656.5" class="cd-sub" text-anchor="middle">visible to operators</text>
+<text x="866.0" y="671.5" class="cd-sub" text-anchor="middle">with its guard report</text>
+<rect x="1000" y="588" width="150" height="110" rx="8" class="cd-ext"/>
+<text x="1075.0" y="624.5" class="cd-title" text-anchor="middle">Customer</text>
+<text x="1075.0" y="641.5" class="cd-sub" text-anchor="middle">portal · MCP</text>
+<text x="1075.0" y="656.5" class="cd-sub" text-anchor="middle">e-mail notice</text>
+<text x="1075.0" y="671.5" class="cd-sub" text-anchor="middle">marked as AI reply</text>
+<path d="M254,643 L287,643 L287,571 L320,571" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M720,571 L748,571 L748,643 L776,643" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M254,643 L287,643 L287,647 L320,647" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M720,647 L748,647 L748,643 L776,643" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M254,643 L287,643 L287,723 L320,723" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M720,723 L748,723 L748,643 L776,643" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M956,643 L1000,643" class="cd-line" marker-end="url(#ah-pipe)"/>
+<path d="M1048,410 L1048,487 L152,487 L152,588" class="cd-line" marker-end="url(#ah-pipe)"/>
+<rect x="424.0" y="479" width="352.0" height="16" rx="3" class="cd-lbg"/>
+<text x="600" y="491" class="cd-lab" text-anchor="middle">result: finding (pointers only) + draft reply + guard report</text>
+<text x="46" y="776" class="cd-note" text-anchor="start">* Starts switched off: in shadow mode every reply is reviewed. Enabled later per class and plan, with a global kill switch. Operator edits feed the evaluation set.</text>
+<text x="30" y="814" class="cd-note" text-anchor="start">Red outline G1–G5: guardrails. Green: an operator decides. The model that writes to the customer (8) never has the private source in its context.</text>
+</svg>

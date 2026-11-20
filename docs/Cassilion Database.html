@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cassilion Database</title>
+<meta name="description" content="Cassilion is a distributed multi-model database written in C++17: tables, full-text, vectors, geospatial data, property graphs and rule-based reasoning in one engine.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout idea: one dark technical ground, a single amber signal colour for everything that is Cassilion,
+     a cool blue for everything that is not, mono labels for terms of art. */
+  --bg:#090b0f;
+  --surface:#0e1218;
+  --card:#131821;
+  --line:#232a38;
+  --line-strong:#39435a;
+  --text:#edebe5;
+  --muted:#a6adbb;
+  --dim:#838b9c;
+  --accent:#f2b441;
+  --accent-soft:rgba(242,180,65,.11);
+  --accent-ink:#1b1304;
+  --cool:#86b4e6;
+  --ok:#5ccba6;
+  --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --font-body:"Geist","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-mono:"Geist Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --radius:14px;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+h1,h2,h3,p,ul,ol,dl,dd,figure{margin:0}
+ul,ol{padding:0;list-style:none}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;letter-spacing:-.02em}
+h1{font-size:clamp(2.5rem,5.4vw,4.3rem);line-height:1.02;font-weight:700}
+h2{font-size:clamp(1.8rem,3.3vw,2.6rem);line-height:1.1;font-weight:650}
+h3{font-size:1.15rem;line-height:1.25;font-weight:600;letter-spacing:-.01em}
+code,.mono{font-family:var(--font-mono)}
+code{font-size:.86em;background:#1a2030;border:1px solid var(--line);padding:.08em .38em;border-radius:5px;white-space:nowrap}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+section{padding:92px 0;scroll-margin-top:64px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.eyebrow{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.lead{color:var(--muted);font-size:1.1rem;max-width:62ch}
+.head{display:flex;flex-direction:column;gap:14px;margin-bottom:44px}
+
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 20px;border-radius:10px;font-weight:600;font-size:.95rem;text-decoration:none;border:1px solid transparent;cursor:pointer;font-family:var(--font-body)}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{background:#f7c466}
+.btn-ghost{border-color:var(--line-strong);color:var(--text);background:transparent}
+.btn-ghost:hover{border-color:var(--muted)}
+.btn-sm{min-height:38px;padding:0 14px;font-size:.875rem}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:20;background:rgba(9,11,15,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;gap:28px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--font-display);font-weight:700;font-size:1.2rem;letter-spacing:-.02em}
+.brand svg{width:28px;height:28px}
+.nav nav{display:flex;gap:22px;margin-left:auto}
+.nav nav a{color:var(--muted);text-decoration:none;font-size:.9rem}
+.nav nav a:hover{color:var(--text)}
+@media (max-width:900px){.nav nav{display:none}.nav .btn{margin-left:auto}}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding:76px 0 64px}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(to right,var(--line) 1px,transparent 1px),linear-gradient(to bottom,var(--line) 1px,transparent 1px);background-size:56px 56px;opacity:.5;-webkit-mask-image:radial-gradient(ellipse 85% 75% at 72% 0%,#000 15%,transparent 72%);mask-image:radial-gradient(ellipse 85% 75% at 72% 0%,#000 15%,transparent 72%);pointer-events:none}
+.hero::after{content:"";position:absolute;right:-8%;top:-35%;width:58%;height:125%;background:radial-gradient(closest-side,rgba(242,180,65,.17),transparent 70%);pointer-events:none}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.hero-copy{display:flex;flex-direction:column;gap:24px;align-items:flex-start}
+.pill{display:inline-flex;align-items:center;gap:9px;font-family:var(--font-mono);font-size:.75rem;letter-spacing:.04em;color:var(--muted);border:1px solid var(--line-strong);border-radius:999px;padding:6px 12px;background:rgba(19,24,33,.7)}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero .lead{font-size:1.16rem}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+
+.merge{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch}
+.merge-col{display:flex;flex-direction:column;gap:10px}
+.merge-cap{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.merge-col.core .merge-cap{color:var(--accent)}
+.stack-list{display:flex;flex-direction:column;gap:8px;flex:1}
+.stack-list li{flex:1;display:flex;flex-direction:column;justify-content:center;border:1px dashed var(--line-strong);border-radius:10px;padding:9px 12px;background:rgba(14,18,24,.75)}
+.stack-list b{font-weight:500;font-size:.9rem}
+.stack-list span{color:var(--dim);font-size:.78rem}
+.merge-arrow{display:flex;align-items:center;color:var(--accent)}
+.merge-arrow svg{width:26px;height:26px}
+.core-box{flex:1;display:flex;flex-direction:column;gap:8px;border:1px solid rgba(242,180,65,.55);border-radius:12px;padding:12px;background:linear-gradient(180deg,rgba(242,180,65,.09),rgba(19,24,33,.9) 60%);box-shadow:0 0 60px -18px rgba(242,180,65,.45)}
+.core-row{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:rgba(9,11,15,.6);font-family:var(--font-mono);font-size:.74rem;color:var(--muted)}
+.core-models{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.core-models span{display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(242,180,65,.13);border:1px solid rgba(242,180,65,.3);font-size:.86rem;font-weight:500;padding:8px 4px}
+.merge-note{font-size:.78rem;color:var(--dim);line-height:1.45}
+.merge-col.core .merge-note{color:var(--muted)}
+@media (max-width:980px){.hero .wrap{grid-template-columns:1fr}}
+@media (max-width:520px){.merge{grid-template-columns:1fr}.merge-arrow{justify-content:center}.merge-arrow svg{transform:rotate(90deg)}}
+
+/* facts */
+.facts{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface);padding:0}
+.facts ul{display:grid;grid-template-columns:repeat(5,1fr)}
+.facts li{padding:26px 20px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.facts li:first-child{border-left:0;padding-left:0}
+.facts b{font-family:var(--font-display);font-size:2.3rem;line-height:1;font-weight:700;font-variant-numeric:tabular-nums}
+.facts span{color:var(--muted);font-size:.875rem;line-height:1.4}
+@media (max-width:900px){.facts ul{grid-template-columns:repeat(2,1fr)}.facts li{border-left:0;padding-left:0;border-top:1px solid var(--line)}.facts li:nth-child(-n+2){border-top:0}}
+
+/* cards */
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:960px){.g3,.g4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.g3,.g4{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:12px}
+.card p{color:var(--muted);font-size:.95rem}
+.verb{font-family:var(--font-display);font-size:1.7rem;font-weight:650;letter-spacing:-.02em;line-height:1}
+.need{color:var(--text)!important;font-weight:500}
+.tag{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+
+.signals{margin-top:16px}
+.signal{background:transparent;border:1px solid var(--line);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:10px}
+.signal p{color:var(--muted);font-size:.9rem}
+.signal a{font-family:var(--font-mono);font-size:.72rem;color:var(--cool);text-decoration:none;margin-top:auto}
+.signal a:hover{text-decoration:underline}
+
+/* bento */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.bento .card{grid-column:span 2}
+.bento .w3{grid-column:span 3}
+@media (max-width:960px){.bento{grid-template-columns:repeat(2,1fr)}.bento .card,.bento .w3{grid-column:span 1}}
+@media (max-width:620px){.bento{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:6px}
+.chips span{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);border:1px solid var(--line-strong);border-radius:6px;padding:3px 8px}
+.engines{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.9rem}
+.engines dt{font-family:var(--font-mono);font-size:.8rem;color:var(--accent)}
+.engines dd{color:var(--muted)}
+
+/* flow */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.step{padding:24px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:10px;position:relative}
+.step:first-child{border-left:0}
+.step .num{font-family:var(--font-mono);font-size:.75rem;color:var(--accent)}
+.step p{color:var(--muted);font-size:.93rem}
+.step small{font-family:var(--font-mono);font-size:.72rem;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+.flow-out{margin-top:16px;border:1px solid rgba(242,180,65,.45);background:var(--accent-soft);border-radius:var(--radius);padding:20px 24px;display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center}
+.flow-out .states{display:flex;gap:8px;flex-wrap:wrap}
+.flow-out .states span{font-family:var(--font-mono);font-size:.82rem;border:1px solid rgba(242,180,65,.5);border-radius:6px;padding:4px 10px}
+.flow-out p{color:var(--muted);font-size:.93rem;flex:1;min-width:260px}
+@media (max-width:900px){.flow{grid-template-columns:1fr 1fr}.step:nth-child(3){border-left:0}.step:nth-child(n+3){border-top:1px solid var(--line)}}
+@media (max-width:560px){.flow{grid-template-columns:1fr}.step{border-left:0;border-top:1px solid var(--line)}.step:first-child{border-top:0}}
+
+/* charts */
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:980px){.charts{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.chart-scroll{overflow-x:auto}
+.chart-scroll svg{display:block;width:100%;min-width:470px;height:auto}
+.chart-card figcaption{color:var(--muted);font-size:.86rem}
+.c-frame{fill:#0e1219;stroke:var(--line)}
+.c-tint{fill:rgba(242,180,65,.055)}
+.c-mid{stroke:var(--line-strong);stroke-dasharray:4 5}
+.c-q{font-family:var(--font-mono);font-size:10px;letter-spacing:.09em;fill:var(--dim);text-transform:uppercase}
+.c-tick{font-family:var(--font-mono);font-size:10.5px;fill:var(--dim)}
+.c-axis{font-family:var(--font-mono);font-size:11px;fill:var(--muted);letter-spacing:.04em}
+.c-dot{fill:var(--cool);stroke:#0e1219;stroke-width:2}
+.c-lab{font-family:var(--font-body);font-size:12px;fill:var(--text);paint-order:stroke;stroke:#0e1219;stroke-width:4px;stroke-linejoin:round}
+.c-me-halo{fill:rgba(242,180,65,.16)}
+.c-me-ring{fill:#0e1219;stroke:var(--accent);stroke-width:2.6}
+.c-me-core{fill:var(--accent)}
+.c-me-lab{font-family:var(--font-display);font-size:14px;font-weight:700;fill:var(--accent);paint-order:stroke;stroke:#0e1219;stroke-width:4px}
+.c-me-sub{font-family:var(--font-mono);font-size:9.5px;fill:var(--muted);paint-order:stroke;stroke:#0e1219;stroke-width:4px}
+.legend{display:flex;flex-wrap:wrap;gap:10px 26px;margin:20px 0 0;color:var(--muted);font-size:.88rem}
+.legend span{display:inline-flex;align-items:center;gap:9px}
+.lg-me{width:14px;height:14px;border-radius:50%;border:2.5px solid var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.lg-ot{width:11px;height:11px;border-radius:50%;background:var(--cool)}
+.reading{margin-top:16px}
+.reading .card{gap:8px}
+.reading b{font-weight:600;color:var(--text)}
+
+/* table */
+.table-scroll{position:relative;overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
+td{position:relative}
+table{border-collapse:collapse;width:100%;min-width:1020px;font-size:.9rem}
+th,td{padding:13px 10px;border-bottom:1px solid var(--line);text-align:center}
+thead th{font-family:var(--font-body);font-weight:500;font-size:.8rem;color:var(--muted);vertical-align:bottom;line-height:1.3}
+tbody th{text-align:left;font-weight:500;padding-left:20px;min-width:230px;position:sticky;left:0;background:var(--card)}
+thead th:first-child{position:sticky;left:0;background:var(--card);text-align:left;padding-left:20px}
+tbody th small{display:block;color:var(--dim);font-weight:400;font-size:.78rem}
+tr:last-child th,tr:last-child td{border-bottom:0}
+.me{background:rgba(242,180,65,.07)}
+thead th.me{color:var(--accent);font-family:var(--font-display);font-weight:700;font-size:.95rem}
+.m{display:inline-block;vertical-align:middle}
+.m-2{width:13px;height:13px;border-radius:50%;background:var(--text)}
+.m-1{width:13px;height:13px;border-radius:50%;background:linear-gradient(90deg,var(--muted) 50%,transparent 50%);box-shadow:inset 0 0 0 1.5px var(--muted)}
+.m-0{width:11px;height:2px;border-radius:1px;background:var(--line-strong)}
+td.me .m-2{background:var(--accent)}
+tr.score td,tr.score th{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--muted);background:var(--surface)}
+tr.score td.me{color:var(--accent);font-weight:600;background:rgba(242,180,65,.1)}
+.notes{margin-top:18px;color:var(--dim);font-size:.84rem;display:flex;flex-direction:column;gap:6px;max-width:92ch}
+.notes .key{display:flex;flex-wrap:wrap;gap:8px 22px;color:var(--muted)}
+.notes .key span{display:inline-flex;align-items:center;gap:8px}
+
+/* security */
+.sec .card h3{display:flex;align-items:center;gap:10px}
+.sec .card svg{width:20px;height:20px;flex:none;color:var(--accent)}
+.aside{margin-top:16px;border-left:2px solid var(--line-strong);padding:4px 0 4px 18px;color:var(--muted);font-size:.92rem;max-width:78ch}
+.aside a{color:var(--cool)}
+
+/* status */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:900px){.two{grid-template-columns:1fr}}
+.list li{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:11px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.94rem;align-items:start}
+.list li:first-child{border-top:0;padding-top:0}
+.x{width:16px;height:16px;margin-top:4px;color:var(--dim)}
+.st{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:3px 8px;white-space:nowrap;margin-top:2px;min-width:56px;text-align:center}
+.st-done{color:var(--ok);border:1px solid rgba(92,203,166,.45)}
+.st-open{color:var(--muted);border:1px dashed var(--line-strong)}
+
+/* access */
+.access{background:linear-gradient(180deg,rgba(242,180,65,.1),var(--card) 55%);border:1px solid rgba(242,180,65,.4);border-radius:20px;padding:44px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+@media (max-width:900px){.access{grid-template-columns:1fr;padding:28px}}
+.access-copy{display:flex;flex-direction:column;gap:18px;align-items:flex-start}
+.access-copy p{color:var(--muted);max-width:56ch}
+.mail{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.mail a.addr{font-family:var(--font-mono);font-size:1rem;color:var(--text);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:4px}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.plan{border:1px solid var(--line-strong);border-radius:12px;padding:16px;background:rgba(9,11,15,.55);display:flex;flex-direction:column;gap:2px}
+.plan b{font-family:var(--font-display);font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.plan span{color:var(--muted);font-size:.84rem}
+
+/* sources + footer */
+.sources ol{columns:2;column-gap:40px;font-size:.86rem;color:var(--muted);counter-reset:s}
+.sources li{break-inside:avoid;padding:5px 0 5px 30px;position:relative;counter-increment:s}
+.sources li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;font-family:var(--font-mono);font-size:.75rem;color:var(--dim);top:8px}
+.sources a{color:var(--cool);text-decoration:none}
+.sources a:hover{text-decoration:underline}
+@media (max-width:760px){.sources ol{columns:1}}
+footer{border-top:1px solid var(--line);padding:36px 0 56px;color:var(--dim);font-size:.84rem}
+footer .wrap{display:flex;flex-direction:column;gap:14px}
+.foot-top{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;color:var(--muted)}
+.foot-top a{text-decoration:none}
+.foot-top a:hover{color:var(--text)}
+.foot-top .brand{font-size:1.05rem;color:var(--text);margin-right:auto}
+</style>
+</head>
+<body id="top">
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="Cassilion, back to top">
+      <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M24.5 7.5A12 12 0 1 0 24.5 24.5" stroke="#f2b441" stroke-width="3" stroke-linecap="round"/><path d="M20.6 11.4A6.5 6.5 0 1 0 20.6 20.6" stroke="#f2b441" stroke-width="3" stroke-linecap="round" opacity=".55"/><circle cx="24" cy="16" r="2.4" fill="#f2b441"/></svg>
+      <span>Cassilion</span>
+    </a>
+    <nav aria-label="Sections">
+      <a href="#why">Why now</a>
+      <a href="#platform">Platform</a>
+      <a href="#positioning">Positioning</a>
+      <a href="#compare">Compare</a>
+      <a href="#security">Security</a>
+      <a href="#status">Status</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#access">Early access</a>
+  </div>
+</header>
+
+<main>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="pill"><i></i>Version 1.0 · release qualification in progress</span>
+      <h1>One database for rows, vectors, graphs <em>and rules.</em></h1>
+      <p class="lead">Cassilion is a distributed multi-model database written in C++17. It stores operational data, searches text and embeddings, evaluates geospatial queries, traverses graphs and reasons over rules. One cluster, one security model, spoken over the Cassandra native protocol v5.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#access">Request early access</a>
+        <a class="btn btn-ghost" href="#positioning">See where it stands</a>
+      </div>
+    </div>
+
+    <div class="merge" role="img" aria-label="Diagram: five separate systems of a typical AI data stack on the left are replaced by one Cassilion cluster on the right.">
+      <div class="merge-col">
+        <p class="merge-cap">A typical AI data stack</p>
+        <ul class="stack-list">
+          <li><b>Wide-column store</b><span>operational writes</span></li>
+          <li><b>Search engine</b><span>keywords, BM25</span></li>
+          <li><b>Vector database</b><span>embeddings</span></li>
+          <li><b>Graph database</b><span>relationships</span></li>
+          <li><b>Rules engine</b><span>policies, inference</span></li>
+        </ul>
+        <p class="merge-note">Five systems, five permission models, sync pipelines in between.</p>
+      </div>
+      <div class="merge-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+      </div>
+      <div class="merge-col core">
+        <p class="merge-cap">Cassilion</p>
+        <div class="core-box">
+          <div class="core-row">ZQL · native protocol v5</div>
+          <div class="core-models">
+            <span>Tables</span><span>Text</span><span>Vectors</span><span>Geo</span><span>Graphs</span><span>Rules</span>
+          </div>
+          <div class="core-row">LSM · B+tree · Columnar</div>
+          <div class="core-row">Replication · Consensus · Audit</div>
+        </div>
+        <p class="merge-note">One cluster, one authorization model, one audit trail.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="facts" aria-label="Cassilion in numbers">
+  <div class="wrap">
+    <ul>
+      <li><b>8</b><span>data capabilities in one engine</span></li>
+      <li><b>3</b><span>storage engines, chosen per table</span></li>
+      <li><b>4</b><span>vector index strategies, plus AUTO</span></li>
+      <li><b>8</b><span>consistency levels, never silently weakened</span></li>
+      <li><b>3</b><span>first-party drivers: C++, Java, Python</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Why now</span>
+      <h2>AI changed what a database is asked to do</h2>
+      <p class="lead">Agents read, write and decide, and every step leaves a trail that someone will have to explain later. Six demands follow from that. Most stacks answer them with several products. Cassilion answers them in one.</p>
+    </div>
+
+    <div class="grid g3">
+      <article class="card">
+        <span class="tag">01</span>
+        <h3 class="verb">Ingest</h3>
+        <p class="need">Agents, events and sensors write all the time.</p>
+        <p>A log-structured engine with a durable commit log takes the writes. A write is acknowledged only after the required commit-log synchronisation. TTL and tombstones are part of the data model.</p>
+      </article>
+      <article class="card">
+        <span class="tag">02</span>
+        <h3 class="verb">Query</h3>
+        <p class="need">Retrieval mixes keywords, meaning, place and relationships.</p>
+        <p>ZQL covers BM25 text search, exact and approximate vector search, hybrid ranking, spatial predicates and graph traversal. Index results are always reconciled with the authoritative rows.</p>
+      </article>
+      <article class="card">
+        <span class="tag">03</span>
+        <h3 class="verb">Trace</h3>
+        <p class="need">Someone will ask how an answer came about.</p>
+        <p>Cross-model queries carry lineage at three levels: none, summary or full. Knowledge-base queries can be explained. Requests emit sampled OpenTelemetry traces.</p>
+      </article>
+      <article class="card">
+        <span class="tag">04</span>
+        <h3 class="verb">Track</h3>
+        <p class="need">Auditors ask who saw or changed what.</p>
+        <p>The security audit log is hash-chained and signed per segment. Column-level permissions and masking are checked for every statement and again for every result page.</p>
+      </article>
+      <article class="card">
+        <span class="tag">05</span>
+        <h3 class="verb">Scale</h3>
+        <p class="need">Data and query volume grow without asking first.</p>
+        <p>Data is partitioned by token and replicated across nodes and data centres. Nodes join, move, are replaced or decommissioned through staged, controlled topology changes.</p>
+      </article>
+      <article class="card">
+        <span class="tag">06</span>
+        <h3 class="verb">Survive</h3>
+        <p class="need">Nodes fail, disks corrupt, networks split.</p>
+        <p>Replication comes with repair and resumable, verified streaming. Corrupt files are detected and quarantined. Backup and restore verify digests before anything is activated.</p>
+      </article>
+    </div>
+
+    <div class="grid g4 signals">
+      <div class="signal">
+        <span class="tag">Retrieval</span>
+        <p>Enterprise RAG teams are converging on hybrid retrieval, and VB Pulse data shows the standalone vector databases losing adoption share.</p>
+        <a href="https://venturebeat.com/data/the-retrieval-rebuild-why-hybrid-retrieval-intent-tripled-as-enterprise-rag-programs-hit-the-scale-wall">VentureBeat, 2026</a>
+      </div>
+      <div class="signal">
+        <span class="tag">Agents</span>
+        <p>Futurum Research sees the large vendors re-architecting for agents that write as well as read: many concurrent sessions, strict consistency, tiered memory.</p>
+        <a href="https://futurumgroup.com/press-release/from-storage-to-action-why-autonomous-ai-is-forcing-a-database-revolution/">Futurum Group, June 2026</a>
+      </div>
+      <div class="signal">
+        <span class="tag">Regulation</span>
+        <p>The EU AI Act obliges high-risk AI systems to log events for traceability. After the Digital Omnibus, stand-alone systems must comply from 2 December 2027.</p>
+        <a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-eu-ai-act-omnibus-vii-deadline-delay-20260/">Cloud Security Alliance, 2026</a>
+      </div>
+      <div class="signal">
+        <span class="tag">Reasoning</span>
+        <p>Regulated industries pair language models with explicit rules and knowledge graphs, so that a decision path can be inspected and audited.</p>
+        <a href="https://www.pymnts.com/artificial-intelligence-2/2026/neurosymbolic-ai-aims-to-make-ai-safe-for-the-c-suite/">PYMNTS, 2026</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="platform" style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Platform</span>
+      <h2>Everything shares one storage, replication and security core</h2>
+      <p class="lead">Indexes, graphs and knowledge bases are built on the same replicated tables. They inherit consistency, TTL, deletion and authorization instead of reinventing them.</p>
+    </div>
+
+    <div class="bento">
+      <article class="card w3">
+        <span class="tag">Tables and storage</span>
+        <h3>Three storage engines, one row model</h3>
+        <p>Keyspaces, tables, composite partition keys and ordered clustering keys with typed columns, collections and user-defined types. Each table picks its engine when it is created.</p>
+        <dl class="engines">
+          <dt>LSM</dt><dd>General and write-heavy operational data</dd>
+          <dt>B+tree</dt><dd>Point, prefix and range lookups</dd>
+          <dt>Columnar</dt><dd>Projections, filters and aggregates</dd>
+        </dl>
+      </article>
+      <article class="card w3">
+        <span class="tag">Consistency</span>
+        <h3>Tunable per request, linearizable where you ask for it</h3>
+        <p>Eight consistency levels from <code>ONE</code> to <code>EACH_QUORUM</code>. Conditional writes such as <code>INSERT … IF NOT EXISTS</code> run on a Paxos protocol and report <code>[applied]</code>. Schema, membership and permissions are ordered by a Raft-backed metadata authority with three or five voters.</p>
+        <div class="chips"><span>QUORUM</span><span>LOCAL_QUORUM</span><span>SERIAL</span><span>Raft metadata</span></div>
+      </article>
+
+      <article class="card">
+        <span class="tag">Search</span>
+        <h3>Structured and full-text</h3>
+        <p>Equality, ranges and collection membership on structured indexes. Lexical search with phrases, proximity, prefix, suffix and substring matching, bounded fuzzy matching and BM25 ranking.</p>
+        <div class="chips"><span>BM25</span><span>Unicode analysis</span><span>stemming</span></div>
+      </article>
+      <article class="card">
+        <span class="tag">Vectors</span>
+        <h3>Exact and approximate</h3>
+        <p>FLAT for exact search, HNSW, IVF-PQ and DiskANN-PQ for approximate search, or AUTO. Candidates are rescored exactly against the stored values.</p>
+        <div class="chips"><span>float32</span><span>float16</span><span>int8</span><span>bit vectors</span><span>cosine</span><span>dot</span><span>L2</span></div>
+      </article>
+      <article class="card">
+        <span class="tag">Hybrid</span>
+        <h3>Fused ranking in one request</h3>
+        <p>A single <code>SEARCH</code> combines up to four retrieval clauses. Results are fused by reciprocal-rank fusion or by explicit weights, with deterministic deduplication.</p>
+        <div class="chips"><span>RRF</span><span>weighted fusion</span><span>top-K</span></div>
+      </article>
+
+      <article class="card">
+        <span class="tag">Geospatial</span>
+        <h3>Geometry and geography types</h3>
+        <p>Exact predicates, distance and nearby top-K, buffers, unions and intersections, CRS transformation, bounded spatial joins and H3 cells.</p>
+        <div class="chips"><span>WKT</span><span>WKB</span><span>GeoJSON</span><span>EPSG</span><span>H3</span></div>
+      </article>
+      <article class="card">
+        <span class="tag">Graphs</span>
+        <h3>Native property graphs</h3>
+        <p>Typed vertices and edges, stored in ordinary replicated tables. Bounded traversals, neighbourhoods, shortest paths and connecting subgraphs. Text, vector and hybrid searches can seed a traversal.</p>
+        <div class="chips"><span>typed labels</span><span>shortest path</span></div>
+      </article>
+      <article class="card">
+        <span class="tag">Reasoning</span>
+        <h3>Knowledge bases in Prolog</h3>
+        <p>Facts and rules in pure Horn logic, published as immutable generations and evaluated across the cluster. Rules read tables, indexes, graphs and spatial data through typed, read-only relations.</p>
+        <div class="chips"><span>unification</span><span>recursion</span><span>tabling</span></div>
+      </article>
+
+      <article class="card w3">
+        <span class="tag">Developers</span>
+        <h3>First-party drivers with the same semantics</h3>
+        <p>C++, Java and Python drivers share one feature catalogue: pooling, token-aware routing, prepared statements, paging, deadlines, cancellation and tracing. A local development profile starts a single loopback node with TLS and authorization still switched on.</p>
+        <div class="chips"><span>C++</span><span>Java</span><span>Python</span><span>OAuth bearer tokens</span></div>
+      </article>
+      <article class="card w3">
+        <span class="tag">Operations</span>
+        <h3>An admin API instead of a bag of scripts</h3>
+        <p>An HTTPS admin API with durable asynchronous operations, snapshots, backup and restore, and OpenTelemetry metrics, traces and logs. Servers run on Windows and Linux. Deployment automation targets IONOS Cloud, Hetzner Cloud, AWS, Azure and Google Cloud; live-provider qualification is in progress.</p>
+        <div class="chips"><span>/admin/v1</span><span>OTLP</span><span>OpenTofu</span><span>Ansible</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="compose">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Cross-model queries</span>
+      <h2>One request across four models</h2>
+      <p class="lead">A rule can read from search, graphs and tables in a single request. There is no glue service in between and no second permission model to keep in step.</p>
+    </div>
+    <ol class="flow">
+      <li class="step"><span class="num">01</span><h3>Seed</h3><p>BM25 and vector retrieval find the entry points.</p><small>Hybrid search</small></li>
+      <li class="step"><span class="num">02</span><h3>Expand</h3><p>A bounded traversal follows typed edges from those hits.</p><small>Property graph</small></li>
+      <li class="step"><span class="num">03</span><h3>Fetch</h3><p>Rows are read with column permissions and masking applied.</p><small>Tables</small></li>
+      <li class="step"><span class="num">04</span><h3>Decide</h3><p>A knowledge base evaluates the collected facts against its rules.</p><small>Reasoning</small></li>
+    </ol>
+    <div class="flow-out">
+      <div class="states" aria-label="Possible outcomes"><span>TRUE</span><span>FALSE</span><span>UNKNOWN</span></div>
+      <p>Every answer states how complete it is and, on request, where it came from. One deadline and one resource budget cover the whole request. Data that cannot be reached is reported as unknown, never as false.</p>
+    </div>
+  </div>
+</section>
+
+<section id="positioning" style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Positioning</span>
+      <h2>Where Cassilion stands</h2>
+      <p class="lead">Two views of the market. The scores are our own assessment, based on public documentation as of November 2026. They are not benchmark results.</p>
+    </div>
+
+    <div class="charts">
+      <figure class="chart-card">
+        <h3>Breadth and expected speed</h3>
+        <div class="chart-scroll"><svg id="chart-speed" viewBox="0 0 560 452" role="img" aria-label="Quadrant chart. Cassilion sits at the far right with all eight capabilities and a high expected speed. ScyllaDB and Google Spanner score similarly on speed with fewer capabilities. Other products sit lower or further left."></svg></div>
+        <figcaption>Horizontal: capabilities available in one engine, counted from the table below (partial support counts half). Vertical: our reading of each performance architecture, judged on native code without a garbage-collected runtime, shared-nothing scale-out, storage layout matched to the workload and vector indexes that work from disk.</figcaption>
+      </figure>
+      <figure class="chart-card">
+        <h3>Operational backbone and AI capability</h3>
+        <div class="chart-scroll"><svg id="chart-ai" viewBox="0 0 560 452" role="img" aria-label="Quadrant chart. Cassilion sits in the upper right, combining a strong operational backbone with the highest AI capability. Google Spanner is closest. Cassandra and ScyllaDB are strong on backbone, Neo4j and SurrealDB on AI capability."></svg></div>
+        <figcaption>Horizontal: ingest, scale-out and resilience as a system of record. Vertical: how much of retrieve, relate, reason and trace the engine covers by itself, without a second product.</figcaption>
+      </figure>
+    </div>
+
+    <div class="legend">
+      <span><i class="lg-me"></i>Cassilion: design target. Version 1.0 is in release qualification; benchmarks will be published afterwards.</span>
+      <span><i class="lg-ot"></i>Other products, as publicly documented</span>
+    </div>
+
+    <div class="grid g3 reading">
+      <div class="card"><span class="tag">Closest in breadth</span><p><b>Google Spanner</b> unites relational, graph, vector, full-text and columnar processing, and now also ships as self-managed Spanner Omni.</p></div>
+      <div class="card"><span class="tag">Benchmark to beat</span><p><b>ScyllaDB</b> has published billion-vector results with single-digit-millisecond P99 latency on its shard-per-core engine.</p></div>
+      <div class="card"><span class="tag">What sets Cassilion apart</span><p>The full breadth, including geospatial depth and <b>rule-based reasoning</b>, on a Cassandra-style replicated core that you run yourself.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Compare</span>
+      <h2>Capability by capability</h2>
+      <p class="lead">The table behind the horizontal axis above. A full mark means the capability is part of the core engine. A half mark means partial support, a separately installed extension, a separate service, or a cloud-only feature.</p>
+    </div>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Capability comparison table, scrolls horizontally">
+      <table id="matrix"><caption class="sr">Capabilities of Cassilion and nine other database products</caption></table>
+    </div>
+    <div class="notes">
+      <div class="key">
+        <span><i class="m m-2"></i>part of the core engine</span>
+        <span><i class="m m-1"></i>partial, extension, separate service or cloud-only</span>
+        <span><i class="m m-0"></i>not available</span>
+      </div>
+      <p>ScyllaDB: vector and full-text search are offered in ScyllaDB Cloud. PostgreSQL: capabilities come from separately installed extensions such as pgvector, PostGIS, Apache AGE and Citus. Apache Cassandra: version 6.0, in alpha, adds ACID transactions. Dedicated knowledge-graph stores also offer inference; they are left out because they do not serve operational workloads.</p>
+      <p>Based on public vendor documentation, November 2026. All product names are trademarks of their owners. Found an error? Write to info@cassilion.com and we will correct it.</p>
+    </div>
+  </div>
+</section>
+
+<section id="security" class="sec" style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Security and longevity</span>
+      <h2>Built for the audit that comes later</h2>
+      <p class="lead">Data written today will be read, questioned and attacked for years. These properties are part of the engine, not add-ons.</p>
+    </div>
+    <div class="grid g3">
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Post-quantum key exchange</h3>
+        <p>TLS 1.3 everywhere. Traffic between nodes and to the admin API requires mutual TLS with the hybrid <code>X25519MLKEM768</code> group. A classical fallback for clients must be permitted explicitly and is audited.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18M3 12h18M3 19h18M9 5v14M15 5v14"/></svg>Column security in the query</h3>
+        <p>Authorization and masking apply to projections, predicates, ordering, grouping and aggregates. A statement with one unauthorized use is rejected as a whole. Indexes cannot bypass the checks.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Identity from your provider</h3>
+        <p>OAuth access tokens are validated against your issuer. Users and groups are provisioned over SCIM. Emergency access is a dual-custodian, time-limited and audited procedure.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a3 3 0 0 1 3-3h4a3 3 0 0 1 0 6h-1"/><path d="M15 12a3 3 0 0 1-3 3H8a3 3 0 0 1 0-6h1"/></svg>Tamper-evident audit</h3>
+        <p>The security audit is durable, hash-chained and signed per segment. High-impact actions wait until their audit record is admitted.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>A durable format with a version</h3>
+        <p>On-disk data uses explicitly versioned, canonical encodings with CRC32C checks and SHA-256-bound manifests. Files are staged and verified before they become visible.</p>
+      </article>
+      <article class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>Licences signed twice</h3>
+        <p>Licence files carry a classical ES256 signature and a post-quantum ML-DSA-65 signature. They are verified offline by the cluster.</p>
+      </article>
+    </div>
+    <p class="aside">Hybrid key exchange protects recorded traffic against later decryption. It is not post-quantum peer authentication, and Cassilion makes no FIPS validation claim. The same hybrid group is arriving across the industry, for example in <a href="https://dev.mysql.com/doc/refman/26.7/en/post-quantum-crytpography-ssl.html">MySQL</a>, <a href="https://mariadb.com/docs/server/security/encryption/data-in-transit-encryption/post-quantum-cryptography-in-mariadb-tls">MariaDB</a> and <a href="https://neo4j.com/docs/operations-manual/current/security/ssl-post-quantum/">Neo4j</a>. Cassilion makes it mandatory between nodes.</p>
+  </div>
+</section>
+
+<section id="status">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Status</span>
+      <h2>What 1.0 is, and what it is not</h2>
+      <p class="lead">Cassilion offers bounded, explicit interfaces. We would rather list the limits here than have you find them in production.</p>
+    </div>
+    <div class="two">
+      <div class="card">
+        <h3>Deliberate boundaries</h3>
+        <ul class="list">
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No promise of full SQL, CQL, Gremlin or PostGIS compatibility. ZQL is a bounded language.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No cross-partition or cross-table transactions. Conditional operations are linearizable within one partition.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No general relational joins, window functions or user-defined functions.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No online conversion between storage engines. The engine is chosen when the table is created.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>No mixed clusters with Apache Cassandra and no reading of its SSTables. Cassilion shares the client protocol, not the internals.</span></li>
+          <li><svg class="x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg><span>Prolog without cut, negation-as-failure, dynamic predicates or side effects.</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Release status, November 2026</h3>
+        <ul class="list">
+          <li><span class="st st-done">Done</span><span>Storage, query, clustering, replication and conditional operations</span></li>
+          <li><span class="st st-done">Done</span><span>LSM, B+tree and columnar engines; structured, lexical, vector, hybrid and spatial search</span></li>
+          <li><span class="st st-done">Done</span><span>Property graph, distributed Prolog and cross-model relations</span></li>
+          <li><span class="st st-done">Done</span><span>Drivers, identity and access, licensing, audit, operations, local development</span></li>
+          <li><span class="st st-open">Open</span><span>Integrated correctness, performance and resilience release campaigns</span></li>
+          <li><span class="st st-open">Open</span><span>Live qualification on the five cloud providers</span></li>
+          <li><span class="st st-open">Open</span><span>Customer release bundles; rolling-upgrade tests need a previous stable release</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="access" style="padding-top:0">
+  <div class="wrap">
+    <div class="access">
+      <div class="access-copy">
+        <span class="eyebrow">Early access</span>
+        <h2>Free to run. Support when you need it.</h2>
+        <p>Cassilion will be free to download after registration, without support. Paid support plans are planned per year. Support is designed for engineers and their AI assistants: connecting your own assistant over MCP is planned.</p>
+        <div class="mail">
+          <a class="addr" href="mailto:info@cassilion.com?subject=Cassilion%20early%20access">info@cassilion.com</a>
+          <button class="btn btn-ghost btn-sm" type="button" id="copy-mail" data-copy="info@cassilion.com">Copy address</button>
+        </div>
+      </div>
+      <div class="plans" aria-label="Planned licence and support plans">
+        <div class="plan"><b>€0</b><span>Licence after registration, no support</span></div>
+        <div class="plan"><b>€10</b><span>Support plan, per year</span></div>
+        <div class="plan"><b>€100</b><span>Support plan, per year</span></div>
+        <div class="plan"><b>€1,000</b><span>Support plan, per year. Enterprise by agreement.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sources" class="sources" style="padding-top:0">
+  <div class="wrap">
+    <div class="head" style="margin-bottom:24px">
+      <span class="eyebrow">Sources</span>
+      <h3>Public material used for the market statements and the comparison</h3>
+    </div>
+    <ol>
+      <li><a href="https://venturebeat.com/data/the-retrieval-rebuild-why-hybrid-retrieval-intent-tripled-as-enterprise-rag-programs-hit-the-scale-wall">VentureBeat: The retrieval rebuild</a></li>
+      <li><a href="https://futurumgroup.com/press-release/from-storage-to-action-why-autonomous-ai-is-forcing-a-database-revolution/">Futurum Group: From Storage to Action</a></li>
+      <li><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-eu-ai-act-omnibus-vii-deadline-delay-20260/">Cloud Security Alliance: EU AI Act high-risk deadline</a></li>
+      <li><a href="https://www.pymnts.com/artificial-intelligence-2/2026/neurosymbolic-ai-aims-to-make-ai-safe-for-the-c-suite/">PYMNTS: Neurosymbolic AI for the C-suite</a></li>
+      <li><a href="https://cloud.google.com/blog/products/databases/spanner-omni-deploy-anywhere-version-of-spanner-is-now-ga">Google Cloud: Spanner Omni, now GA</a></li>
+      <li><a href="https://www.scylladb.com/press-release/scylladb-brings-massive-scale-vector-search-to-real-time-ai/">ScyllaDB: Vector Search general availability</a></li>
+      <li><a href="https://www.hpcwire.com/bigdatawire/this-just-in/scylladb-x-cloud-introduces-high-performance-full-text-search/">ScyllaDB X Cloud: Full-Text Search</a></li>
+      <li><a href="https://cassandra.apache.org/doc/latest/cassandra/vector-search/concepts.html">Apache Cassandra: Vector search concepts</a></li>
+      <li><a href="https://thenewstack.io/apache-cassandra-6-features/">The New Stack: Apache Cassandra 6.0 alpha</a></li>
+      <li><a href="https://www.mongodb.com/products/updates/now-ga-mongodb-search-and-vector-search-for-community-edition/">MongoDB: Search and Vector Search for Community Edition</a></li>
+      <li><a href="https://neo4j.com/docs/cypher-manual/current/indexes/search-indexes/">Neo4j: Search indexes</a></li>
+      <li><a href="https://www.elastic.co/what-is/hybrid-search">Elastic: Hybrid search</a></li>
+      <li><a href="https://thenewstack.io/surrealdb-3-ai-agents/">The New Stack: SurrealDB 3.0</a></li>
+      <li><a href="https://zilliz.com/ai-faq/vector-keyword-filter-hybrid-search">Zilliz: Vector, keyword and filter search in one engine</a></li>
+    </ol>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <a class="brand" href="#top"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true" style="width:22px;height:22px"><path d="M24.5 7.5A12 12 0 1 0 24.5 24.5" stroke="#f2b441" stroke-width="3" stroke-linecap="round"/><path d="M20.6 11.4A6.5 6.5 0 1 0 20.6 20.6" stroke="#f2b441" stroke-width="3" stroke-linecap="round" opacity=".55"/><circle cx="24" cy="16" r="2.4" fill="#f2b441"/></svg><span>Cassilion</span></a>
+      <a href="#platform">Platform</a>
+      <a href="#positioning">Positioning</a>
+      <a href="#status">Status</a>
+      <a href="#top">Imprint</a>
+      <a href="#top">Privacy</a>
+    </div>
+    <p>© 2026 Zuri-AI GmbH. Cassilion is an independent product. Apache Cassandra and Cassandra are trademarks of the Apache Software Foundation, which does not endorse or sponsor Cassilion. Other product names belong to their respective owners.</p>
+  </div>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------
+   Single source for the comparison table and both quadrant charts.
+   caps: 2 = core engine, 1 = partial / extension / separate service, 0 = no.
+   Order of caps follows CAPS. Breadth = sum(caps) / 2.
+   speed, backbone, ai are editorial scores (see captions on the page).
+------------------------------------------------------------------- */
+var CAPS = [
+  ["Scale-out operational store", "partitioned, replicated across data centres"],
+  ["Columnar analytics engine", "projections and aggregates on live data"],
+  ["Full-text search with BM25", "lexical relevance ranking"],
+  ["Vector search", "approximate nearest neighbours"],
+  ["Fused hybrid ranking", "text and vectors in one ranked query"],
+  ["Geospatial types and predicates", "geometry, distance, spatial filters"],
+  ["Property graph traversal", "typed edges, paths"],
+  ["Rule-based reasoning", "logic rules evaluated in the engine"]
+];
+var PRODUCTS = [
+  {id:"cassilion", name:"Cassilion 1.0",          lab:"Cassilion",          caps:[2,2,2,2,2,2,2,2], speed:4.3, sl:"t", backbone:8.4, ai:8.8, al:"l", me:true},
+  {id:"spanner",   name:"Google Spanner",         lab:"Google Spanner",     caps:[2,2,2,2,1,0,2,0], speed:4.2, sl:"r", backbone:9.4, ai:7.0, al:"l"},
+  {id:"mongodb",   name:"MongoDB",                lab:"MongoDB",            caps:[2,0,2,2,2,2,1,0], speed:3.0, sl:"r", backbone:7.8, ai:6.0, al:"t"},
+  {id:"surreal",   name:"SurrealDB 3",            lab:"SurrealDB",          caps:[1,0,2,2,2,2,2,0], speed:3.5, sl:"r", backbone:5.6, ai:7.2, al:"t"},
+  {id:"elastic",   name:"Elasticsearch",          lab:"Elasticsearch",      caps:[1,1,2,2,2,2,0,0], speed:2.7, sl:"l", backbone:6.4, ai:5.6, al:"b"},
+  {id:"neo4j",     name:"Neo4j",                  lab:"Neo4j",              caps:[1,0,2,2,1,1,2,0], speed:2.4, sl:"r", backbone:4.6, ai:6.8, al:"l"},
+  {id:"vector",    name:"Milvus / Qdrant",        lab:"Vector DBs",         caps:[1,0,2,2,2,1,0,0], speed:4.0, sl:"l", backbone:5.2, ai:4.4, al:"b"},
+  {id:"postgres",  name:"PostgreSQL + extensions",lab:"PostgreSQL + ext.",  caps:[1,1,1,1,1,1,1,0], speed:3.0, sl:"l", backbone:5.2, ai:5.8, al:"l"},
+  {id:"scylla",    name:"ScyllaDB",               lab:"ScyllaDB",           caps:[2,0,2,2,1,0,0,0], speed:4.6, sl:"r", backbone:9.4, ai:4.0, al:"l"},
+  {id:"cassandra", name:"Apache Cassandra 5.0",   lab:"Apache Cassandra 5", caps:[2,0,0,2,0,0,0,0], speed:2.7, sl:"l", backbone:9.2, ai:2.6, al:"l"}
+];
+PRODUCTS.forEach(function(p){ p.breadth = p.caps.reduce(function(a,b){return a+b;},0)/2; });
+
+/* ---------- table ---------- */
+(function(){
+  var t = document.getElementById("matrix");
+  var word = ["no","partial","yes"];
+  var h = "<thead><tr><th scope=\"col\">Capability</th>";
+  PRODUCTS.forEach(function(p){ h += "<th scope=\"col\""+(p.me?" class=\"me\"":"")+">"+p.name+"</th>"; });
+  h += "</tr></thead><tbody>";
+  CAPS.forEach(function(c,i){
+    h += "<tr><th scope=\"row\">"+c[0]+"<small>"+c[1]+"</small></th>";
+    PRODUCTS.forEach(function(p){
+      var v = p.caps[i];
+      h += "<td"+(p.me?" class=\"me\"":"")+"><i class=\"m m-"+v+"\"></i><span class=\"sr\">"+word[v]+"</span></td>";
+    });
+    h += "</tr>";
+  });
+  h += "<tr class=\"score\"><th scope=\"row\">Breadth score<small>of 8, partial counts half</small></th>";
+  PRODUCTS.forEach(function(p){ h += "<td"+(p.me?" class=\"me\"":"")+">"+p.breadth.toFixed(1)+"</td>"; });
+  h += "</tr></tbody>";
+  t.insertAdjacentHTML("beforeend", h);
+})();
+
+/* ---------- charts ---------- */
+var NS = "http://www.w3.org/2000/svg";
+function S(tag, attrs, text){
+  var e = document.createElementNS(NS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+function drawChart(id, cfg){
+  var svg = document.getElementById(id);
+  var L = 58, R = 540, T = 22, B = 404;
+  function X(v){ return L + (v - cfg.x.min) / (cfg.x.max - cfg.x.min) * (R - L); }
+  function Y(v){ return B - (v - cfg.y.min) / (cfg.y.max - cfg.y.min) * (B - T); }
+  var mx = X(cfg.x.mid), my = Y(cfg.y.mid);
+
+  svg.appendChild(S("rect", {x:L, y:T, width:R-L, height:B-T, rx:8, "class":"c-frame"}));
+  svg.appendChild(S("rect", {x:mx, y:T+1, width:R-mx-1, height:my-T-1, "class":"c-tint"}));
+  svg.appendChild(S("line", {x1:mx, y1:T, x2:mx, y2:B, "class":"c-mid"}));
+  svg.appendChild(S("line", {x1:L, y1:my, x2:R, y2:my, "class":"c-mid"}));
+
+  svg.appendChild(S("text", {x:L+10, y:T+17, "class":"c-q"}, cfg.q[0]));
+  svg.appendChild(S("text", {x:mx+10, y:T+17, "class":"c-q"}, cfg.q[1]));
+  svg.appendChild(S("text", {x:L+10, y:B-10, "class":"c-q"}, cfg.q[2]));
+  svg.appendChild(S("text", {x:mx+10, y:B-10, "class":"c-q"}, cfg.q[3]));
+
+  (cfg.x.ticks || []).forEach(function(v){
+    svg.appendChild(S("text", {x:X(v), y:B+16, "text-anchor":"middle", "class":"c-tick"}, String(v)));
+  });
+  svg.appendChild(S("text", {x:(L+R)/2, y:B+38, "text-anchor":"middle", "class":"c-axis"}, cfg.x.title));
+  svg.appendChild(S("text", {x:20, y:(T+B)/2, "text-anchor":"middle", transform:"rotate(-90 20 "+((T+B)/2)+")", "class":"c-axis"}, cfg.y.title));
+
+  var pts = PRODUCTS.slice().sort(function(a,b){ return (a.me?1:0) - (b.me?1:0); });
+  pts.forEach(function(p){
+    var x = X(cfg.px(p)), y = Y(cfg.py(p)), pos = cfg.pos(p);
+    var g = S("g", {});
+    g.appendChild(S("title", {}, p.name + ": " + cfg.tip(p)));
+    if (p.me){
+      g.appendChild(S("circle", {cx:x, cy:y, r:17, "class":"c-me-halo"}));
+      g.appendChild(S("circle", {cx:x, cy:y, r:8.5, "class":"c-me-ring"}));
+      g.appendChild(S("circle", {cx:x, cy:y, r:2.8, "class":"c-me-core"}));
+      if (pos === "t"){
+        g.appendChild(S("text", {x:x+17, y:y-36, "text-anchor":"end", "class":"c-me-lab"}, p.lab));
+        g.appendChild(S("text", {x:x+17, y:y-23, "text-anchor":"end", "class":"c-me-sub"}, "design target"));
+      } else {
+        g.appendChild(S("text", {x:x-22, y:y+1, "text-anchor":"end", "class":"c-me-lab"}, p.lab));
+        g.appendChild(S("text", {x:x-22, y:y+14, "text-anchor":"end", "class":"c-me-sub"}, "design target"));
+      }
+    } else {
+      g.appendChild(S("circle", {cx:x, cy:y, r:6, "class":"c-dot"}));
+      var a = {"class":"c-lab"};
+      if (pos === "r"){ a.x = x+11; a.y = y+4; a["text-anchor"] = "start"; }
+      else if (pos === "l"){ a.x = x-11; a.y = y+4; a["text-anchor"] = "end"; }
+      else if (pos === "t"){ a.x = x; a.y = y-12; a["text-anchor"] = "middle"; }
+      else { a.x = x; a.y = y+21; a["text-anchor"] = "middle"; }
+      g.appendChild(S("text", a, p.lab));
+    }
+    svg.appendChild(g);
+  });
+}
+
+drawChart("chart-speed", {
+  x:{min:0, max:8.4, mid:4, ticks:[0,2,4,6,8], title:"Capabilities in one engine (of 8) →"},
+  y:{min:0.8, max:5.2, mid:3.25, title:"Expected speed (performance architecture) →"},
+  q:["Specialised speed","Breadth at speed","Single purpose","Breadth with trade-offs"],
+  px:function(p){ return p.breadth; }, py:function(p){ return p.speed; }, pos:function(p){ return p.sl; },
+  tip:function(p){ return "breadth " + p.breadth.toFixed(1) + " of 8"; }
+});
+drawChart("chart-ai", {
+  x:{min:0, max:10, mid:5, title:"Operational backbone: ingest, scale, resilience →"},
+  y:{min:0, max:10, mid:5, title:"AI capability: retrieve, relate, reason, trace →"},
+  q:["AI features first","AI-ready system of record","Niche","Scale first"],
+  px:function(p){ return p.backbone; }, py:function(p){ return p.ai; }, pos:function(p){ return p.al; },
+  tip:function(p){ return "our assessment, November 2026"; }
+});
+
+/* ---------- copy address ---------- */
+(function(){
+  var b = document.getElementById("copy-mail");
+  if (!b) return;
+  b.addEventListener("click", function(){
+    var done = function(msg){ b.textContent = msg; setTimeout(function(){ b.textContent = "Copy address"; }, 1800); };
+    try {
+      navigator.clipboard.writeText(b.getAttribute("data-copy")).then(function(){ done("Copied"); }, function(){ done("Select the address to copy"); });
+    } catch (e) { done("Select the address to copy"); }
+  });
+})();
+</script>
+</body>
+</html>

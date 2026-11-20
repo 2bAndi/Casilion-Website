@@ -1,0 +1,13 @@
+stateDiagram-v2
+    direction LR
+    [*] --> Community: registration (EUR 0)
+    Community --> Active: checkout completed
+    Active --> Active: renewal paid, or plan change (license re-issued)
+    Active --> PastDue: renewal payment failed
+    PastDue --> Active: payment recovered
+    PastDue --> Community: grace period over
+    Active --> Cancelled: customer cancels
+    Cancelled --> Community: paid period ends
+    Community --> Revoked: abuse or sanctions hit
+    Active --> Revoked: fraud or chargeback
+    Revoked --> [*]

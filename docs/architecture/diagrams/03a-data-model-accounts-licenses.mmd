@@ -1,0 +1,64 @@
+erDiagram
+    direction LR
+    USER ||--o{ MEMBERSHIP : "is member via"
+    ACCOUNT ||--o{ MEMBERSHIP : has
+    ACCOUNT ||--o{ ADDRESS : has
+    ACCOUNT ||--o| TAX_PROFILE : has
+    ACCOUNT ||--o{ SUBSCRIPTION : holds
+    PLAN ||--o{ SUBSCRIPTION : "sold as"
+    SUBSCRIPTION ||--o{ ORDER : "billed by"
+    ACCOUNT ||--o{ ENTITLEMENT : owns
+    PLAN ||--o{ ENTITLEMENT : defines
+    ENTITLEMENT ||--o{ LICENSE : "issued as"
+    ACCOUNT ||--o{ DOWNLOAD : performs
+    RELEASE ||--o{ DOWNLOAD : "fetched in"
+
+    USER {
+        uuid id PK
+        string email UK
+        bool mfa_enabled
+        string locale
+    }
+    ACCOUNT {
+        uuid id PK
+        string kind "individual or company"
+        string display_name
+        string country
+        string status
+    }
+    MEMBERSHIP {
+        string role "owner, billing, technical"
+    }
+    TAX_PROFILE {
+        string vat_id
+        bool vat_id_valid
+    }
+    PLAN {
+        string code PK
+        int price_eur_year
+        string support_level
+        int ticket_quota
+    }
+    SUBSCRIPTION {
+        uuid id PK
+        string provider_ref UK
+        string status
+        date period_end
+    }
+    ENTITLEMENT {
+        uuid id PK
+        date valid_from
+        date valid_until
+        string source "free, paid, manual"
+    }
+    LICENSE {
+        string license_id PK
+        string key_id
+        datetime issued_at
+        datetime revoked_at
+    }
+    RELEASE {
+        string version PK
+        string channel
+        string sha256
+    }

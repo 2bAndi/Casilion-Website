@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 880" width="1200" height="880" class="cdg" role="img" aria-labelledby="t-blk d-blk">
+<title id="t-blk">Cassilion web platform - building blocks and trust zones</title>
+<desc id="d-blk">Internet clients reach a reverse proxy, which fronts a Django modular monolith in the application zone. An isolated AI support enclave pulls jobs through a narrow job API. Operators and the product Git/CI form a separate zone.</desc>
+<style>
+.cdg text{font-family:Arial, "Helvetica Neue", Helvetica, sans-serif;fill:#1c2230}
+.cdg .cd-fig{font-size:15px;font-weight:700;fill:#1c2230}
+.cdg .cd-title{font-size:13px;font-weight:700}
+.cdg .cd-sub{font-size:11.5px;fill:#465064}
+.cdg .cd-zone{font-size:11px;font-weight:700;letter-spacing:.07em}
+.cdg .cd-zc-ext{fill:#5b6577}
+.cdg .cd-zc-app{fill:#2f59b0}
+.cdg .cd-zc-ai{fill:#6540b8}
+.cdg .cd-zc-ops{fill:#23794e}
+.cdg .cd-lab{font-size:11px;fill:#2b3345}
+.cdg .cd-note{font-size:11.5px;fill:#465064}
+.cdg .cd-num{font-size:11.5px;font-weight:700;fill:#ffffff}
+.cdg .cd-badge{fill:#1c2230}
+.cdg .cd-badge-g{fill:#c2255c}
+.cdg .cd-bg{fill:#ffffff}
+.cdg .cd-box{fill:#ffffff;stroke:#5b6577;stroke-width:1.2}
+.cdg .cd-infra{fill:#f6f8fb;stroke:#5b6577;stroke-width:1.2;stroke-dasharray:4 3}
+.cdg .cd-ext{fill:#f1f3f6;stroke:#7c8698;stroke-width:1.2}
+.cdg .cd-prod{fill:#ffffff;stroke:#7c8698;stroke-width:1.2;stroke-dasharray:5 4}
+.cdg .cd-3p{fill:#fff4dc;stroke:#c98a12;stroke-width:1.2}
+.cdg .cd-opsbox{fill:#e8f6ee;stroke:#2e9460;stroke-width:1.2}
+.cdg .cd-z-ext{fill:#f1f3f6;stroke:#9aa3b2;stroke-width:1}
+.cdg .cd-z-app{fill:#eaf1fd;stroke:#3f6fd1;stroke-width:1.2}
+.cdg .cd-z-ai{fill:#f2ecfe;stroke:#7a52d1;stroke-width:1.2}
+.cdg .cd-z-ops{fill:#e8f6ee;stroke:#2e9460;stroke-width:1.2}
+.cdg .cd-grp{fill:none;stroke:#7a52d1;stroke-width:1;stroke-dasharray:3 3}
+.cdg .cd-guard{fill:#fff5f8;stroke:#c2255c;stroke-width:2}
+.cdg .cd-line{stroke:#3d4658;stroke-width:1.4;fill:none}
+.cdg .cd-dash{stroke-dasharray:5 4}
+.cdg .cd-head{fill:#3d4658}
+.cdg .cd-lbg{fill:#ffffff;opacity:.92}
+</style>
+<defs><marker id="ah-blk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="cd-head"/></marker></defs>
+<rect x="0" y="0" width="1200" height="880" class="cd-bg"/>
+<text x="30" y="30" class="cd-fig" text-anchor="start">Figure 2 — Building blocks and trust zones</text>
+<rect x="30" y="46" width="1140" height="96" rx="10" class="cd-z-ext"/>
+<text x="46" y="66" class="cd-zone cd-zc-ext" text-anchor="start">INTERNET (UNTRUSTED)</text>
+<rect x="46" y="78" width="360" height="50" rx="8" class="cd-box"/>
+<text x="226.0" y="99.5" class="cd-title" text-anchor="middle">Browsers</text>
+<text x="226.0" y="116.5" class="cd-sub" text-anchor="middle">visitors · customers</text>
+<path d="M226,128 L226,162" class="cd-line" marker-end="url(#ah-blk)"/>
+<rect x="420" y="78" width="360" height="50" rx="8" class="cd-box"/>
+<text x="600.0" y="99.5" class="cd-title" text-anchor="middle">MCP clients</text>
+<text x="600.0" y="116.5" class="cd-sub" text-anchor="middle">customers&#x27; AI agents</text>
+<path d="M600,128 L600,162" class="cd-line" marker-end="url(#ah-blk)"/>
+<rect x="794" y="78" width="360" height="50" rx="8" class="cd-box"/>
+<text x="974.0" y="99.5" class="cd-title" text-anchor="middle">Payment provider</text>
+<text x="974.0" y="116.5" class="cd-sub" text-anchor="middle">signed webhooks</text>
+<path d="M974,128 L974,162" class="cd-line" marker-end="url(#ah-blk)"/>
+<rect x="30" y="162" width="1140" height="44" rx="8" class="cd-box"/>
+<text x="46" y="189" class="cd-title" text-anchor="start">Edge — reverse proxy (Caddy)</text>
+<text x="262" y="189" class="cd-sub" text-anchor="start">TLS · rate limits · body-size limits · security headers / CSP · separate host names: www · mcp · ops</text>
+<path d="M600,206 L600,232" class="cd-line" marker-end="url(#ah-blk)"/>
+<rect x="30" y="232" width="1140" height="304" rx="10" class="cd-z-app"/>
+<text x="46" y="254" class="cd-zone cd-zc-app" text-anchor="start">APPLICATION ZONE — DJANGO MODULAR MONOLITH (ONE CODEBASE, ONE IMAGE)</text>
+<rect x="46" y="268" width="208" height="72" rx="8" class="cd-box"/>
+<text x="150.0" y="293.0" class="cd-title" text-anchor="middle">web</text>
+<text x="150.0" y="310.0" class="cd-sub" text-anchor="middle">public site · docs · i18n</text>
+<text x="150.0" y="325.0" class="cd-sub" text-anchor="middle">pricing · legal pages</text>
+<rect x="270" y="268" width="208" height="72" rx="8" class="cd-box"/>
+<text x="374.0" y="293.0" class="cd-title" text-anchor="middle">accounts</text>
+<text x="374.0" y="310.0" class="cd-sub" text-anchor="middle">users · organisations · roles</text>
+<text x="374.0" y="325.0" class="cd-sub" text-anchor="middle">addresses · MFA · consents</text>
+<rect x="494" y="268" width="208" height="72" rx="8" class="cd-box"/>
+<text x="598.0" y="293.0" class="cd-title" text-anchor="middle">billing</text>
+<text x="598.0" y="310.0" class="cd-sub" text-anchor="middle">plans · orders · subscriptions</text>
+<text x="598.0" y="325.0" class="cd-sub" text-anchor="middle">provider adapter · webhooks</text>
+<rect x="718" y="268" width="208" height="72" rx="8" class="cd-box"/>
+<text x="822.0" y="293.0" class="cd-title" text-anchor="middle">licensing</text>
+<text x="822.0" y="310.0" class="cd-sub" text-anchor="middle">entitlements · signed license</text>
+<text x="822.0" y="325.0" class="cd-sub" text-anchor="middle">files · key ids · revocation</text>
+<rect x="942" y="268" width="208" height="72" rx="8" class="cd-box"/>
+<text x="1046.0" y="293.0" class="cd-title" text-anchor="middle">downloads</text>
+<text x="1046.0" y="310.0" class="cd-sub" text-anchor="middle">release catalogue</text>
+<text x="1046.0" y="325.0" class="cd-sub" text-anchor="middle">expiring links · checksums</text>
+<rect x="46" y="354" width="208" height="72" rx="8" class="cd-box"/>
+<text x="150.0" y="379.0" class="cd-title" text-anchor="middle">support</text>
+<text x="150.0" y="396.0" class="cd-sub" text-anchor="middle">tickets · state machine</text>
+<text x="150.0" y="411.0" class="cd-sub" text-anchor="middle">quotas · release gate</text>
+<rect x="270" y="354" width="208" height="72" rx="8" class="cd-guard"/>
+<text x="374.0" y="379.0" class="cd-title" text-anchor="middle">guard</text>
+<text x="374.0" y="396.0" class="cd-sub" text-anchor="middle">input guardrails: normalise</text>
+<text x="374.0" y="411.0" class="cd-sub" text-anchor="middle">redact · classify · decide</text>
+<rect x="494" y="354" width="208" height="72" rx="8" class="cd-box"/>
+<text x="598.0" y="379.0" class="cd-title" text-anchor="middle">mcp</text>
+<text x="598.0" y="396.0" class="cd-sub" text-anchor="middle">customer MCP · operator MCP</text>
+<text x="598.0" y="411.0" class="cd-sub" text-anchor="middle">OAuth 2.1 resource server</text>
+<rect x="718" y="354" width="208" height="72" rx="8" class="cd-box"/>
+<text x="822.0" y="379.0" class="cd-title" text-anchor="middle">backoffice</text>
+<text x="822.0" y="396.0" class="cd-sub" text-anchor="middle">review queue · sent log</text>
+<text x="822.0" y="411.0" class="cd-sub" text-anchor="middle">bug alerts · kill switch</text>
+<rect x="942" y="354" width="208" height="72" rx="8" class="cd-box"/>
+<text x="1046.0" y="379.0" class="cd-title" text-anchor="middle">audit</text>
+<text x="1046.0" y="396.0" class="cd-sub" text-anchor="middle">append-only event log</text>
+<text x="1046.0" y="411.0" class="cd-sub" text-anchor="middle">who did what, acting as whom</text>
+<text x="46" y="449" class="cd-sub" text-anchor="start">Runtime services</text>
+<rect x="46" y="458" width="208" height="58" rx="8" class="cd-guard"/>
+<text x="150.0" y="483.5" class="cd-title" text-anchor="middle">Job API</text>
+<text x="150.0" y="500.5" class="cd-sub" text-anchor="middle">the only door to the enclave</text>
+<rect x="270" y="458" width="208" height="58" rx="8" class="cd-infra"/>
+<text x="374.0" y="483.5" class="cd-title" text-anchor="middle">PostgreSQL</text>
+<text x="374.0" y="500.5" class="cd-sub" text-anchor="middle">customers · orders · tickets</text>
+<rect x="494" y="458" width="208" height="58" rx="8" class="cd-infra"/>
+<text x="598.0" y="483.5" class="cd-title" text-anchor="middle">Task queue + worker</text>
+<text x="598.0" y="500.5" class="cd-sub" text-anchor="middle">mail · webhooks · issuing</text>
+<rect x="718" y="458" width="208" height="58" rx="8" class="cd-infra"/>
+<text x="822.0" y="483.5" class="cd-title" text-anchor="middle">License signer</text>
+<text x="822.0" y="500.5" class="cd-sub" text-anchor="middle">Ed25519 key, not in the repo</text>
+<rect x="942" y="458" width="208" height="58" rx="8" class="cd-infra"/>
+<text x="1046.0" y="483.5" class="cd-title" text-anchor="middle">Object storage</text>
+<text x="1046.0" y="500.5" class="cd-sub" text-anchor="middle">release artefacts · attachments</text>
+<rect x="30" y="566" width="720" height="276" rx="10" class="cd-z-ai"/>
+<text x="734" y="588" class="cd-zone cd-zc-ai" text-anchor="end">AI SUPPORT ENCLAVE — NO INBOUND PORT · NO INTERNET EGRESS</text>
+<rect x="46" y="602" width="160" height="64" rx="8" class="cd-box"/>
+<text x="126.0" y="623.0" class="cd-title" text-anchor="middle">AI worker</text>
+<text x="126.0" y="640.0" class="cd-sub" text-anchor="middle">pulls and runs jobs</text>
+<text x="126.0" y="655.0" class="cd-sub" text-anchor="middle">counts tokens + cost</text>
+<rect x="220" y="602" width="160" height="64" rx="8" class="cd-box"/>
+<text x="300.0" y="623.0" class="cd-title" text-anchor="middle">Analyst</text>
+<text x="300.0" y="640.0" class="cd-sub" text-anchor="middle">docs + source code</text>
+<text x="300.0" y="655.0" class="cd-sub" text-anchor="middle">→ structured finding</text>
+<rect x="394" y="602" width="160" height="64" rx="8" class="cd-guard"/>
+<text x="474.0" y="623.0" class="cd-title" text-anchor="middle">Bridge</text>
+<text x="474.0" y="640.0" class="cd-sub" text-anchor="middle">schema-only hand-over</text>
+<text x="474.0" y="655.0" class="cd-sub" text-anchor="middle">no source text crosses</text>
+<rect x="568" y="602" width="160" height="64" rx="8" class="cd-box"/>
+<text x="648.0" y="623.0" class="cd-title" text-anchor="middle">Responder</text>
+<text x="648.0" y="640.0" class="cd-sub" text-anchor="middle">public docs only</text>
+<text x="648.0" y="655.0" class="cd-sub" text-anchor="middle">→ draft reply</text>
+<rect x="46" y="682" width="160" height="64" rx="8" class="cd-box"/>
+<text x="126.0" y="703.0" class="cd-title" text-anchor="middle">Evaluation set</text>
+<text x="126.0" y="720.0" class="cd-sub" text-anchor="middle">golden tickets</text>
+<text x="126.0" y="735.0" class="cd-sub" text-anchor="middle">regression runs</text>
+<rect x="220" y="682" width="334" height="64" rx="8" class="cd-box"/>
+<text x="387.0" y="710.5" class="cd-title" text-anchor="middle">LLM runtime (Ollama / vLLM)</text>
+<text x="387.0" y="727.5" class="cd-sub" text-anchor="middle">OpenAI-compatible gateway · model swap by config</text>
+<rect x="568" y="682" width="160" height="64" rx="8" class="cd-guard"/>
+<text x="648.0" y="703.0" class="cd-title" text-anchor="middle">Output guard</text>
+<text x="648.0" y="720.0" class="cd-sub" text-anchor="middle">DLP · fingerprint · canary</text>
+<text x="648.0" y="735.0" class="cd-sub" text-anchor="middle">grounding · policy judge</text>
+<rect x="46" y="762" width="682" height="64" rx="8" class="cd-box"/>
+<text x="387.0" y="790.5" class="cd-title" text-anchor="middle">Knowledge index</text>
+<text x="387.0" y="807.5" class="cd-sub" text-anchor="middle">public corpus: docs, release notes, known issues  ·  internal corpus: source snapshot per release tag, design notes</text>
+<path d="M206,634 L220,634" class="cd-line" marker-end="url(#ah-blk)"/>
+<path d="M380,634 L394,634" class="cd-line" marker-end="url(#ah-blk)"/>
+<path d="M554,634 L568,634" class="cd-line" marker-end="url(#ah-blk)"/>
+<path d="M648,666 L648,682" class="cd-line" marker-end="url(#ah-blk)"/>
+<rect x="780" y="566" width="390" height="276" rx="10" class="cd-z-ops"/>
+<text x="796" y="588" class="cd-zone cd-zc-ops" text-anchor="start">OPERATOR ZONE</text>
+<rect x="796" y="602" width="340" height="64" rx="8" class="cd-box"/>
+<text x="966.0" y="623.0" class="cd-title" text-anchor="middle">Operator workstations</text>
+<text x="966.0" y="640.0" class="cd-sub" text-anchor="middle">browser + operator MCP client</text>
+<text x="966.0" y="655.0" class="cd-sub" text-anchor="middle">VPN / allow-list + MFA</text>
+<rect x="796" y="682" width="340" height="64" rx="8" class="cd-box"/>
+<text x="966.0" y="710.5" class="cd-title" text-anchor="middle">Notifications</text>
+<text x="966.0" y="727.5" class="cd-sub" text-anchor="middle">e-mail + push on suspected bug / security</text>
+<rect x="796" y="762" width="340" height="64" rx="8" class="cd-box"/>
+<text x="966.0" y="790.5" class="cd-title" text-anchor="middle">Product Git + CI</text>
+<text x="966.0" y="807.5" class="cd-sub" text-anchor="middle">private repo · issues · signed release builds</text>
+<path d="M126,602 L126,516" class="cd-line" marker-end="url(#ah-blk)"/>
+<rect x="135" y="543" width="272.2" height="16" rx="3" class="cd-lbg"/>
+<text x="140" y="555" class="cd-lab" text-anchor="start">outbound HTTPS only — claims job, posts result</text>
+<path d="M900,536 L900,566" class="cd-line" marker-end="url(#ah-blk)" marker-start="url(#ah-blk)"/>
+<rect x="740.5" y="543" width="152.5" height="16" rx="3" class="cd-lbg"/>
+<text x="888" y="555" class="cd-lab" text-anchor="end">review · approve · alerts</text>
+<path d="M728,794 L796,794" class="cd-line" marker-end="url(#ah-blk)"/>
+<path d="M1136,794 L1162,794 L1162,487 L1150,487" class="cd-line" marker-end="url(#ah-blk)"/>
+<rect x="996.8" y="543" width="158.2" height="16" rx="3" class="cd-lbg"/>
+<text x="1150" y="555" class="cd-lab" text-anchor="end">CI publishes signed builds</text>
+<text x="30" y="866" class="cd-note" text-anchor="start">Red outline: guardrail or controlled crossing point. Dashed: runtime services. Arrows point from the side that opens the connection: the enclave fetches jobs and repo snapshots itself; nothing connects into it.</text>
+</svg>

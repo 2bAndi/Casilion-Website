@@ -1,0 +1,70 @@
+{% load static cassilion %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Cassilion{% endblock %}</title>
+  {% if SITE_NOINDEX %}<meta name="robots" content="noindex, nofollow">{% endif %}
+  {% block meta %}{% endblock %}
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  {% block styles %}<link rel="stylesheet" href="{% static 'css/site.css' %}">{% endblock %}
+  {% block extra_head %}{% endblock %}
+</head>
+<body id="top">
+<a class="skip" href="#main">Skip to content</a>
+
+{# One header for the whole site. The home page swaps the links for its section anchors. #}
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="{% url 'core:home' %}" aria-label="Cassilion, home">
+      {% include "_brand.html" %}
+    </a>
+    <nav aria-label="{% block nav_label %}Main{% endblock %}">
+      {% block nav %}
+      <a href="{% url 'core:home' %}">Product</a>
+      <a href="{% url 'core:docs' %}"{% nav_current 'core:docs' %}>Documentation</a>
+      <a href="{% url 'billing:pricing' %}"{% nav_current 'billing:pricing' %}>Plans</a>
+      {% if current_account %}<a href="{% url 'accounts:dashboard' %}"{% nav_current 'accounts:dashboard' %}>Customer area</a>{% endif %}
+      {% if user.is_staff %}<a href="{% url 'backoffice:dashboard' %}"{% nav_current 'backoffice:dashboard' %}>Backoffice</a>{% endif %}
+      {% endblock %}
+    </nav>
+    <div class="tools">
+      {% if user.is_authenticated %}
+        {% if current_account %}<a href="{% url 'accounts:dashboard' %}">{{ current_account.name }}</a>{% endif %}
+        <form method="post" action="{% url 'account_logout' %}">{% csrf_token %}<button class="link" type="submit">Sign out</button></form>
+      {% else %}
+        <a href="{% url 'account_login' %}">Sign in</a>
+        <a class="btn btn-primary btn-sm" href="{% url 'account_signup' %}">Register</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+{% block shell %}
+<div class="page-band">{% block band %}{% endblock %}</div>
+<main id="main" class="wrap app-main">
+  {% if messages %}
+    {% for message in messages %}<div class="notice {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}
+  {% endif %}
+  {% block main %}{% block content %}{% endblock %}{% endblock %}
+</main>
+{% endblock %}
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <a class="brand" href="{% url 'core:home' %}">{% include "_brand.html" %}</a>
+      {% block foot_links %}<a href="{% url 'core:home' %}">Product</a>{% endblock %}
+      <a href="{% url 'core:docs' %}">Documentation</a>
+      <a href="{% url 'billing:pricing' %}">Plans</a>
+      <a href="{% url 'core:legal' 'terms' %}">Terms and license</a>
+      <a href="{% url 'core:legal' 'privacy' %}">Privacy</a>
+      <a href="{% url 'core:legal' 'imprint' %}">Imprint</a>
+    </div>
+    <p>© 2026 Zuri-AI GmbH. Cassilion is an independent product. Apache Cassandra and Cassandra are trademarks of the Apache Software Foundation, which does not endorse or sponsor Cassilion. Other product names belong to their respective owners.</p>
+  </div>
+</footer>
+{% block extra_body %}{% endblock %}
+</body>
+</html>

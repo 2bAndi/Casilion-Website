@@ -1,0 +1,32 @@
+{% extends "accounts/base.html" %}
+{% load cassilion %}
+{% block page_title %}Tickets{% endblock %}
+{% block heading %}Tickets{% endblock %}
+
+{% block content %}
+<p class="actions">
+  <a class="btn" href="{% url 'support:new' %}">{% if plan.has_support %}Open a ticket{% else %}Report a bug{% endif %}</a>
+  {% if not plan.has_support %}<span class="muted">The {{ plan.name }} plan has no support tickets. <a href="{% url 'billing:pricing' %}">See support plans</a></span>{% endif %}
+</p>
+
+{% if tickets %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Ticket</th><th>Subject</th><th>Status</th><th>Opened</th><th>Through</th></tr></thead>
+      <tbody>
+      {% for ticket in tickets %}
+        <tr>
+          <td><a class="strong" href="{% url 'support:detail' ticket.public_id %}">{{ ticket.public_id }}</a></td>
+          <td>{{ ticket.subject }}{% if ticket.bug_report %} <span class="tag quiet">Bug report</span>{% endif %}</td>
+          <td><span class="tag {{ ticket.status|tone }}">{{ ticket.get_status_display }}</span></td>
+          <td class="num">{{ ticket.created_at|date:"j M Y" }}</td>
+          <td>{{ ticket.get_channel_display }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>No tickets yet. Your AI agent can open them for you over MCP, or you can write one here.</p>
+{% endif %}
+{% endblock %}

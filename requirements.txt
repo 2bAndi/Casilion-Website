@@ -1,0 +1,9 @@
+# Cassilion web platform - runtime dependencies (web app and AI worker)
+Django>=6.1,<6.2
+django-allauth[mfa]>=65.18
+django-countries>=8.0
+mcp>=2.0,<3
+uvicorn>=0.30
+cryptography>=43
+whitenoise>=6.7
+Markdown>=3.6

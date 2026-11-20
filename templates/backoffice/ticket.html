@@ -1,0 +1,140 @@
+{% extends "backoffice/base.html" %}
+{% load cassilion %}
+{% block page_title %}{{ ticket.public_id }}{% endblock %}
+{% block heading %}{{ ticket.subject }}{% endblock %}
+{% block intro %}
+<p>{{ ticket.public_id }} from {{ ticket.account.name }}{% if ticket.author %} ({{ ticket.author.email }}){% endif %}, {% if ticket.channel == "mcp" %}by an AI agent{% else %}in the customer area{% endif %}{% if ticket.product_version %}, Cassilion {{ ticket.product_version }}{% endif %}</p>
+{% endblock %}
+
+{% block content %}
+<p class="actions">
+  <span class="tag {{ ticket.status|tone }}">{{ ticket.get_status_display }}</span>
+  {% if ticket.priority == "critical" %}<span class="tag alert">Critical</span>{% endif %}
+  {% if ticket.flagged %}<span class="tag action">Guard flag</span>{% endif %}
+  {% if ticket.needs_human %}<span class="tag">Needs a person</span>{% endif %}
+  {% if ticket.bug_report %}<span class="tag quiet">One-way bug report</span>{% endif %}
+  {% if ticket.issue_url %}<a href="{{ ticket.issue_url }}" rel="noopener noreferrer">Linked issue</a>{% endif %}
+</p>
+
+{% if draft %}
+  <h2>Draft from the support AI</h2>
+  {% if blocked %}
+    <div class="notice error"><p><strong>A guard blocked this result.</strong> Do not send the draft unchanged. Check the guard report below, then edit it or write the reply yourself.</p></div>
+  {% endif %}
+  <form method="post" class="measure">
+    {% csrf_token %}
+    <input type="hidden" name="draft" value="{{ draft.pk }}">
+    <div class="field">
+      <label for="draft-body">Reply to the customer</label>
+      <span class="helptext">Edit freely. An AI notice is added when it is sent.</span>
+      <textarea id="draft-body" name="body" rows="16">{{ draft.body }}</textarea>
+    </div>
+    <div class="field">
+      <label for="draft-note">Note, if you reject</label>
+      <input type="text" id="draft-note" name="note" maxlength="300">
+    </div>
+    <div class="actions">
+      <button type="submit" name="action" value="approve" class="signal">Send to customer</button>
+      <button type="submit" name="action" value="reject" class="ghost">Reject draft</button>
+    </div>
+  </form>
+{% endif %}
+
+<div class="grid cols-2">
+  <section class="panel">
+    <h2>Finding</h2>
+    {% if finding %}
+      <dl class="kv">
+        <dt>Class</dt><dd>{{ finding.classification|spaced }}</dd>
+        <dt>Confidence</dt><dd>{{ finding.confidence }}</dd>
+        <dt>Component</dt><dd>{{ finding.component }}</dd>
+        {% if finding.known_issue_id %}<dt>Known issue</dt><dd>{{ finding.known_issue_id }}</dd>{% endif %}
+        <dt>Model</dt><dd>{{ run.model|default:"–" }} <span class="muted">({{ run.backend }}, prompts {{ run.prompt_version }})</span></dd>
+        <dt>Cost</dt><dd>{{ run.tokens_in }} in, {{ run.tokens_out }} out, {{ run.duration_ms }} ms</dd>
+      </dl>
+      {% if finding.summary %}<p>{{ finding.summary|linebreaksbr }}</p>{% endif %}
+      {% if finding.public_refs %}
+        <h3>Public documentation</h3>
+        <ul>{% for ref in finding.public_refs %}<li><code>{{ ref }}</code></li>{% endfor %}</ul>
+      {% endif %}
+      {% if finding.missing_info %}
+        <h3>Missing information</h3>
+        <ul>{% for code in finding.missing_info %}<li>{{ code|spaced }}</li>{% endfor %}</ul>
+      {% endif %}
+      {% if finding.source_pointers %}
+        <h3>Places in the source</h3>
+        <p class="muted small">Pointers only. Open them in your own checkout; code is never stored here.</p>
+        <ul>{% for pointer in finding.source_pointers %}<li><code>{{ pointer }}</code></li>{% endfor %}</ul>
+      {% endif %}
+    {% else %}
+      <p>The support AI has not analysed this ticket yet.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Guard report</h2>
+    {% if verdicts %}
+      <table class="table">
+        <thead><tr><th>Guard</th><th>Check</th><th>Verdict</th></tr></thead>
+        <tbody>
+        {% for v in verdicts %}
+          <tr>
+            <td>{{ v.stage }}</td>
+            <td>{{ v.check_name|spaced }}{% if v.detail %}<br><span class="muted small">{{ v.detail }}</span>{% endif %}</td>
+            <td><span class="tag {% if v.verdict == 'block' %}alert{% elif v.verdict == 'flag' %}action{% else %}quiet{% endif %}">{{ v.verdict }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No checks recorded.</p>
+    {% endif %}
+  </section>
+</div>
+
+<h2>Conversation</h2>
+{% include "support/_thread.html" with thread=thread show_redacted=True %}
+
+<h2>Write as a person</h2>
+<form method="post" class="measure">
+  {% csrf_token %}
+  <div class="field">
+    <label for="reply-body">Message</label>
+    <textarea id="reply-body" name="body" rows="6"></textarea>
+  </div>
+  <p><label class="check"><input type="checkbox" name="internal"> Internal note, not visible to the customer</label></p>
+  <button type="submit" name="action" value="reply">Send</button>
+</form>
+
+<h2>Decide</h2>
+<div class="actions">
+  {% if ticket.status == "bug_candidate" %}
+    <form method="post" class="actions">
+      {% csrf_token %}
+      <input type="url" name="issue_url" placeholder="Link to the issue (optional)" aria-label="Link to the issue">
+      <button type="submit" name="action" value="confirm_bug">Confirm as product bug</button>
+      <button type="submit" name="action" value="dismiss_bug" class="ghost">Not a bug</button>
+    </form>
+  {% endif %}
+  {% if ticket.is_open %}
+    <form method="post">{% csrf_token %}<button type="submit" name="action" value="close" class="ghost">Close ticket</button></form>
+  {% endif %}
+</div>
+
+<h2>History</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>When</th><th>Who</th><th>What</th><th>Details</th></tr></thead>
+    <tbody>
+    {% for event in events %}
+      <tr>
+        <td class="num">{{ event.at|date:"j M, H:i:s" }}</td>
+        <td>{{ event.actor_kind|spaced }}{% if event.actor %} <span class="muted">({{ event.actor.email }})</span>{% endif %}</td>
+        <td>{{ event.type|spaced }}</td>
+        <td class="small">{% for key, value in event.data.items %}{% if value != "" %}{{ key|spaced }}: {{ value }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

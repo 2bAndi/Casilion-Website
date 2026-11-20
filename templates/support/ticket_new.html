@@ -1,0 +1,19 @@
+{% extends "accounts/base.html" %}
+{% block page_title %}{% if bug_report %}Report a bug{% else %}Open a ticket{% endif %}{% endblock %}
+{% block heading %}{% if bug_report %}Report a bug{% else %}Open a ticket{% endif %}{% endblock %}
+
+{% block content %}
+<div class="measure">
+  {% if bug_report %}
+    <div class="notice"><p>The {{ plan.name }} plan has no support tickets. You can send a bug report: it is read and triaged, but does not get an individual reply. <a href="{% url 'billing:pricing' %}">See support plans</a></p></div>
+  {% else %}
+    <p>Cassilion's support AI reads the ticket first and answers usage and configuration questions directly. If it suspects a defect in Cassilion, a person takes over.</p>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="form-fields">{{ form.as_div }}</div>
+    <button type="submit">{% if bug_report %}Send bug report{% else %}Open ticket{% endif %}</button>
+  </form>
+</div>
+{% endblock %}

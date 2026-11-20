@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load cassilion %}
+{% block title %}{% block page_title %}Customer area{% endblock %} – Cassilion{% endblock %}
+{% block band %}
+<div class="wrap page-head">
+  <h1>{% block heading %}Customer area{% endblock %}</h1>
+  {% block intro %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block main %}
+<nav aria-label="Customer area">
+  <ul class="subnav">
+    <li><a href="{% url 'accounts:dashboard' %}"{% if request.path == '/account/' %} aria-current="page"{% endif %}>Overview</a></li>
+    <li><a href="{% url 'downloads:downloads' %}"{% nav_current 'downloads:downloads' %}>Downloads</a></li>
+    <li><a href="{% url 'licensing:licenses' %}"{% nav_current 'licensing:licenses' %}>License</a></li>
+    <li><a href="{% url 'support:list' %}"{% nav_current 'support:list' %}>Tickets</a></li>
+    <li><a href="{% url 'mcp_server:agents' %}"{% nav_current 'mcp_server:agents' %}>AI agents</a></li>
+    <li><a href="{% url 'billing:overview' %}"{% nav_current 'billing:overview' %}>Plan and billing</a></li>
+    <li><a href="{% url 'accounts:settings' %}"{% nav_current 'accounts:settings' %}>Account</a></li>
+  </ul>
+</nav>
+{% block content %}{% endblock %}
+{% endblock %}

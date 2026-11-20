@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load cassilion %}
+{% block title %}{% block page_title %}Backoffice{% endblock %} – Cassilion backoffice{% endblock %}
+{% block band %}
+<div class="wrap page-head">
+  <h1>{% block heading %}Backoffice{% endblock %}</h1>
+  {% block intro %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block main %}
+<nav aria-label="Backoffice">
+  <ul class="subnav">
+    <li><a href="{% url 'backoffice:dashboard' %}"{% if request.path == '/ops/' %} aria-current="page"{% endif %}>Overview</a></li>
+    <li><a href="{% url 'backoffice:review_queue' %}"{% nav_current 'backoffice:review_queue' %}>Review queue</a></li>
+    <li><a href="{% url 'backoffice:tickets' %}"{% nav_current 'backoffice:tickets' %}>All tickets</a></li>
+    <li><a href="{% url 'backoffice:sent_log' %}"{% nav_current 'backoffice:sent_log' %}>Sent log</a></li>
+    <li><a href="{% url 'backoffice:settings' %}"{% nav_current 'backoffice:settings' %}>Switches</a></li>
+    <li><a href="{% url 'admin:index' %}">Raw data</a></li>
+  </ul>
+</nav>
+{% block content %}{% endblock %}
+{% endblock %}

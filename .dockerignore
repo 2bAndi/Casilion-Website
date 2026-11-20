@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+!.env.example
+.venv
+venv
+var
+data
+backups
+staticfiles
+_to_delete
+site
+docs
+**/__pycache__
+*.pyc
+.pytest_cache

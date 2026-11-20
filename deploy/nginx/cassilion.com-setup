@@ -1,0 +1,11 @@
+# /etc/nginx/sites-available/cassilion.com   (first step only)
+# Port 80 for the certificate check. Replace this file with deploy/nginx/cassilion.com
+# once certbot has issued the certificate (docs/server-setup.md, section 2).
+server {
+    listen 80;
+    listen [::]:80;
+    server_name cassilion.com www.cassilion.com cassilion.de www.cassilion.de;
+
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 503 "Cassilion is being set up.\n"; }
+}

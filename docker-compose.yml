@@ -1,0 +1,64 @@
+# Cassilion stack. The host nginx terminates TLS and proxies cassilion.com to
+# 127.0.0.1:8150 (see docs/server-setup.md). Local development needs none of this:
+# `python manage.py dev`.
+name: cassilion
+
+services:
+  web:
+    build: .
+    image: cassilion-web:latest
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "5"}
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8150:8000"
+    volumes:
+      - ./data/var:/app/var          # license signing key, release files
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # The AI worker pulls its jobs from the web application and needs no port.
+  # It runs here only as long as it works by rules (LLM_BACKEND=stub). Once a model
+  # or the product's source code is involved it belongs on its own machine: remove this
+  # service and start `python -m ai_worker` there with CASSILION_JOB_API=https://cassilion.com.
+  # Never mount the product source on this server.
+  ai-worker:
+    image: cassilion-web:latest
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "5"}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      CASSILION_JOB_API: http://web:8000
+    entrypoint: []
+    command: ["python", "-m", "ai_worker"]
+    depends_on:
+      web:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "5"}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

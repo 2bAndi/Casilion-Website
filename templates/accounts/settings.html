@@ -1,0 +1,25 @@
+{% extends "accounts/base.html" %}
+{% block page_title %}Account{% endblock %}
+{% block heading %}Account{% endblock %}
+
+{% block content %}
+<div class="measure">
+  <form method="post">
+    {% csrf_token %}
+    <h2>Customer</h2>
+    <div class="form-fields">{{ account_form.as_div }}</div>
+    <h2>Billing address</h2>
+    <div class="form-fields">{{ address_form.as_div }}</div>
+    <h2>Tax</h2>
+    <div class="form-fields">{{ tax_form.as_div }}</div>
+    <button type="submit">Save account details</button>
+  </form>
+
+  <h2>Sign-in</h2>
+  <ul>
+    <li><a href="{% url 'account_email' %}">E-mail addresses</a></li>
+    <li><a href="{% url 'account_change_password' %}">Change password</a></li>
+    <li><a href="{% url 'mfa_index' %}">Two-factor authentication</a></li>
+  </ul>
+</div>
+{% endblock %}

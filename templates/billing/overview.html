@@ -1,0 +1,54 @@
+{% extends "accounts/base.html" %}
+{% block page_title %}Plan and billing{% endblock %}
+{% block heading %}Plan and billing{% endblock %}
+
+{% block content %}
+{% if sandbox_payments %}<div class="notice sandbox"><p>Payments run against a sandbox in this installation. No money moves.</p></div>{% endif %}
+
+<div class="grid cols-2">
+  <section class="panel">
+    <h2>Current plan</h2>
+    <dl class="kv">
+      <dt>Plan</dt><dd>{{ entitlement.plan.name }}</dd>
+      <dt>Support</dt><dd>{{ entitlement.plan.get_support_level_display }}</dd>
+      <dt>Tickets a month</dt><dd>{% if entitlement.plan.has_support %}{{ entitlement.plan.ticket_quota_month }}{% else %}none{% endif %}</dd>
+      <dt>Valid until</dt><dd>{% if entitlement.valid_until %}{{ entitlement.valid_until|date:"j F Y" }}{% else %}no end date{% endif %}</dd>
+      {% if subscription %}<dt>Subscription</dt><dd>{{ subscription.get_status_display }}</dd>{% endif %}
+    </dl>
+    <div class="actions">
+      <a class="btn ghost small" href="{% url 'billing:pricing' %}">Change plan</a>
+      {% if subscription and subscription.status == "active" %}
+        <form method="post" action="{% url 'billing:cancel' %}">{% csrf_token %}<button type="submit" class="danger small">Cancel subscription</button></form>
+      {% endif %}
+    </div>
+    {% if subscription and subscription.status == "cancelled" %}
+      <p class="muted small">Cancelled. The plan stays active until {{ subscription.period_end|date:"j F Y" }}, then the account returns to Community.</p>
+    {% endif %}
+  </section>
+</div>
+
+<h2>Orders</h2>
+{% if orders %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Order</th><th>Plan</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for order in orders %}
+        <tr>
+          <td class="num">{{ order.created_at|date:"j M Y" }}</td>
+          <td><code>{{ order.ref }}</code></td>
+          <td>{{ order.plan.name }}</td>
+          <td class="num">€{{ order.amount_eur }}</td>
+          <td>
+            <span class="tag {% if order.status == 'paid' %}ok{% elif order.status == 'failed' %}alert{% else %}action{% endif %}">{{ order.get_status_display }}</span>
+            {% if order.status == "pending" and sandbox_payments %}<a href="{% url 'billing:sandbox_checkout' order.ref %}">Continue to checkout</a>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>No orders yet.</p>
+{% endif %}
+{% endblock %}

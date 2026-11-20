@@ -1,0 +1,53 @@
+{% extends "accounts/base.html" %}
+{% load cassilion %}
+{% block heading %}{{ current_account.name }}{% endblock %}
+{% block intro %}<p>Signed in as {{ user.email }}</p>{% endblock %}
+
+{% block content %}
+<div class="grid cols-2">
+  <section class="panel">
+    <h2>Plan</h2>
+    <dl class="kv">
+      <dt>Plan</dt><dd>{{ entitlement.plan.name }}</dd>
+      <dt>Support</dt><dd>{{ entitlement.plan.get_support_level_display }}</dd>
+      <dt>Valid until</dt><dd>{% if entitlement.valid_until %}{{ entitlement.valid_until|date:"j F Y" }}{% else %}no end date{% endif %}</dd>
+    </dl>
+    <p><a class="btn ghost small" href="{% url 'billing:pricing' %}">{% if entitlement.plan.has_support %}Change plan{% else %}Add support{% endif %}</a></p>
+  </section>
+
+  <section class="panel">
+    <h2>License file</h2>
+    {% if license %}
+      <dl class="kv">
+        <dt>License</dt><dd>{{ license.license_id }}</dd>
+        <dt>Issued</dt><dd>{{ license.issued_at|date:"j F Y" }}</dd>
+      </dl>
+      <p><a class="btn small" href="{% url 'licensing:download' license.license_id %}">Download cassilion.lic</a></p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Tickets</h2>
+    {% if open_tickets %}
+      <ul class="results">
+        {% for ticket in open_tickets %}
+          <li><a href="{% url 'support:detail' ticket.public_id %}">{{ ticket.subject }}</a> <span class="tag {{ ticket.status|tone }}">{{ ticket.get_status_display }}</span></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No open tickets.</p>
+    {% endif %}
+    <p><a class="btn ghost small" href="{% url 'support:new' %}">{% if entitlement.plan.has_support %}Open a ticket{% else %}Report a bug{% endif %}</a></p>
+  </section>
+
+  <section class="panel">
+    <h2>AI agents</h2>
+    {% if agent_token_count %}
+      <p>{{ agent_token_count }} agent token{{ agent_token_count|pluralize }} can act for this account.</p>
+    {% else %}
+      <p>No agent is connected yet. With a token your AI agent can read the documentation, fetch your license and open tickets for you.</p>
+    {% endif %}
+    <p><a class="btn ghost small" href="{% url 'mcp_server:agents' %}">Manage agent access</a></p>
+  </section>
+</div>
+{% endblock %}

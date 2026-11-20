@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }} – Cassilion documentation{% endblock %}
+{% block band %}<div class="wrap page-head"><h1>Documentation</h1></div>{% endblock %}
+
+{% block content %}
+<div class="docs">
+  <nav aria-label="Documentation pages">
+    <ul>
+      {% for item in docs %}
+        <li><a href="{% url 'core:doc' item.slug %}"{% if item.slug == page.slug %} aria-current="page"{% endif %}>{{ item.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </nav>
+  <article class="prose">{{ html }}</article>
+</div>
+{% endblock %}

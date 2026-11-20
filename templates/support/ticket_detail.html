@@ -1,0 +1,36 @@
+{% extends "accounts/base.html" %}
+{% load cassilion %}
+{% block page_title %}{{ ticket.public_id }}{% endblock %}
+{% block heading %}{{ ticket.subject }}{% endblock %}
+{% block intro %}<p>{{ ticket.public_id }}, opened {{ ticket.created_at|date:"j F Y" }} {% if ticket.channel == "mcp" %}by an AI agent{% else %}in the customer area{% endif %}{% if ticket.product_version %}, Cassilion {{ ticket.product_version }}{% endif %}</p>{% endblock %}
+
+{% block content %}
+<div class="notice">
+  <p><span class="tag {{ ticket.status|tone }}">{{ ticket.get_status_display }}</span> {{ view.next_step }}</p>
+  {% if view.needs %}
+    <ul>{% for item in view.needs %}<li>{{ item.what }}</li>{% endfor %}</ul>
+  {% endif %}
+</div>
+
+{% include "support/_thread.html" with thread=thread %}
+
+{% if can_reply %}
+  <h2>Reply</h2>
+  <form method="post" class="measure">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="form-fields">{{ form.as_div }}</div>
+    <button type="submit">Send reply</button>
+  </form>
+{% endif %}
+
+{% if ticket.is_open %}
+  <h2>Other actions</h2>
+  <div class="actions">
+    {% if can_ask_person %}
+      <form method="post" action="{% url 'support:human' ticket.public_id %}">{% csrf_token %}<button type="submit" class="ghost">Ask for a person</button></form>
+    {% endif %}
+    <form method="post" action="{% url 'support:close' ticket.public_id %}">{% csrf_token %}<button type="submit" class="ghost">Close this ticket</button></form>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "KI-0001",
+    "title": "Slow startup after an unclean shutdown with a large commit log",
+    "versions": ["0.9.0"],
+    "fixed_in": "0.9.1",
+    "summary": "Placeholder entry for the skeleton. Version 0.9.0 replays the whole commit log on one thread, so startup after an unclean shutdown can take several minutes.",
+    "workaround": "Wait for the replay to finish; the log shows the progress. Shut the server down cleanly to avoid the replay.",
+    "keywords": ["startup", "slow", "commit", "replay", "unclean", "shutdown", "minutes"],
+    "doc_ref": "troubleshooting#slow-startup"
+  }
+]

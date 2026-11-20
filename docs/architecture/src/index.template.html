@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cassilion Web Platform — Architecture Concept</title>
+<style>
+:root{--ink:#1c2230;--muted:#5b6577;--line:#d9dee7;--tint:#f6f8fb;--app:#3f6fd1;--ai:#7a52d1;--ops:#2e9460;--guard:#c2255c;--amber:#c98a12}
+*{box-sizing:border-box}
+html{color-scheme:light;scroll-behavior:smooth}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.62 "Segoe UI",Inter,system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px 96px}
+header.doc{padding:60px 0 30px;border-bottom:3px solid var(--ink);margin-bottom:30px}
+.kicker{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 10px}
+h1{font-size:44px;line-height:1.08;margin:0 0 12px;letter-spacing:-.02em;text-wrap:balance}
+.sub{font-size:21px;line-height:1.4;color:#333b4d;margin:0 0 20px;max-width:820px;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:8px 10px;margin:0;padding:0;list-style:none;font-size:13.5px}
+.meta li{border:1px solid var(--line);border-radius:999px;padding:3px 12px;color:#333b4d;background:var(--tint)}
+main>p,main>ul,main>ol,main>h3,main>h4,main>.note,main>pre{max-width:820px}
+.lead{font-size:18px;line-height:1.6}
+h2{font-size:28px;line-height:1.2;margin:64px 0 14px;padding-top:18px;border-top:1px solid var(--line);letter-spacing:-.01em;text-wrap:balance}
+h2 .n{color:var(--muted);font-weight:600;margin-right:10px}
+h3{font-size:19px;margin:34px 0 8px}
+h3 .n{color:var(--muted);font-weight:600;margin-right:8px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 16px;padding-left:22px}
+li{margin:0 0 6px}
+a{color:#2f59b0;text-underline-offset:2px}
+code{font:13.5px/1.4 "Cascadia Code","IBM Plex Mono",Consolas,"SFMono-Regular",Menlo,monospace;background:var(--tint);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+pre{background:#14181f;color:#e8ecf3;border-radius:10px;padding:16px 18px;overflow-x:auto;margin:14px 0 22px;font:13.5px/1.55 "Cascadia Code","IBM Plex Mono",Consolas,"SFMono-Regular",Menlo,monospace}
+pre code{background:none;border:0;padding:0;color:inherit;font:inherit}
+nav.toc{border:1px solid var(--line);border-radius:10px;background:var(--tint);padding:18px 22px;margin:26px 0 8px}
+nav.toc h2{all:unset;display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px}
+nav.toc ol{columns:3 240px;column-gap:34px;margin:0;padding-left:20px;font-size:14.5px}
+nav.toc li{margin:0 0 5px;break-inside:avoid}
+nav.toc a{color:var(--ink);text-decoration:none}
+nav.toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:14px 0 26px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.45}
+th,td{text-align:left;vertical-align:top;padding:9px 14px 9px 0;border-bottom:1px solid var(--line)}
+th:last-child,td:last-child{padding-right:0}
+thead th{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--ink);white-space:nowrap}
+td.k,th.k{font-weight:600;white-space:nowrap}
+td.w{font-weight:600}
+td.num{color:var(--muted);font-weight:600;width:1%;white-space:nowrap}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.04em;border-radius:4px;padding:1px 7px;border:1px solid;white-space:nowrap}
+.tag.g{color:var(--guard);border-color:#eeb4c8;background:#fff5f8}
+.tag.a{color:#2f59b0;border-color:#b9cdf3;background:#eaf1fd}
+.tag.v{color:#6540b8;border-color:#d2c3f3;background:#f2ecfe}
+.tag.o{color:#23794e;border-color:#b3dfc6;background:#e8f6ee}
+.tag.y{color:#8a5d06;border-color:#ecd49a;background:#fff4dc}
+.note{border-left:4px solid var(--app);background:var(--tint);padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0 22px;font-size:15px}
+.note.warn{border-left-color:var(--amber);background:#fffaf0}
+.note.key{border-left-color:var(--guard);background:#fff8fa}
+.note p:last-child{margin-bottom:0}
+.note strong:first-child{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+figure{margin:24px 0 34px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+figure .canvas{overflow-x:auto;padding:16px}
+figure svg{display:block;width:100%;height:auto;margin:0 auto}
+figure.scroll svg{min-width:1500px}
+figcaption{padding:11px 16px;border-top:1px solid var(--line);background:var(--tint);font-size:14px;color:#333b4d}
+figcaption b{color:var(--ink)}
+figcaption .src{float:right;margin-left:16px;font-size:13px;white-space:nowrap}
+footer{margin-top:70px;padding-top:18px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media (max-width:720px){h1{font-size:32px}.sub{font-size:18px}.wrap{padding:0 16px 60px}h2{font-size:24px}figcaption .src{float:none;display:block;margin:6px 0 0}}
+@media print{body{font-size:11pt}.wrap{max-width:none;padding:0}nav.toc{display:none}figure,table,pre,.note{break-inside:avoid}figure.scroll svg{min-width:0}h2{break-after:avoid}a{color:inherit;text-decoration:none}figcaption .src{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <p class="kicker">Architecture concept</p>
+  <h1>Cassilion Web Platform</h1>
+  <p class="sub">Shop, licensing, customer MCP and guarded AI first-level support for the Cassilion database</p>
+  <ul class="meta">
+    <li>Version 0.3 — concept, with a first runnable skeleton</li>
+    <li>20 November 2026</li>
+    <li>Status: skeleton runs locally; decisions taken and open in section 12</li>
+  </ul>
+</header>
+
+<main>
+
+<p class="lead">This document proposes how to build the website that sells and supports Cassilion: one Django application for the public site, customer area, shop, licenses and support desk, and a separate, isolated AI enclave that does the first-level analysis of support tickets. It is a basis for decisions, not a specification. Plan names, quotas and response targets are placeholders.</p>
+
+<div class="note key"><p><strong>New in version 0.3</strong>Three decisions taken after the first run of the skeleton. The stack stays Python and Django, as in the two Tango projects, although other projects of the same owner run on Node.js. The whole site takes the look of the landing page (dark ground, amber signal colour, cool blue for everything that is not Cassilion); the landing page itself has been ported into the application and is its home page, with the plans fed from the shop's database. For licenses, a signing service is the target and a person issues and uploads them at the start; the details are deferred. Decisions D4, D16 and D17 in section 12.</p></div>
+
+<div class="note key"><p><strong>New in version 0.2</strong>The repository now holds a skeleton that runs the whole path on one machine: registration, Community license, sandbox purchase, download, ticket, AI analysis behind the guards, review in the backoffice, and both MCP servers. The table below lists what changed against version 0.1 and why. The figures still show the version 0.1 target picture; where the skeleton differs (figure 6: agent tokens instead of OAuth; figure 8: <code>open_ticket</code>), the text says so.</p></div>
+
+<div class="tw"><table>
+<thead><tr><th>Change</th><th>Why</th><th>In the skeleton</th></tr></thead>
+<tbody>
+<tr><td class="k">The product is called Cassilion</td><td>Decided: Cassilion for now, the site under cassilion.com. The folder and the project keep the older spelling.</td><td>Renamed throughout. The landing page already uses the name.</td></tr>
+<tr><td class="k">The product defines the license, not the website</td><td>Found in the product's functionality summary: licenses bind cluster, product and version, edition, capacity, term and features; they carry ES256 and ML-DSA-65 signatures; a separate offline tool issues them; an expired license leads to a read-only grace state. This overturns sections 5.4 and A.1 of version 0.1.</td><td>Not solved. The skeleton keeps entitlements and hands out a stand-in file, marked as such. Section 5.4 and decision D4.</td></tr>
+<tr><td class="k">Same server as Tango-Kalender; mail through Brevo</td><td>Decided: the domains point at the server that runs Tango-Kalender. Outbound mail goes through Brevo, inbound mail to the own mail server.</td><td>Outbound mail is an SMTP setting. Nothing in the application receives mail. Section 9 and decision D6.</td></tr>
+<tr><td class="k">No support staff</td><td>Decided: there is no support or CRM team. The engineers are the operators, for a few hundred active, technical customers.</td><td>The backoffice is one review queue, a sent log and five switches. No assignment, no service-level timers, no macros.</td></tr>
+<tr><td class="k">The customer's AI agent is the main channel</td><td>Decided: chat and phone are not offered. The customer's own assistant connects over MCP and works the problem out with Cassilion's support AI.</td><td>The customer MCP is complete enough to solve a case end to end. The web form is the second door to the same case store.</td></tr>
+<tr><td class="k">Knowledge tools before ticket tools</td><td>Most questions end at the documentation. A ticket costs quota and model time.</td><td><code>search_docs</code>, <code>read_doc</code>, <code>list_known_issues</code> are open to every plan; <code>open_ticket</code> needs a paid plan.</td></tr>
+<tr><td class="k">Tickets are asynchronous</td><td>Analysis takes longer than a tool call should wait, and a review may sit in between.</td><td><code>open_ticket</code> returns an ID at once; <code>get_ticket</code> says what is needed and what happens next.</td></tr>
+<tr><td class="k">Rounds and budget are capped</td><td>Two AIs can talk in circles.</td><td>After a set number of follow-ups, or when the token budget of a ticket is used up, a person takes over.</td></tr>
+<tr><td class="k">Data loss, corruption, security: a person at once</td><td>These cannot wait for a model's opinion.</td><td>The input guard marks them critical before any analysis; operators get an urgent mail.</td></tr>
+<tr><td class="k">Fixed texts go out directly</td><td>An acknowledgement or a request for the diagnostics bundle contains no generated text.</td><td>Shadow mode holds back AI-written replies only. Templates are sent and logged as such.</td></tr>
+<tr><td class="k">Mail is a notification, not a channel</td><td>Inbound mail is a wide door for spam and injection; outbound mail should not carry ticket content.</td><td>Mails say that there is a reply and link to it. Alerts to operators carry no customer text.</td></tr>
+<tr><td class="k">Agent tokens first, OAuth next</td><td>Assumption, to get a working agent connection without building an authorization server first.</td><td>A customer creates a personal agent token in the customer area. Two-factor authentication can be made a condition. Section 6.2.</td></tr>
+<tr><td class="k">A rule-based stand-in for the model</td><td>Assumption, so that the flow runs and is tested on any machine without a GPU.</td><td><code>LLM_BACKEND=stub</code> is the default; <code>openai</code> switches to any OpenAI-compatible endpoint. Section 7.8.</td></tr>
+<tr><td class="k">Flat repository, SQLite by default</td><td>Assumption: one command on Windows without Docker is worth more now than parity with production.</td><td><code>python manage.py dev</code>. PostgreSQL through <code>DATABASE_URL</code>; the test suite passes on both. Section 9.</td></tr>
+</tbody></table></div>
+
+<nav class="toc" aria-label="Contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s1">The proposal in brief</a></li>
+    <li><a href="#s2">Scope, assumptions, quality goals</a></li>
+    <li><a href="#s3">System context</a></li>
+    <li><a href="#s4">Architecture and trust zones</a></li>
+    <li><a href="#s5">Customers, plans, licenses, shop</a></li>
+    <li><a href="#s6">MCP for customers and operators</a></li>
+    <li><a href="#s7">AI first-level support</a></li>
+    <li><a href="#s8">Technology and reuse</a></li>
+    <li><a href="#s9">Environments: local to production</a></li>
+    <li><a href="#s10">Security, privacy, compliance</a></li>
+    <li><a href="#s11">Roadmap</a></li>
+    <li><a href="#s12">Open decisions</a></li>
+    <li><a href="#s13">Risks</a></li>
+    <li><a href="#sa">Appendices and sources</a></li>
+  </ol>
+</nav>
+
+<!-- ===================================================================== -->
+<h2 id="s1"><span class="n">1</span>The proposal in brief</h2>
+
+<p>The platform has seven jobs: present and document Cassilion; register customers worldwide; issue licenses, free without support and paid with yearly support plans; deliver downloads; run a support desk whose first line is an AI that tells usage errors from probable product bugs; offer all of this to customers' AI agents over MCP; and keep the operators in control of everything that leaves the house.</p>
+
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Decision</th><th>Proposal</th><th>Reason</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td class="k">Shape</td><td>A Django modular monolith plus one separate AI worker.</td><td>Small team, proven in the Tango projects, one thing to deploy and back up.</td></tr>
+<tr><td class="num">2</td><td class="k">AI isolation</td><td>The AI runs in its own enclave and pulls its jobs. Nothing connects into it, and it has no route to the internet.</td><td>The product source code and the model never sit on the internet-facing server.</td></tr>
+<tr><td class="num">3</td><td class="k">IP protection</td><td>Two models with a wall between them. The Analyst reads the source. The Responder writes to the customer and sees public documentation only.</td><td>A model cannot leak what it has never seen. Filters come second.</td></tr>
+<tr><td class="num">4</td><td class="k">Injection defence</td><td>Customer text is data. The AI has read-only tools, no customer database and no ability to send anything. Classifiers are an extra layer.</td><td>Classifiers miss things; a miss has to be harmless.</td></tr>
+<tr><td class="num">5</td><td class="k">Human control</td><td>Shadow mode first: every AI-written reply is reviewed; fixed texts go out directly. Later, automatic sending only for usage and configuration answers with all checks green. Suspected bugs always alert the operators.</td><td>Trust follows measured results.</td></tr>
+<tr><td class="num">6</td><td class="k">MCP</td><td>Two MCP servers: one for customers, one for operators as in the Tango projects. The customer's AI agent is the main support channel. Access by personal agent token in the skeleton, OAuth 2.1 as the target.</td><td>A customer's agent gets the portal's functions under the same guardrails, and solves most cases without a person on either side.</td></tr>
+<tr><td class="num">7</td><td class="k">Payments</td><td>A provider adapter. A merchant of record for the self-service plans, manual invoices for enterprise.</td><td>Worldwide VAT and sales tax stay off our desk.</td></tr>
+<tr><td class="num">8</td><td class="k">Licenses</td><td>The platform keeps the entitlement: which account has which plan until when. Support is checked against it on the server. The license a cluster verifies comes from the product's own offline issuer; the platform requests, stores and delivers it.</td><td>The product already defines format, signatures and expiry behaviour. Support plan and license term are two different clocks.</td></tr>
+</tbody></table></div>
+
+<!-- ===================================================================== -->
+<h2 id="s2"><span class="n">2</span>Scope, assumptions and quality goals</h2>
+
+<p><b>In scope:</b> public site and documentation delivery, registration and customer area, plans and checkout, license issuing, downloads, support tickets, AI first-level support with guardrails, customer and operator MCP, backoffice, deployment from a local machine to production.</p>
+<p><b>Out of scope:</b> the Cassilion database itself, brand and content, price strategy, the legal texts.</p>
+
+<h3>Assumptions</h3>
+<ol>
+  <li>Cassilion ships as closed-source binaries. The private source repository is the main asset to protect.</li>
+  <li>There is no support or CRM staff. The engineers are the operators, one to three people, with no round-the-clock duty.</li>
+  <li>A few hundred active customers, highly technical, most of them working with an AI assistant of their own. Tens of tickets a week at most.</li>
+  <li>Customers are private persons and companies anywhere in the world. The site starts in English and German.</li>
+  <li>Paid plans are yearly subscriptions for support. Using the software is free under the Community license.</li>
+  <li>Development is local first on Windows 11; production runs on a server in the EU.</li>
+  <li>Support has no chat and no phone. The channels are the customer's AI agent over MCP and the customer area on the website, both on the same case store.</li>
+</ol>
+
+<h3>Quality goals</h3>
+<div class="tw"><table>
+<thead><tr><th>Goal</th><th>What it means here</th></tr></thead>
+<tbody>
+<tr><td class="k">IP protection</td><td>No source code, internal design detail or secret leaves in a reply, in a log on the public server or in an alert.</td></tr>
+<tr><td class="k">Injection resistance</td><td>A hostile ticket can at worst produce a wrong draft, which a guard or a person stops.</td></tr>
+<tr><td class="k">Operator control</td><td>Every outgoing reply is visible. Automatic sending can be switched off at once.</td></tr>
+<tr><td class="k">Privacy</td><td>EU hosting, little data, no third-party trackers, export and deletion on request.</td></tr>
+<tr><td class="k">Availability</td><td>Site, shop and downloads come first. AI answers are asynchronous and may queue.</td></tr>
+<tr><td class="k">Bounded cost</td><td>AI spend is capped per ticket and per plan and month.</td></tr>
+<tr><td class="k">Small-team operation</td><td>One Compose file per environment, nightly backups, a health tool, runbooks.</td></tr>
+</tbody></table></div>
+
+<!-- ===================================================================== -->
+<h2 id="s3"><span class="n">3</span>System context</h2>
+
+<figure>
+  <div class="canvas">{{FIG:01-system-context.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/01-system-context.svg">Open SVG</a></span><b>Figure 1. Who talks to the platform.</b> Customers reach it by browser or through their own AI agent. The AI enclave is inside the system boundary but in its own zone; it fetches work, it is never called.</figcaption>
+</figure>
+
+<div class="tw"><table>
+<thead><tr><th>Party</th><th>Role</th><th>Interface</th></tr></thead>
+<tbody>
+<tr><td class="k">Visitor</td><td>Reads product pages, documentation and prices.</td><td>Browser, no login</td></tr>
+<tr><td class="k">Customer</td><td>A person or a member of a company account. Registers, holds licenses, downloads, buys plans, files tickets.</td><td>Browser with login and MFA</td></tr>
+<tr><td class="k">Customer's AI agent</td><td>Acts for a signed-in customer: licenses, downloads, documentation search, tickets.</td><td>Customer MCP with OAuth 2.1</td></tr>
+<tr><td class="k">Cassilion DB at the customer</td><td>Verifies its license file offline. Produces a diagnostics bundle with version, build and license ID for tickets.</td><td>No connection to the platform</td></tr>
+<tr><td class="k">Payment provider</td><td>Checkout, tax, invoices, renewals.</td><td>API and signed webhooks</td></tr>
+<tr><td class="k">Operators</td><td>Review AI drafts, confirm bugs, answer escalations, watch sales and health.</td><td>Backoffice and operator MCP, restricted network, MFA</td></tr>
+<tr><td class="k">Product repo and CI</td><td>Source, documentation and signed release builds.</td><td>CI publishes builds; the enclave fetches snapshots</td></tr>
+</tbody></table></div>
+
+<!-- ===================================================================== -->
+<h2 id="s4"><span class="n">4</span>Architecture and trust zones</h2>
+
+<figure>
+  <div class="canvas">{{FIG:02-building-blocks-trust-zones.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/02-building-blocks-trust-zones.svg">Open SVG</a></span><b>Figure 2. Building blocks by zone.</b> The Job API is the only crossing between the application zone and the enclave, and the enclave opens that connection.</figcaption>
+</figure>
+
+<h3><span class="n">4.1</span>Trust zones</h3>
+<div class="tw"><table>
+<thead><tr><th>Zone</th><th>Contains</th><th>Holds</th><th>Never holds</th></tr></thead>
+<tbody>
+<tr><td class="k"><span class="tag a">Application</span></td><td>Django web and worker, PostgreSQL, object storage, license signer</td><td>Customer data, orders, licenses, tickets, release builds</td><td>Product source code, model, knowledge index</td></tr>
+<tr><td class="k"><span class="tag v">AI enclave</span></td><td>AI worker, model runtime, knowledge index, output guard</td><td>Source snapshot, documentation, redacted ticket text while a job runs</td><td>Customer identities, contact or payment data</td></tr>
+<tr><td class="k"><span class="tag o">Operators</span></td><td>Workstations, notifications, product Git and CI</td><td>Everything, by role</td><td>—</td></tr>
+<tr><td class="k"><span class="tag y">Third parties</span></td><td>Payment provider, mail relay</td><td>What they need for their task</td><td>Tickets, source code</td></tr>
+</tbody></table></div>
+
+<p>If the internet-facing server is compromised, the attacker finds customer data and has to be stopped by ordinary web security. The attacker does not find the source code, because it is not there. If a hostile ticket takes over the model, the model sits in a zone with nothing to send to and nothing to change.</p>
+
+<h3><span class="n">4.2</span>Application modules</h3>
+<div class="tw"><table>
+<thead><tr><th>Django app</th><th>Responsibility</th></tr></thead>
+<tbody>
+<tr><td class="k"><code>web</code></td><td>Public pages, documentation delivery, prices, legal pages, languages.</td></tr>
+<tr><td class="k"><code>accounts</code></td><td>Users, accounts (person or company), memberships and roles, addresses, tax profile, MFA, consents, data export and deletion.</td></tr>
+<tr><td class="k"><code>billing</code></td><td>Plans, checkout, subscriptions, orders, payment events, provider adapter, coupon codes.</td></tr>
+<tr><td class="k"><code>licensing</code></td><td>Entitlements, license files, signing-key IDs, revocation list.</td></tr>
+<tr><td class="k"><code>downloads</code></td><td>Release catalogue, checksums, short-lived download links, download records.</td></tr>
+<tr><td class="k"><code>support</code></td><td>Tickets, messages, state machine, quotas, release gate, notifications.</td></tr>
+<tr><td class="k"><code>guard</code></td><td>Input guardrails: normalise, redact, classify, decide.</td></tr>
+<tr><td class="k"><code>mcp</code></td><td>Customer MCP and operator MCP on top of the same service functions as the web views.</td></tr>
+<tr><td class="k"><code>backoffice</code></td><td>Review queue, sent log, bug candidates, switches, sales overview.</td></tr>
+<tr><td class="k"><code>audit</code></td><td>Append-only record of who did what, and on whose behalf.</td></tr>
+</tbody></table></div>
+
+<h3><span class="n">4.3</span>Alternatives considered</h3>
+<div class="tw"><table>
+<thead><tr><th>Alternative</th><th>For</th><th>Against</th></tr></thead>
+<tbody>
+<tr><td class="k">WordPress with WooCommerce and plugins</td><td>Shop in days.</td><td>License logic, MCP and guardrails become custom plugins anyway; larger attack surface; weak audit trail.</td></tr>
+<tr><td class="k">Hosted shop, hosted helpdesk, vendor AI agent</td><td>Least to build.</td><td>Bug triage needs the source code, which would go to a third party; little control over guardrails and MCP.</td></tr>
+<tr><td class="k">Microservices</td><td>Independent scaling.</td><td>Operating cost out of proportion to team and volume. The one split that matters, the AI enclave, is in the proposal.</td></tr>
+</tbody></table></div>
+
+<!-- ===================================================================== -->
+<h2 id="s5"><span class="n">5</span>Customers, plans, licenses and shop</h2>
+
+<h3><span class="n">5.1</span>Plans</h3>
+<p>A starting point for decision D3. Names and numbers are placeholders.</p>
+<div class="tw"><table>
+<thead><tr><th>Plan</th><th>Per year</th><th>Support</th><th>Tickets</th><th>A person answers</th><th>Response target</th></tr></thead>
+<tbody>
+<tr><td class="k">Community</td><td>€0</td><td>None. Public documentation and a one-way bug report form.</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td class="k">Supporter</td><td>€10</td><td>AI first-level only.</td><td>e.g. 2 a month</td><td>Only when the AI suspects a product bug</td><td>Best effort</td></tr>
+<tr><td class="k">Professional</td><td>€100</td><td>AI first-level with human escalation.</td><td>e.g. 5 a month</td><td>On request after the AI answer</td><td>e.g. 3 working days</td></tr>
+<tr><td class="k">Business</td><td>€1,000</td><td>Priority queue, named contacts.</td><td>e.g. 20 a month</td><td>Directly</td><td>e.g. next working day</td></tr>
+<tr><td class="k">Enterprise</td><td>By quote</td><td>Contract, service levels, private channel.</td><td>By contract</td><td>Directly</td><td>By contract</td></tr>
+</tbody></table></div>
+
+<div class="note warn"><p><strong>The €10 plan</strong>At €10 a year the plan cannot pay for human time. A merchant-of-record fee of about 5 % plus a fixed amount per sale takes roughly a tenth of the price. The plan works only with a cap on AI cost per ticket, and with people stepping in solely when a ticket is likely a product bug — which is information we want regardless of plan.</p></div>
+
+<p>Free users find bugs too. With no channel at all those reports are lost. The proposal is a one-way bug report form for Community users: it runs through the same triage with a tight cost cap, the result goes to the operators only, and no reply is promised.</p>
+
+<h3><span class="n">5.2</span>Accounts and international customer data</h3>
+<ul>
+  <li>A <b>user</b> is a login: e-mail, passkey or password, MFA. An <b>account</b> is the customer: a person or a company. Users belong to accounts through memberships with a role (owner, billing, technical).</li>
+  <li>A private customer is an account of kind <code>individual</code> with one member. Licenses, subscriptions and tickets therefore always belong to an account, never to a login, and a company can add or remove staff without losing anything.</li>
+  <li>Addresses start with the country (ISO 3166-1) and adapt to it; postal code and state are optional where a country has none. What the customer entered is stored as entered.</li>
+  <li>Company data: legal name, VAT ID with validation for EU companies, a billing e-mail separate from the login e-mail.</li>
+  <li>Consents are versioned: terms, license agreement, privacy notice. Marketing consent is separate and off by default.</li>
+  <li>Customers can export and delete their data from the customer area. Invoices and audit records stay as long as tax law requires.</li>
+</ul>
+
+<h3><span class="n">5.3</span>Data model</h3>
+<figure>
+  <div class="canvas">{{FIG:03a-data-model-accounts-licenses.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/03a-data-model-accounts-licenses.svg">Open SVG</a> · <a href="diagrams/03a-data-model-accounts-licenses.mmd">Mermaid source</a></span><b>Figure 3a. Accounts, plans and licenses.</b> The entitlement is the single source of truth for what an account may do; subscriptions and license files hang off it.</figcaption>
+</figure>
+<figure>
+  <div class="canvas">{{FIG:03b-data-model-support.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/03b-data-model-support.svg">Open SVG</a> · <a href="diagrams/03b-data-model-support.mmd">Mermaid source</a></span><b>Figure 3b. Support and AI records.</b> Every AI run keeps its finding and guard verdicts; every outgoing message has a review record, also when it was sent automatically. Not drawn: OAuth grants per user, audit events per account, payment events per order.</figcaption>
+</figure>
+
+<h3><span class="n">5.4</span>From registration to license</h3>
+<figure>
+  <div class="canvas">{{FIG:04-purchase-license-sequence.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/04-purchase-license-sequence.svg">Open SVG</a> · <a href="diagrams/04-purchase-license-sequence.mmd">Mermaid source</a></span><b>Figure 4. Registration, purchase, license.</b> The browser never tells the platform that a payment succeeded. Only the provider's signed webhook changes a subscription.</figcaption>
+</figure>
+
+<div class="note key"><p><strong>Superseded in part</strong>The second and third points below were written before the product's functionality summary was available, and they are wrong about the product. A Cassilion license binds a cluster, product and version, edition, capacity, term and feature entitlements. It carries an ES256 and an ML-DSA-65 signature, and a separate offline tool, <code>zuri_license_issuer</code>, creates, inspects, rotates and revokes it; remote signing is deferred on the product side. When a license expires, the cluster goes into a controlled read-only grace state and then a recovery-only state. Three consequences: the website cannot sign licenses; a customer has to name a cluster before a license can exist, so registration alone does not yield one; and the end of a support plan must not be tied to the end of a license by accident. The flow to design is request, issue, deliver: the customer area takes the request, the issuer runs offline, the result is stored and offered for download and over MCP. Figure 4 and appendix A.1 show the version 0.1 idea and are kept for reference only.</p></div>
+
+<ul>
+  <li>An <b>entitlement</b> says: account X has plan Y from one date to another. The platform reads it for every support action.</li>
+  <li>A <b>license file</b> is the entitlement in a form the database verifies offline: a small JSON document with an Ed25519 signature. The public keys ship inside the binary; a key ID allows rotation. Appendix A shows an example.</li>
+  <li>The file identifies customer and plan. It does not unlock the software, since the Community license already permits use. The recommendation for D4: the database never refuses to start because a paid plan lapsed. It reports the plan and writes the license ID into its diagnostics bundle, so a ticket can be matched to a customer and an exact build.</li>
+  <li>The signing key lives outside the repository and outside the web process. Every issued file is written to the audit log.</li>
+  <li>Webhook handling is idempotent: each provider event is stored once and applied once, so repeats and reordering do no harm.</li>
+</ul>
+
+<figure>
+  <div class="canvas">{{FIG:05-subscription-lifecycle.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/05-subscription-lifecycle.svg">Open SVG</a> · <a href="diagrams/05-subscription-lifecycle.mmd">Mermaid source</a></span><b>Figure 5. Subscription lifecycle.</b> Every path out of a paid support plan ends in Community. What happens to a cluster when its license term ends is decided by the product, not by this lifecycle.</figcaption>
+</figure>
+
+<h3><span class="n">5.5</span>Payment provider</h3>
+<div class="tw"><table>
+<thead><tr><th></th><th>Merchant of record (for example Paddle)</th><th>Payment processor with own tax handling (for example Stripe)</th></tr></thead>
+<tbody>
+<tr><td class="k">Seller toward the customer</td><td>The provider resells our plans.</td><td>We are.</td></tr>
+<tr><td class="k">VAT and sales tax worldwide</td><td>Calculated, collected and filed by the provider.</td><td>We register, file and keep the evidence (EU one-stop shop and beyond).</td></tr>
+<tr><td class="k">Invoices, refunds, chargebacks</td><td>Provider.</td><td>We.</td></tr>
+<tr><td class="k">Typical fee</td><td>About 5 % plus US$0.50 per sale.</td><td>Lower percentage, plus tax tooling and our own time.</td></tr>
+<tr><td class="k">Checkout</td><td>Hosted or overlay.</td><td>Fully ours.</td></tr>
+<tr><td class="k">Fits</td><td>Self-service plans sold worldwide from day one.</td><td>Later, when volume justifies the administration.</td></tr>
+</tbody></table></div>
+<p>Stripe also offers a merchant-of-record mode. Public reports on its availability and fees differ, so check it when D1 is decided. Whichever way the decision goes, the code talks to a small <code>PaymentProvider</code> interface (create checkout, parse webhook, cancel, refund), so the provider is one module. Enterprise plans are sold by quote and invoice from the backoffice. Provider onboarding has lead time and needs the selling entity and the legal pages, so it starts in parallel with phase 0.</p>
+
+<h3><span class="n">5.6</span>Downloads</h3>
+<ul>
+  <li>CI publishes signed builds with checksums into object storage and registers them in the release catalogue.</li>
+  <li>A download needs a signed-in account that has accepted the current license agreement. The link is valid for minutes.</li>
+  <li>Each download is recorded with account and version. Support uses this, and it is the mailing list for security notices about a specific release.</li>
+</ul>
+
+<!-- ===================================================================== -->
+<h2 id="s6"><span class="n">6</span>MCP for customers and operators</h2>
+
+<h3><span class="n">6.1</span>Two servers</h3>
+<p><b>Customer MCP</b> — public host name, every call acts for one customer account. The tools fall into two groups. <b>Knowledge tools</b> answer from public material and are open to every plan; an agent is expected to use them first. <b>Ticket tools</b> start an analysis on our side and need a paid plan. The scope column is the target for OAuth; the skeleton's agent tokens carry the whole set and the plan decides per call.</p>
+<div class="tw"><table>
+<thead><tr><th>Tools</th><th>Purpose</th><th>Scope</th><th>Plans</th></tr></thead>
+<tbody>
+<tr><td class="k"><code>get_account</code></td><td>Account, members, current plan.</td><td><code>account:read</code></td><td>All</td></tr>
+<tr><td class="k"><code>list_licenses</code>, <code>get_license_file</code></td><td>Licenses and the signed file.</td><td><code>licenses:read</code></td><td>All</td></tr>
+<tr><td class="k"><code>list_releases</code>, <code>get_download_link</code></td><td>Releases, checksums, a short-lived link.</td><td><code>downloads:read</code></td><td>All</td></tr>
+<tr><td class="k"><code>search_docs</code>, <code>read_doc</code>, <code>list_known_issues</code></td><td>Knowledge: search and read the public documentation, known issues with workarounds and fixed versions.</td><td><code>docs:read</code></td><td>All</td></tr>
+<tr><td class="k"><code>report_bug</code></td><td>One-way bug report, no reply promised.</td><td><code>bugs:write</code></td><td>All</td></tr>
+<tr><td class="k"><code>open_ticket</code>, <code>reply_ticket</code>, <code>request_person</code></td><td>Open or continue a support ticket; ask for a person where the plan includes one. <code>open_ticket</code> returns at once with an ID.</td><td><code>support:write</code></td><td>Paid</td></tr>
+<tr><td class="k"><code>list_tickets</code>, <code>get_ticket</code></td><td>Status, replies, what is still needed, what happens next. The agent polls.</td><td><code>support:read</code></td><td>All</td></tr>
+<tr><td class="k"><code>get_checkout_link</code></td><td>Link to buy or change a plan in the browser.</td><td><code>billing:link</code></td><td>All</td></tr>
+</tbody></table></div>
+
+<p><b>Operator MCP</b> — separate host name, reachable from the operator network only, staff accounts with MFA, every call logged with the acting person. Same pattern as the Tango back-office servers.</p>
+<div class="tw"><table>
+<thead><tr><th>Tools</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td class="k"><code>site_status</code></td><td>Health, last backup, queue lengths, when the AI node was last seen.</td></tr>
+<tr><td class="k"><code>list_review_queue</code>, <code>get_ticket_analysis</code></td><td>Drafts waiting, each with finding and guard report.</td></tr>
+<tr><td class="k"><code>approve_reply</code>, <code>edit_reply</code>, <code>reject_reply</code></td><td>Release decisions.</td></tr>
+<tr><td class="k"><code>list_bug_candidates</code>, <code>confirm_bug</code>, <code>dismiss_bug</code></td><td>Bug triage with a link to the issue.</td></tr>
+<tr><td class="k"><code>search_customers</code>, <code>get_account</code></td><td>Customer lookup; each look is logged.</td></tr>
+<tr><td class="k"><code>sales_overview</code></td><td>Plans, renewals, cancellations.</td></tr>
+<tr><td class="k"><code>set_auto_send</code></td><td>Kill switch and per-class switches.</td></tr>
+<tr><td class="k"><code>costs</code>, <code>set_budget</code></td><td>AI spend and limits.</td></tr>
+</tbody></table></div>
+
+<h3><span class="n">6.2</span>Authorization</h3>
+<figure>
+  <div class="canvas">{{FIG:06-mcp-authorization-sequence.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/06-mcp-authorization-sequence.svg">Open SVG</a> · <a href="diagrams/06-mcp-authorization-sequence.mmd">Mermaid source</a></span><b>Figure 6. How a customer's agent gets access.</b> The customer signs in on the Cassilion login page with the same account and MFA as on the website, and sees which scopes the agent asks for.</figcaption>
+</figure>
+
+<div class="note"><p><strong>In the skeleton</strong>Figure 6 is the target. The skeleton takes a shorter road to a working agent connection: in the customer area a customer creates a personal agent token, shown once, stored as a hash, revocable, valid for one account; the agent sends it in the <code>Authorization</code> header. A setting makes two-factor authentication a condition for creating one (on outside development). The endpoints already behave like an OAuth resource server (401 with a pointer to the protected-resource metadata, tokens bound to one endpoint), so OAuth replaces the token source and nothing else. Until then, only MCP clients that can send a custom header can connect; clients that insist on an OAuth sign-in cannot.</p></div>
+
+<p>The current MCP revision is 2026-07-28. Two properties shape the design. The protocol core is stateless: there is no session handshake, each request carries what the server needs, and the MCP endpoint is an ordinary HTTP route behind the proxy. And authorization is OAuth 2.1 with fixed roles: our MCP server is a resource server, our login is the authorization server.</p>
+<ul>
+  <li>The MCP server publishes protected-resource metadata. A request without a token gets a 401 that points to it and names the scope needed.</li>
+  <li>Tokens travel in the <code>Authorization</code> header on every request. The server checks that a token was issued for this MCP server and accepts no other. It never passes a token on.</li>
+  <li>Clients identify themselves with a Client ID Metadata Document. Dynamic client registration is deprecated in the specification; we add it only if a client we care about still needs it.</li>
+  <li>PKCE, exact redirect URIs, short-lived access tokens. A call that needs more than the token allows gets a 403 that names the missing scope.</li>
+  <li>Implementation: the official Python SDK 2.x as an ASGI app beside Django. It speaks the new revision and still serves clients on the older ones. The login can come from django-allauth's OpenID Connect provider or from django-oauth-toolkit; a short spike against real clients in phase 5 decides.</li>
+</ul>
+
+<h3><span class="n">6.3</span>Rules that are specific to MCP</h3>
+<ol>
+  <li>One service layer. MCP tools and web views call the same functions, so entitlement checks, quotas and guardrails cannot be bypassed through the other door.</li>
+  <li>Text that arrives through MCP is treated exactly like form input and passes G1 and G2.</li>
+  <li>AI-written text leaves through MCP only after G4 and G5. Tool descriptions are fixed text and are reviewed like code.</li>
+  <li>No payment through MCP. <code>get_checkout_link</code> returns a URL; paying happens in the browser.</li>
+  <li>Scopes follow the plan. A Community token cannot hold <code>support:write</code>; the tool answers with the upgrade link.</li>
+  <li>Rate limits per token and account. Results are paged and capped in size.</li>
+</ol>
+
+<!-- ===================================================================== -->
+<h2 id="s7"><span class="n">7</span>AI first-level support</h2>
+
+<h3><span class="n">7.1</span>Principles</h3>
+<ol>
+  <li><b>Assume each guard can fail.</b> Arrange things so that one failure is harmless.</li>
+  <li><b>Least capability.</b> The AI reads a fixed corpus and writes a structured result. It cannot send, browse, look up customers or change anything.</li>
+  <li><b>Separation of knowledge.</b> What is said to customers is generated from public material only.</li>
+  <li><b>A person decides</b> until the numbers say otherwise.</li>
+  <li><b>Everything is recorded:</b> input, retrieved documents, model and prompt version, guard verdicts, who released the reply.</li>
+</ol>
+
+<h3><span class="n">7.2</span>Pipeline</h3>
+<figure>
+  <div class="canvas">{{FIG:07-ai-support-pipeline.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/07-ai-support-pipeline.svg">Open SVG</a></span><b>Figure 7. Ten steps, five guardrails.</b> G1 and G2 protect the AI from the ticket. G3 and G4 protect the company's knowledge from the reply. G5 keeps the decision with the operators.</figcaption>
+</figure>
+
+<div class="tw"><table>
+<thead><tr><th>Crossing</th><th>Carries</th><th>Never carries</th></tr></thead>
+<tbody>
+<tr><td class="k">Application zone → enclave (job)</td><td>Redacted ticket text and attachments, product version, plan, language.</td><td>Customer identity and contact data, payment data, other tickets.</td></tr>
+<tr><td class="k">Analyst → Responder (bridge)</td><td>Class, confidence, component from a public list, public document IDs, missing-information codes.</td><td>Source code, file names, free text.</td></tr>
+<tr><td class="k">Enclave → application zone (result)</td><td>Draft reply, guard report, finding with pointers (<code>path:line@commit</code>), token count.</td><td>Source code.</td></tr>
+<tr><td class="k">Application zone → operators (alert)</td><td>Ticket ID, plan, version, class, summary, pointers.</td><td>Source code, customer secrets.</td></tr>
+<tr><td class="k">Application zone → customer</td><td>Released reply with AI notice and links into the documentation.</td><td>The internal finding.</td></tr>
+</tbody></table></div>
+<p>Findings carry pointers, not code. An operator resolves a pointer in their own checkout. That keeps the source out of the database on the public server and out of mail and push channels.</p>
+
+<h3><span class="n">7.3</span>Classes and routing</h3>
+<div class="tw"><table>
+<thead><tr><th>Class</th><th>The customer receives</th><th>The operators receive</th><th>Automatic sending, after shadow mode</th></tr></thead>
+<tbody>
+<tr><td class="k"><code>usage_error</code>, <code>configuration</code></td><td>Explanation and steps from the public documentation, with links.</td><td>Entry in the sent log; a sample is reviewed.</td><td>Yes, if confident and all guards green.</td></tr>
+<tr><td class="k"><code>known_issue</code></td><td>The known issue, a workaround, the version that fixes it.</td><td>A counter on the issue.</td><td>Yes.</td></tr>
+<tr><td class="k"><code>needs_info</code></td><td>A request for version, configuration or the diagnostics bundle.</td><td>—</td><td>Yes, template.</td></tr>
+<tr><td class="k"><code>suspected_bug</code></td><td>A templated acknowledgement, plus a workaround if the public docs have one.</td><td>Immediate alert with the internal finding and a draft issue.</td><td>Template only. The analysis is never sent automatically.</td></tr>
+<tr><td class="k"><code>security_suspected</code></td><td>A neutral acknowledgement without details.</td><td>Priority alert to a named owner; vulnerability handling starts.</td><td>Template only.</td></tr>
+<tr><td class="k"><code>doc_gap</code></td><td>Held. An operator answers.</td><td>Review queue and an item on the documentation backlog.</td><td>No.</td></tr>
+<tr><td class="k"><code>out_of_scope</code>, <code>abuse</code></td><td>A canned reply.</td><td>Abuse counter.</td><td>Yes, canned.</td></tr>
+</tbody></table></div>
+<p><code>doc_gap</code> is the case where the right answer exists only in the source code. It is the system telling us where the documentation is thin, which makes it one of the more useful outputs.</p>
+
+<h3><span class="n">7.4</span>Input guardrails</h3>
+<div class="tw"><table>
+<thead><tr><th>Layer</th><th>Control</th><th>Kind</th></tr></thead>
+<tbody>
+<tr><td class="k"><span class="tag g">G1</span> Access</td><td>Signed-in customer, plan includes support, monthly quota, rate limit per account and token.</td><td>Rule</td></tr>
+<tr><td class="k"><span class="tag g">G1</span> Shape</td><td>Length cap; attachment allow-list (text logs, configuration, the diagnostics bundle); archive limits. Customer content is never rendered as HTML anywhere.</td><td>Rule</td></tr>
+<tr><td class="k"><span class="tag g">G2</span> Normalise</td><td>Unicode normalisation; invisible and direction-control characters removed; encodings decoded for scanning only.</td><td>Rule</td></tr>
+<tr><td class="k"><span class="tag g">G2</span> Redact</td><td>Passwords, tokens, connection strings and personal data in logs become placeholders in the AI copy. The original stays encrypted for operators.</td><td>Rule and model</td></tr>
+<tr><td class="k"><span class="tag g">G2</span> Classify</td><td>Injection and jailbreak classifier, scope check (is this about Cassilion?), language detection.</td><td>Small model on CPU</td></tr>
+<tr><td class="k"><span class="tag g">G2</span> Decide</td><td>Pass, pass with a flag that forces human review, or reject with a canned reply.</td><td>Policy</td></tr>
+<tr><td class="k"><span class="tag v">Enclave</span></td><td>Customer text sits in a marked data slot. Tools are read-only. There is no network. Output has to match a JSON schema.</td><td>Structure</td></tr>
+</tbody></table></div>
+<div class="note"><p><strong>Strict, without punishing customers</strong>Logs and stack traces look odd and will trip classifiers. A paying customer's ticket is therefore flagged for review, not rejected, unless it is plainly abusive. Strictness comes from the narrow door (signed in, entitled, on topic, schema-bound), not from a high rejection rate.</p></div>
+
+<h3><span class="n">7.5</span>IP protection and output guardrails</h3>
+<div class="tw"><table>
+<thead><tr><th>Layer</th><th>Control</th></tr></thead>
+<tbody>
+<tr><td class="k">By construction</td><td>The Responder's context holds public documents and the bridge record. Nothing else.</td></tr>
+<tr><td class="k"><span class="tag g">G3</span> Bridge</td><td>A fixed schema: class, confidence, affected component from a public list, public document IDs, missing-information codes. No free text at the start.</td></tr>
+<tr><td class="k"><span class="tag g">G4</span> Secrets</td><td>Pattern and entropy scan for keys, tokens, internal host names, staff addresses, repository paths.</td></tr>
+<tr><td class="k"><span class="tag g">G4</span> Source fingerprint</td><td>Code-like spans in the draft are hashed and compared with a fingerprint index of the private repository. Snippets that also occur in the public documentation pass.</td></tr>
+<tr><td class="k"><span class="tag g">G4</span> Internal symbols</td><td>Identifiers that exist in the private source and nowhere in public material raise a flag.</td></tr>
+<tr><td class="k"><span class="tag g">G4</span> Canaries</td><td>Marker strings planted in the internal corpus. Any appearance blocks the reply and raises an alert, because it means the wall itself has a hole.</td></tr>
+<tr><td class="k"><span class="tag g">G4</span> Grounding</td><td>Every command, option and configuration key in the draft has to occur in the cited public passages. A second model checks the statements against them.</td></tr>
+<tr><td class="k"><span class="tag g">G4</span> Policy</td><td>A separate judge sees the draft and the policy only: no promises on dates, refunds or legal matters, nothing on unreleased features, no speculation about security, AI notice present, customer's language.</td></tr>
+<tr><td class="k"><span class="tag g">G4</span> Format</td><td>Plain text or a small Markdown subset. Links only to our documentation domain. No images, no HTML.</td></tr>
+<tr><td class="k"><span class="tag g">G5</span> Release</td><td>Routing by class, confidence and guard report; human approval where the table in 7.3 requires it.</td></tr>
+</tbody></table></div>
+<div class="note key"><p><strong>The one idea to keep</strong>Output filters are probabilistic. The wall between Analyst and Responder is not: the model that writes to the customer has never had the private source in its context. G4 exists to catch a mistake in building that wall, not to be the wall.</p></div>
+
+<h3><span class="n">7.6</span>Operator oversight</h3>
+<ul>
+  <li><b>Review queue:</b> draft, finding with pointers and guard report side by side; approve, edit or reject. Edits are kept as evaluation examples. There is no assignment and no ticket ownership: whoever looks, decides.</li>
+  <li><b>Bug alert:</b> e-mail and push with ticket ID, plan, version, class, confidence, summary and pointers, plus a draft issue for the tracker.</li>
+  <li><b>Sent log:</b> every outgoing reply, including automatic ones, with its guard report; a daily digest.</li>
+  <li><b>Switches:</b> a global kill switch for automatic sending, switches per class and per plan, and a sampling rate for after-the-fact review.</li>
+  <li><b>Measures:</b> share of tickets resolved without a person, how often reviewers edit, guard blocks, confirmed bugs among candidates, cost per ticket.</li>
+</ul>
+
+<h3><span class="n">7.7</span>Knowledge and retrieval</h3>
+<ul>
+  <li><b>Public corpus:</b> documentation, release notes, known-issues list, FAQ. Built from the same source as the documentation site; every passage has a stable ID and URL.</li>
+  <li><b>Internal corpus:</b> the source tree per release tag and internal design notes; later also closed tickets with approved answers.</li>
+  <li><b>Version pinning:</b> the ticket carries the product version from the form or the diagnostics bundle, and the Analyst reads the matching tag. An answer about the wrong version is a wrong answer.</li>
+  <li><b>Analyst tools,</b> all read-only on a snapshot: search documentation, search code (exact and semantic), read a file range, list symbols, look up known issues for a version.</li>
+  <li>The index is built inside the enclave from its own Git fetch. Nothing of it exists on the application server.</li>
+</ul>
+
+<h3><span class="n">7.8</span>Model and runtime options</h3>
+<div class="tw"><table>
+<thead><tr><th>Option</th><th>Does source code leave our hardware?</th><th>Expected quality</th><th>Cost</th><th>Availability</th></tr></thead>
+<tbody>
+<tr><td class="k">A. Own GPU workstation, 24 GB class, open-weight coding model (first candidate: Devstral Small 2)</td><td>No.</td><td>Good for answers grounded in documentation. Uncertain for deep C++ bug analysis; has to be measured.</td><td>Electricity.</td><td>Best effort, one machine.</td></tr>
+<tr><td class="k">B. Dedicated GPU server in the EU, larger open-weight model</td><td>It leaves the premises and stays under our control.</td><td>Better.</td><td>Fixed monthly, noticeable.</td><td>Good.</td></tr>
+<tr><td class="k">C. External model API with a no-retention contract</td><td>Yes, protected by contract only.</td><td>Best.</td><td>Per token.</td><td>Good.</td></tr>
+</tbody></table></div>
+<p>Recommendation for D2: start with A in shadow mode, collect 50 to 100 real tickets from beta users as an evaluation set, and decide with results. The model sits behind an OpenAI-compatible gateway, so changing it is configuration. Because the Responder handles public material only, it could later use a different, stronger model than the Analyst without touching the question of where the source code may go.</p>
+<div class="note"><p><strong>In the skeleton</strong>The default backend is a stand-in without any model (<code>LLM_BACKEND=stub</code>): keyword rules for crashes and security, a known-issue match, and a text search over the public documentation whose score decides between an answer, a request for information and a documentation gap. It is deterministic, which is what the tests need, and it is not smart. It cannot judge whether a question is out of scope, and it reads no code. With <code>LLM_BACKEND=openai</code> the same pipeline calls an OpenAI-compatible endpoint for both stages; if the endpoint fails, the rules take over and the finding is marked low confidence, so it lands in review. The model path is tested against a stand-in endpoint only, not yet against a real model.</p></div>
+
+<h3><span class="n">7.9</span>End to end</h3>
+<figure>
+  <div class="canvas">{{FIG:08-support-ticket-sequence.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/08-support-ticket-sequence.svg">Open SVG</a> · <a href="diagrams/08-support-ticket-sequence.mmd">Mermaid source</a></span><b>Figure 8. One ticket, three possible endings.</b> In shadow mode the first ending is switched off and every ticket takes the review path.</figcaption>
+</figure>
+<figure>
+  <div class="canvas">{{FIG:09-ticket-states.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/09-ticket-states.svg">Open SVG</a> · <a href="diagrams/09-ticket-states.mmd">Mermaid source</a></span><b>Figure 9. Ticket states.</b> The state machine lives in the <code>support</code> app; the enclave can only move a ticket out of “Analysing”.</figcaption>
+</figure>
+
+<h3><span class="n">7.10</span>Cost control</h3>
+<p>Each AI run counts its tokens. There is a ceiling per ticket and a budget per plan and month. When a budget is used up, tickets wait for a person or for the next period, depending on the plan. The operator tools <code>costs</code> and <code>set_budget</code> follow the pattern already used in the Tango-Kalender back office.</p>
+
+<!-- ===================================================================== -->
+<h2 id="s8"><span class="n">8</span>Technology and reuse</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Layer</th><th>Choice</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td class="k">Language and framework</td><td>Python 3.13 or newer; Django 6.1 now, 6.2 LTS from April 2027.</td><td>Django 5.2 LTS, with security fixes until April 2028, is the fallback if the Tango stack is on it.</td></tr>
+<tr><td class="k">Database</td><td>PostgreSQL; pgvector for the enclave's index.</td><td>One engine, separate instances per zone.</td></tr>
+<tr><td class="k">Front end</td><td>Django templates, HTMX, little JavaScript.</td><td>No third-party scripts. Content Security Policy from Django's built-in support.</td></tr>
+<tr><td class="k">Accounts</td><td>django-allauth: e-mail verification, MFA, passkeys.</td><td>Can also provide the OpenID Connect login for MCP.</td></tr>
+<tr><td class="k">Background work</td><td>Django's task framework with a database-backed worker.</td><td>The framework defines and queues tasks; a worker process runs them. Celery only if the Tango projects already use it.</td></tr>
+<tr><td class="k">MCP</td><td>Official Python SDK 2.x on ASGI.</td><td>Specification revision 2026-07-28.</td></tr>
+<tr><td class="k">Payments</td><td>Provider adapter.</td><td>Decision D1.</td></tr>
+<tr><td class="k">Mail</td><td>SMTP relay in the EU, templates in both languages.</td><td>Mailpit locally.</td></tr>
+<tr><td class="k">Proxy</td><td>Caddy.</td><td>TLS, limits, host routing.</td></tr>
+<tr><td class="k">Files</td><td>S3-compatible object storage.</td><td>MinIO locally.</td></tr>
+<tr><td class="k">AI runtime</td><td>Ollama or vLLM behind an OpenAI-compatible gateway.</td><td>The model is configuration.</td></tr>
+<tr><td class="k">Guard components</td><td>A small injection classifier, secret and personal-data redaction, our own fingerprint and grounding checks.</td><td>Open-source candidates to evaluate: Prompt Guard, LlamaFirewall, LLM Guard, Presidio.</td></tr>
+<tr><td class="k">Operations</td><td>Structured logs, error tracking, uptime check, nightly database dump with an off-site copy, restore test.</td><td><code>site_status</code> as in the Tango projects.</td></tr>
+</tbody></table></div>
+
+<h3>Reuse from Tangosummer and Tango-Kalender</h3>
+<div class="note warn"><p><strong>Not yet checked in code</strong>This table is derived from the tool surface of the two existing MCP back offices, not from their source. Each row needs a look at the code before it is planned as reuse.</p></div>
+<div class="tw"><table>
+<thead><tr><th>Exists in</th><th>Pattern</th><th>Use in Cassilion</th></tr></thead>
+<tbody>
+<tr><td class="k">Tango-Ticket (Tangosummer shop)</td><td>Orders and paid-order handling, vouchers and discount groups.</td><td>Skeleton of <code>billing</code>; coupon codes.</td></tr>
+<tr><td class="k">Tango-Ticket</td><td>Content pages in German and English, editable through MCP.</td><td>Product and legal pages in <code>web</code>.</td></tr>
+<tr><td class="k">Both</td><td>Back-office MCP that acts as the signed-in team member; every change logged; nothing deleted, only withdrawn.</td><td>Operator MCP and <code>audit</code>.</td></tr>
+<tr><td class="k">Tango-Kalender</td><td>AI job pipeline with a review queue: candidates, review, approve or reject.</td><td>Review queue for AI replies.</td></tr>
+<tr><td class="k">Tango-Kalender</td><td>AI cost tracking and budgets.</td><td>Cost control per plan.</td></tr>
+<tr><td class="k">Tango-Kalender</td><td>The rule that text from outside is data, never an instruction.</td><td>The basis of the input guard.</td></tr>
+<tr><td class="k">Tango-Kalender</td><td>Privacy-first front end, database backup routine, <code>site_status</code>.</td><td>Carried over as is.</td></tr>
+</tbody></table></div>
+
+<!-- ===================================================================== -->
+<h2 id="s9"><span class="n">9</span>Environments: local to production</h2>
+
+<figure>
+  <div class="canvas">{{FIG:10-environments.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/10-environments.svg">Open SVG</a></span><b>Figure 10. The same shape on the desk and in production.</b> Only the surroundings change: mail catcher and payment sandbox locally, proxy, backups and monitoring in production.</figcaption>
+</figure>
+
+<ul>
+  <li><b>Local:</b> <code>python manage.py dev</code> starts the web application with both MCP endpoints and the AI worker as a second process, on SQLite, with mails on the console and a stand-in payment provider. No Docker is needed. The worker uses rules by default and an OpenAI-compatible endpoint, for example Ollama on the GPU workstation, when configured.</li>
+  <li><b>Production:</b> decided: cassilion.com and cassilion.de point at the server that also runs Tango-Kalender, and the whole application runs there from the start, with search engines kept out (<code>SITE_NOINDEX</code>). The procedure is <code>docs/server-setup.md</code>: host nginx, a Compose stack on a local port, nightly backup. While the AI worker works by rules it runs in that stack; with a model or the product source it moves to its own machine. Version 0.1 recommended a separate server, because this application holds customer data and receives payment webhooks; on a shared machine the same separation has to come from its own containers, database, system user and backups. The product source and the model stay off that machine in every case. The AI node is our own GPU hardware or a dedicated server and needs only an outbound connection, so it can sit behind an ordinary router.</li>
+  <li><b>Host names:</b> <code>www</code> for the site, <code>mcp</code> for the customer MCP, <code>ops</code> for backoffice and operator MCP with network restriction.</li>
+  <li><b>Configuration</b> comes from environment variables. Secrets and the signing key are never in the repository.</li>
+</ul>
+
+<h3>Repository layout</h3>
+<p>As built. Flat, so that <code>manage.py</code> sits in the repository root and nothing needs a path setting.</p>
+<pre><code>Casilion/                    (the folder keeps the older spelling)
+├─ README.md                 quick start, demo logins, what is placeholder
+├─ manage.py                 `python manage.py dev` starts everything
+├─ requirements.txt          one environment for web and worker
+├─ .env.example              every setting, commented
+├─ Dockerfile  docker-compose.yml   the stack on the server; image not yet built
+├─ docker/  deploy/nginx/    entrypoint, backup, nginx files (pattern of Tango-Kalender)
+├─ config/                   settings, urls, asgi (Django plus the MCP endpoints)
+├─ apps/
+│  ├─ core/                  site, documentation pages, dev and seed commands
+│  ├─ accounts/              users, accounts, members, address, tax profile
+│  ├─ billing/               plans, subscriptions, orders, provider adapter, sandbox
+│  ├─ licensing/             entitlements, signed license files
+│  ├─ downloads/             releases, artefacts, expiring links
+│  ├─ support/               tickets, messages, jobs, release gate, job API
+│  ├─ guard/                 input guard (G2)
+│  ├─ mcp_server/            agent tokens, customer and operator MCP
+│  ├─ backoffice/            review queue, sent log, switches
+│  └─ audit/                 who did what
+├─ shared/                   used on both sides of the wall: schemas, redaction, corpus
+├─ ai_worker/                the enclave: analyst, responder, output guard, job client
+├─ knowledge/
+│  ├─ public/                documentation the Responder may quote (placeholder texts)
+│  ├─ known_issues.json      public known issues (placeholder entry)
+│  └─ internal/              canary strings; the product source is mounted, never copied
+├─ templates/  static/       pages and design: tokens, landing page, application; self-hosted fonts
+├─ site/                     the original static draft of the landing page (ported into the application)
+├─ tests/                    shop, support flow, guards, MCP, pages
+└─ docs/architecture/        this concept and its diagrams</code></pre>
+<p>The product source stays in its own repository. <code>ai_worker</code> holds prompts and checks, not product code, and imports nothing from Django: it could move to its own image and host without change.</p>
+
+<!-- ===================================================================== -->
+<h2 id="s10"><span class="n">10</span>Security, privacy and compliance checkpoints</h2>
+<p>These are the points to settle with legal and tax advice. They are listed because each one changes something in the build.</p>
+<div class="tw"><table>
+<thead><tr><th>Topic</th><th>What it means here</th><th>Consequence for the build</th></tr></thead>
+<tbody>
+<tr><td class="k">GDPR</td><td>Customer and ticket data are personal data. Logs in tickets can contain data about third persons.</td><td>EU hosting, processor agreements for mail, payment and hosting, redaction before the AI, retention rules, export and deletion.</td></tr>
+<tr><td class="k">EU AI Act, Article 50</td><td>Applicable since 2 August 2026: people have to be told when they are dealing with an AI system.</td><td>An AI notice on the ticket form and on every AI-written reply. Ask counsel whether the marking duty for generated text also applies to us.</td></tr>
+<tr><td class="k">Cyber Resilience Act</td><td>Cassilion is very likely a product with digital elements. Reporting duties have applied since 11 September 2026: actively exploited vulnerabilities and severe incidents, with an early warning within 24 hours. The remaining duties follow on 11 December 2027.</td><td>The <code>security_suspected</code> route is the intake: priority alert, named owner, the clock starts when we become aware. The product needs vulnerability handling, a component list and a security-update process.</td></tr>
+<tr><td class="k">Consumer law, if we sell to private persons</td><td>Order button, an electronic withdrawal function (mandatory in Germany since 19 June 2026), a cancellation button for subscriptions.</td><td>Decision D5. With a merchant of record, clarify which duties remain with us; otherwise they go into the customer area.</td></tr>
+<tr><td class="k">VAT and sales tax</td><td>Digital services are taxed where the customer is.</td><td>Decision D1. Country evidence and VAT IDs are collected either way.</td></tr>
+<tr><td class="k">Export control and sanctions</td><td>A database with encryption, offered worldwide.</td><td>Legal check. If required, country screening at registration and download.</td></tr>
+<tr><td class="k">Contracts</td><td>License agreement for the free binary, support terms per plan, privacy notice, data-processing agreement for companies.</td><td>Versioned acceptance stored per account.</td></tr>
+<tr><td class="k">Platform security</td><td>Staff MFA, secrets outside the repository, dependency updates, backups, a penetration test before go-live, a disclosure address.</td><td>Phases 0 and 6.</td></tr>
+</tbody></table></div>
+
+<!-- ===================================================================== -->
+<h2 id="s11"><span class="n">11</span>Roadmap</h2>
+
+<figure>
+  <div class="canvas">{{FIG:11-roadmap.svg}}</div>
+  <figcaption><span class="src"><a href="diagrams/11-roadmap.svg">Open SVG</a> · <a href="diagrams/11-roadmap.mmd">Mermaid source</a></span><b>Figure 11. Phases and what they depend on.</b> The site can go live after P1 or P2; the AI joins a support desk that already works by hand.</figcaption>
+</figure>
+
+<div class="tw"><table>
+<thead><tr><th>Phase</th><th>Content</th><th>Done when</th></tr></thead>
+<tbody>
+<tr><td class="k">P0 Foundation</td><td>Repository skeleton, Compose, settings, accounts, languages, CI.</td><td>A new machine runs the stack with one command.</td></tr>
+<tr><td class="k">P1 Free tier</td><td>Registration, e-mail verification, Community license, downloads, site and documentation skeleton.</td><td>A stranger can register, get a license file and download a build.</td></tr>
+<tr><td class="k">P2 Shop</td><td>Plans, checkout in the provider sandbox, webhooks, renewals, invoices, legal pages.</td><td>A test purchase upgrades the license; a failed renewal returns it to Community after the grace period.</td></tr>
+<tr><td class="k">P3 Support desk</td><td>Tickets, quotas, backoffice queue, notifications, operator MCP.</td><td>Operators answer a ticket from start to finish without AI.</td></tr>
+<tr><td class="k">P4 AI in shadow mode</td><td>Knowledge ingest, Analyst, bridge, Responder, guards, review queue, evaluation set.</td><td>Every ticket gets a draft; nothing is sent without approval; the red-team tickets are stopped.</td></tr>
+<tr><td class="k">P5 Customer MCP</td><td>OAuth, tools, scopes by plan.</td><td>An MCP client signs in and files a ticket.</td></tr>
+<tr><td class="k">P6 Hardening</td><td>Penetration test, guard red team, restore test, runbooks, automatic sending for the first class.</td><td>The agreed thresholds on the evaluation set are met.</td></tr>
+</tbody></table></div>
+
+<p><b>Where the skeleton stands.</b> It cuts through P0 to P5 once, thinly, instead of finishing one phase after the other: every step of the path exists and is covered by a test, and none is production-ready. What is real: data model, entitlement and quota logic, license signing, job API, guards, release gate, review and sent log, both MCP servers. What is a stand-in: the payment provider (sandbox), the model (rules), the documentation and known issues (invented examples), legal pages (empty), the MCP sign-in (agent tokens). What is missing: invoices and tax, renewals driven by a real provider, German texts, backups, rate limits, an evaluation set, deployment.</p>
+
+<!-- ===================================================================== -->
+<h2 id="s12"><span class="n">12</span>Decisions: taken, assumed, open</h2>
+<p>Three kinds of entries. <b>Decided</b> came from you. <b>Assumed</b> is what the skeleton does so that it could be built; each can be changed without rework elsewhere. <b>Open</b> still needs an answer.</p>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Topic</th><th>State</th><th>What holds now</th></tr></thead>
+<tbody>
+<tr><td class="num">D7</td><td class="k">Ticket channels</td><td>Decided</td><td>The customer's AI agent over MCP, and the customer area. No chat, no phone, no inbound e-mail.</td></tr>
+<tr><td class="num">D11</td><td class="k">Support organisation</td><td>Decided</td><td>No support or CRM staff. A lean build of our own; existing helpdesk products serve as a blueprint only.</td></tr>
+<tr><td class="num">D12</td><td class="k">Agent sign-in</td><td>Decided in principle</td><td>Each customer's agent connects with that customer's identity and two-factor authentication. Mechanism assumed for now: personal agent tokens; target: OAuth 2.1 (section 6.2).</td></tr>
+<tr><td class="num">D3</td><td class="k">Plan contents</td><td>Assumed</td><td>Community €0 without tickets; Supporter €10 with 2 tickets a month; Professional €100 with 5 and a person on request; Business €1000 with 20 and priority; Enterprise by quote. Names and numbers are placeholders.</td></tr>
+<tr><td class="num">D4</td><td class="k">What a license does</td><td>Settled by the product; flow open</td><td>The product binds cluster, edition, capacity, term and features and reacts to expiry (section 5.4). Decided: a signing service is the target; at the start a person issues the license with the offline tool and uploads it. Deferred on the website side: what a €0 license contains (edition, capacity, term); which plan maps to which edition; whether the end of a support plan changes the license at all.</td></tr>
+<tr><td class="num">D6</td><td class="k">Hosting and mail</td><td>Decided</td><td>The server that runs Tango-Kalender; outbound mail through Brevo, inbound to the own mail server; addresses info@cassilion.com and info@cassilion.de.</td></tr>
+<tr><td class="num">D15</td><td class="k">Name</td><td>Decided for now</td><td>Cassilion, under cassilion.com. Rights holder in the product documents: Zuri-AI GmbH. The selling entity (D5) is a separate question.</td></tr>
+<tr><td class="num">D16</td><td class="k">One look</td><td>Decided</td><td>The landing page's look for the whole site: public pages, customer area and backoffice. The midnight-blue Bauhaus variant of the first skeleton is gone; its clearer plan model was carried over and now feeds the plans box of the landing page and the plans page.</td></tr>
+<tr><td class="num">D17</td><td class="k">Stack</td><td>Decided</td><td>Python and Django, like Tango-Ticket and Tango-Kalender. A switch to Node.js was considered and declined.</td></tr>
+<tr><td class="num">D8</td><td class="k">Channel for free users</td><td>Assumed</td><td>A one-way bug report, by form or MCP, with a small monthly quota and no reply promised.</td></tr>
+<tr><td class="num">D9</td><td class="k">Languages</td><td>Assumed</td><td>English texts, with the plumbing for German in place.</td></tr>
+<tr><td class="num">D13</td><td class="k">Does the AI read the source from the start?</td><td>Open</td><td>The skeleton supports both: without <code>PRODUCT_REPO_DIR</code> the Analyst works from documentation and known issues; with it, it also searches a read-only checkout and returns pointers. Starting without the source is the smaller risk; the wall and the guards are built either way.</td></tr>
+<tr><td class="num">D14</td><td class="k">Which model</td><td>Open</td><td>Any OpenAI-compatible endpoint can be configured. Which model is good enough is a question for an evaluation set of real tickets, which does not exist yet.</td></tr>
+</tbody></table></div>
+<p>The remaining entries are unchanged from version 0.1 and still open:</p>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Decision</th><th>Options</th><th>Recommendation</th></tr></thead>
+<tbody>
+<tr><td class="num">D1</td><td class="k">Payment model</td><td>Merchant of record; payment processor with own tax handling; both.</td><td>Merchant of record for self-service plans, invoices for enterprise.</td></tr>
+<tr><td class="num">D2</td><td class="k">Where the AI runs</td><td>Own GPU workstation; dedicated GPU server; external API; a mix.</td><td>Own GPU in shadow mode; decide with evaluation results.</td></tr>
+<tr><td class="num">D5</td><td class="k">Who sells, and to whom</td><td>Selling entity; private persons and companies, or companies only for paid plans.</td><td>Legal and tax advice first. It changes checkout and legal pages.</td></tr>
+<tr><td class="num">D10</td><td class="k">Home of the public documentation</td><td>In the product repository; a separate documentation repository.</td><td>Decide with the product side. It defines the line between public and internal corpus.</td></tr>
+</tbody></table></div>
+
+<!-- ===================================================================== -->
+<h2 id="s13"><span class="n">13</span>Risks</h2>
+<div class="tw"><table>
+<thead><tr><th>Risk</th><th>Effect</th><th>Answer</th></tr></thead>
+<tbody>
+<tr><td class="w">A local model is too weak to tell bugs from usage errors in C++ code.</td><td>Most tickets land in review; little relief.</td><td>Shadow mode, evaluation set, model behind a gateway; D2 decided with numbers.</td></tr>
+<tr><td class="w">An injection gets past the classifiers.</td><td>A manipulated finding or draft.</td><td>No capability to abuse, schema-bound output, bridge, G4, review.</td></tr>
+<tr><td class="w">The bridge leaks through free text.</td><td>Internal detail reaches the Responder.</td><td>No free text at the start; later at most one short, scanned field.</td></tr>
+<tr><td class="w">Guards block too much.</td><td>Paying customers wait.</td><td>Flag for review, do not reject; watch block rates; tune on the evaluation set.</td></tr>
+<tr><td class="w">AI cost on the €10 plan.</td><td>The plan loses money.</td><td>Quota, token ceiling, monthly budget, own hardware.</td></tr>
+<tr><td class="w">The AI node is down or offline.</td><td>Tickets queue.</td><td>Asynchronous by design; “AI node last seen” in <code>site_status</code>; operator alert; option B.</td></tr>
+<tr><td class="w">Selling entity or provider onboarding is late.</td><td>The shop slips.</td><td>Parallel track from phase 0. Free tier and support desk do not depend on it.</td></tr>
+<tr><td class="w">A security report is treated as a normal ticket.</td><td>A reporting deadline is missed.</td><td>Own class, priority alert, named owner.</td></tr>
+<tr><td class="w">Scope grows.</td><td>Late go-live.</td><td>Phase gates in section 11. MCP and automatic sending come after a working manual flow.</td></tr>
+</tbody></table></div>
+
+<!-- ===================================================================== -->
+<h2 id="sa"><span class="n">A</span>Appendices</h2>
+
+<h3>A.1 License file, example</h3>
+<p>Version 0.1 idea, kept for reference. It is what the skeleton's stand-in file contains. It is not the product's license format (section 5.4).</p>
+<pre><code>{
+  "v": 1,
+  "key_id": "cas-lic-2026-01",
+  "license_id": "CAS-7F3K-92QM-X1TD",
+  "account": "acc_01JD8Q2M5T",
+  "licensee": "Example GmbH",
+  "plan": "professional",
+  "valid_from": "2026-11-20",
+  "valid_until": "2027-11-19",
+  "issued_at": "2026-11-20T09:15:00Z"
+}
++ Ed25519 signature over the canonical JSON, delivered as one file: cassilion.lic</code></pre>
+
+<h3>A.2 Job API, sketch</h3>
+<pre><code>POST /internal/jobs/claim           200 { job_id, ticket }   or   204 nothing to do
+                                    ticket = { text, attachments, product_version,
+                                               plan, language }
+POST /internal/jobs/{id}/heartbeat  extends the lease while the job runs
+POST /internal/jobs/{id}/result     { finding, draft, guard_report, usage }
+POST /internal/jobs/{id}/fail       { reason }   back to the queue, or to human review</code></pre>
+<p>The AI node authenticates with mutual TLS or a short-lived signed token, on a host name that accepts its address only. A job is leased, not handed over: if no result arrives in time, it is offered again or escalated to a person.</p>
+
+<h3>A.3 Diagram sources</h3>
+<p>All figures are in <code>docs/architecture/diagrams/</code>: four hand-laid-out SVG files (figures 1, 2, 7, 10) and eight Mermaid sources (<code>.mmd</code>) with their rendered SVG.</p>
+
+<h3>A.4 Sources</h3>
+<p>Checked on 20 November 2026.</p>
+<ul>
+  <li><a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization">Model Context Protocol, Authorization, revision 2026-07-28</a></li>
+  <li><a href="https://modelcontextprotocol.io/specification/2026-07-28/changelog.md">Model Context Protocol, changelog for revision 2026-07-28</a></li>
+  <li><a href="https://newreleases.io/project/pypi/mcp/release/2.0.0">MCP Python SDK 2.0.0 release notes</a></li>
+  <li><a href="https://docs.djangoproject.com/en/6.0/releases/6.0/">Django 6.0 release notes (task framework, Content Security Policy)</a></li>
+  <li><a href="https://djangoproject.com/weblog/2026/aug/10/annual-release-cycle">Django project: release and support schedule</a></li>
+  <li><a href="https://docs.allauth.org/en/dev/idp/openid-connect/introduction.html">django-allauth: OpenID Connect provider</a></li>
+  <li><a href="https://paddle.com/compare/stripe">Paddle: comparison with Stripe, incl. Stripe Managed Payments</a> and <a href="https://freemius.com/blog/paddle-vs-stripe/">Freemius: Paddle vs Stripe, fees</a></li>
+  <li><a href="https://www.hoganlovells.com/en/publications/eu-cyber-resilience-act-preparing-for-vulnerability-and-incident-reporting">Hogan Lovells: Cyber Resilience Act reporting duties</a></li>
+  <li><a href="https://artificialintelligenceact.eu/transparency-rules-article-50/">EU AI Act, Article 50 transparency rules, practical guide</a></li>
+  <li><a href="https://www.frankfurt-main.ihk.de/recht/uebersicht-alle-rechtsthemen/vertragsrecht-und-e-commerce-recht/rechtliche-anforderungen-fuer-online-shops/uebersicht/widerrufsbutton-6933526">IHK Frankfurt am Main: Widerrufsbutton</a></li>
+  <li><a href="https://arxiv.org/pdf/2505.03574">LlamaFirewall: an open-source guardrail system for AI agents</a></li>
+  <li><a href="https://docs.unsloth.ai/models/devstral-2">Devstral 2 and Devstral Small 2: hardware requirements</a></li>
+</ul>
+
+</main>
+
+<footer>Cassilion Web Platform — Architecture Concept, version 0.1, 20 November 2026. Legal and tax points in section 10 are checkpoints for professional advice, not advice.</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Review queue{% endblock %}
+{% block heading %}Review queue{% endblock %}
+{% block intro %}<p>AI drafts to release, flagged tickets and bug candidates. Critical tickets first.</p>{% endblock %}
+
+{% block content %}
+{% if tickets %}
+  {% include "backoffice/_ticket_rows.html" with tickets=tickets %}
+{% else %}
+  <p>Nothing is waiting.</p>
+{% endif %}
+{% endblock %}

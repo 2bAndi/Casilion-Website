@@ -1,0 +1,29 @@
+{% extends "backoffice/base.html" %}
+{% load cassilion %}
+{% block page_title %}Sent log{% endblock %}
+{% block heading %}Sent log{% endblock %}
+{% block intro %}<p>Everything that went out to customers, newest first, with how it was released.</p>{% endblock %}
+
+{% block content %}
+{% if sent %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Sent</th><th>Ticket</th><th>Customer</th><th>From</th><th>Released</th><th>Text</th></tr></thead>
+      <tbody>
+      {% for message in sent %}
+        <tr>
+          <td class="num">{{ message.sent_at|date:"j M, H:i" }}</td>
+          <td><a class="strong" href="{% url 'backoffice:ticket' message.ticket.public_id %}">{{ message.ticket.public_id }}</a></td>
+          <td>{{ message.ticket.account.name }}</td>
+          <td>{{ message.get_author_kind_display }}{% if message.ai_generated %} <span class="tag">AI</span>{% endif %}</td>
+          <td>{% if message.review %}{{ message.review.get_action_display }}{% if message.review.reviewer %}<br><span class="muted small">{{ message.review.reviewer.email }}</span>{% endif %}{% else %}Written by the team{% endif %}</td>
+          <td>{{ message.body|truncatechars:220 }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>Nothing has been sent yet.</p>
+{% endif %}
+{% endblock %}

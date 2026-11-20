@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Plans – Cassilion{% endblock %}
+{% block band %}
+<div class="wrap page-head">
+  <h1>Plans</h1>
+  <p>Using Cassilion is free. The paid plans add support, billed once a year.</p>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if sandbox_payments %}
+  <div class="notice sandbox"><p>Payments run against a sandbox in this installation. No money moves.</p></div>
+{% endif %}
+
+<div class="plans">
+  {% for plan in plans %}
+    <section class="plan p-{{ plan.code }}{% if current_plan and current_plan.code == plan.code %} current{% endif %}">
+      <h3>{{ plan.name }}</h3>
+      <div class="price">{% if plan.is_free %}€0{% elif plan.self_service %}€{{ plan.price_eur_year|intcomma }}{% else %}By quote{% endif %}</div>
+      <div class="per">{% if plan.self_service and not plan.is_free %}per year{% elif plan.is_free %}no charge{% else %}by agreement{% endif %}</div>
+      <ul>
+        <li>{{ plan.get_support_level_display }}</li>
+        <li>{% if plan.has_support %}{{ plan.ticket_quota_month }} tickets a month{% else %}No tickets{% endif %}</li>
+        <li>{{ plan.bug_report_quota_month }} bug reports a month</li>
+        <li>Downloads, license file, documentation</li>
+        <li>MCP access for your AI agent</li>
+      </ul>
+      <div class="buy">
+        {% if current_plan and current_plan.code == plan.code %}
+          <span class="tag ok">Your plan</span>
+        {% elif plan.is_free %}
+          {% if not user.is_authenticated %}<a class="btn ghost" href="{% url 'account_signup' %}">Register</a>{% endif %}
+        {% elif not plan.self_service %}
+          <a class="btn ghost" href="mailto:sales@cassilion.example">Ask for a quote</a>
+        {% elif user.is_authenticated and current_account %}
+          <form method="post" action="{% url 'billing:checkout_start' plan.code %}">{% csrf_token %}<button type="submit">Choose {{ plan.name }}</button></form>
+        {% else %}
+          <a class="btn" href="{% url 'account_signup' %}">Register to buy</a>
+        {% endif %}
+      </div>
+    </section>
+  {% endfor %}
+</div>
+
+<div class="measure">
+  <h2>What support means here</h2>
+  <p>Support starts with Cassilion's support AI. It reads your ticket against the documentation and the product's source code and answers usage and configuration questions directly. Its replies are marked as written by an AI.</p>
+  <p>When a ticket looks like a defect in Cassilion, the engineering team is told at once, on every plan. Reports of data loss, corruption and security problems always go to a person.</p>
+  <p>On the Community plan there are no tickets, but you can send a bug report. Bug reports are read; they do not get an individual reply.</p>
+</div>
+{% endblock %}

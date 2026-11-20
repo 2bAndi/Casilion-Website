@@ -1,0 +1,19 @@
+stateDiagram-v2
+    direction TB
+    [*] --> Received
+    Received --> Rejected: input guard rejects
+    Received --> Queued: accepted
+    Queued --> Analysing: enclave claims the job
+    Analysing --> NeedsInfo: version or logs missing
+    NeedsInfo --> Queued: customer replies
+    Analysing --> InReview: low confidence, guard flag, doc gap
+    Analysing --> BugCandidate: suspected bug or security issue
+    Analysing --> Answered: auto-send (usage, config, known issue)
+    InReview --> Answered: operator approves or edits
+    BugCandidate --> Confirmed: operator confirms, issue linked
+    BugCandidate --> Answered: not a bug
+    Confirmed --> Answered: workaround or fix announced
+    Answered --> Queued: customer follows up
+    Answered --> Closed: solved, or 14 days without reply
+    Rejected --> [*]
+    Closed --> [*]

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{# Sign-in, registration and two-factor pages from django-allauth, inside the Cassilion layout. #}
+{% block title %}{% block head_title %}{% endblock head_title %} – Cassilion{% endblock %}
+{% block main %}
+<div class="measure auth">
+  {% block content %}{% endblock content %}
+</div>
+{% endblock %}

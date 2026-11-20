@@ -1,0 +1,18 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}All tickets{% endblock %}
+{% block heading %}All tickets{% endblock %}
+
+{% block content %}
+<form method="get" class="search">
+  <select name="status" aria-label="Status">
+    <option value="">Every status</option>
+    {% for value, label in statuses %}<option value="{{ value }}"{% if value == current %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <button type="submit">Filter</button>
+</form>
+{% if tickets %}
+  {% include "backoffice/_ticket_rows.html" with tickets=tickets %}
+{% else %}
+  <p>No tickets with this status.</p>
+{% endif %}
+{% endblock %}

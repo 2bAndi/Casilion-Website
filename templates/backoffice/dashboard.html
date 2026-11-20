@@ -1,0 +1,43 @@
+{% extends "backoffice/base.html" %}
+{% block heading %}Backoffice{% endblock %}
+{% block intro %}<p>Signed in as {{ user.email }}</p>{% endblock %}
+
+{% block content %}
+{% if not status.ai_worker_online %}
+  <div class="notice error"><p><strong>The AI worker is not polling.</strong> {% if status.ai_worker_last_seen %}Last seen {{ limits.worker_last_seen|timesince }} ago.{% else %}It has never connected.{% endif %} Tickets wait in the queue until it is back.</p></div>
+{% endif %}
+{% if not status.auto_send %}
+  <div class="notice"><p>Shadow mode: every AI-written reply waits for review. Fixed texts (acknowledgements, requests for information) are sent directly.</p></div>
+{% endif %}
+
+<div class="grid cols-4">
+  <div class="panel"><div class="figure{% if status.review_queue %} alert{% endif %}">{{ status.review_queue }}</div><p>to review</p></div>
+  <div class="panel"><div class="figure{% if status.bug_candidates %} alert{% endif %}">{{ status.bug_candidates }}</div><p>bug candidates</p></div>
+  <div class="panel"><div class="figure">{{ status.open_tickets }}</div><p>open tickets</p></div>
+  <div class="panel"><div class="figure">{{ status.jobs_waiting }}</div><p>waiting for the AI</p></div>
+</div>
+
+<h2>Waiting for a person</h2>
+{% if queue %}
+  {% include "backoffice/_ticket_rows.html" with tickets=queue %}
+  <p><a class="btn ghost small" href="{% url 'backoffice:review_queue' %}">Open the review queue</a></p>
+{% else %}
+  <p>Nothing is waiting.</p>
+{% endif %}
+
+<h2>Sales, last 30 days</h2>
+<div class="grid cols-4">
+  <div class="panel"><div class="figure">{{ status.accounts }}</div><p>customer accounts</p></div>
+  <div class="panel"><div class="figure">{{ status.active_subscriptions }}</div><p>active paid plans</p></div>
+  <div class="panel"><div class="figure">{{ status.paid_orders_30d }}</div><p>paid orders</p></div>
+  <div class="panel"><div class="figure">€{{ status.revenue_eur_30d }}</div><p>revenue</p></div>
+</div>
+{% if plans %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Plan</th><th>Active subscriptions</th></tr></thead>
+      <tbody>{% for row in plans %}<tr><td>{{ row.plan__name }}</td><td class="num">{{ row.n }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

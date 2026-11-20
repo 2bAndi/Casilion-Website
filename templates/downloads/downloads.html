@@ -1,0 +1,42 @@
+{% extends "accounts/base.html" %}
+{% block page_title %}Downloads{% endblock %}
+{% block heading %}Downloads{% endblock %}
+
+{% block content %}
+{% for release in releases %}
+  <h2>Cassilion {{ release.version }} <span class="tag {% if release.channel == 'stable' %}ok{% else %}action{% endif %}">{{ release.get_channel_display }}</span></h2>
+  {% if release.notes %}<p class="measure">{{ release.notes|linebreaksbr }}</p>{% endif %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Platform</th><th>File</th><th>Size</th><th>SHA-256</th><th></th></tr></thead>
+      <tbody>
+      {% for artefact in release.artefacts.all %}
+        <tr>
+          <td>{{ artefact.platform }}</td>
+          <td>{{ artefact.filename }}</td>
+          <td class="num">{{ artefact.size_bytes|filesizeformat }}</td>
+          <td><code>{{ artefact.sha256|truncatechars:20 }}</code></td>
+          <td><form method="post" action="{% url 'downloads:request_link' artefact.pk %}">{% csrf_token %}<button type="submit" class="small">Download</button></form></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% empty %}
+  <p>No release has been published yet.</p>
+{% endfor %}
+
+{% if recent %}
+  <h2>Your recent downloads</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>When</th><th>Build</th><th>Through</th></tr></thead>
+      <tbody>
+      {% for item in recent %}
+        <tr><td class="num">{{ item.created_at|date:"j M Y, H:i" }}</td><td>{{ item.artefact.release.version }}, {{ item.artefact.platform }}</td><td>{% if item.via == "mcp" %}AI agent{% else %}Browser{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

@@ -351,6 +351,10 @@ def _section_form(key: str, data, config) -> SectionForm:
     return form_class(data, instance=config, prefix=key, key=key)
 
 
+def _settings_url(tab: str) -> str:
+    return reverse("backoffice:payment_settings") + f"?tab={tab}"
+
+
 def _webhook_url(provider: str) -> str:
     return settings.CASSILION["SITE_URL"].rstrip("/") + reverse("billing:webhook", args=[provider])
 
@@ -367,7 +371,7 @@ def payment_settings(request):
         # The audit line names who changed which fields, never their values.
         audit("payment.settings_changed", actor=request.user, actor_kind="operator", obj=posted, data={"fields": changed})
         messages.success(request, f"{SECTIONS[posted]['title']}: saved.")
-        return redirect(reverse("backoffice:payment_settings") + f"#{posted}")
+        return redirect(_settings_url(posted))
     state = {code: is_configured(code, config) for code in ("stripe", "paypal", "bank_transfer", "sandbox")}
     offered = config.method_list
     sections = []
@@ -379,11 +383,15 @@ def payment_settings(request):
         else:
             status = None
         sections.append({"key": key, "title": spec["title"], "intro": spec["intro"], "form": section_forms[key], "status": status})
+    # One tab at a time: the one just saved, the one asked for, else the first.
+    tab = posted if posted in SECTIONS else request.GET.get("tab")
+    tab = tab if tab in SECTIONS else next(iter(SECTIONS))
     return render(
         request,
         "backoffice/payment_settings.html",
         {
             "sections": sections,
+            "section": next(s for s in sections if s["key"] == tab),
             "state": state,
             "stripe_mode": stripe.mode(config.stripe_secret_key) if config.stripe_secret_key else "",
             "stripe_hook": bool(config.stripe_webhook_secret),
@@ -405,7 +413,7 @@ def payment_check(request, provider):
     config, module = PaymentSettings.load(), {"stripe": stripe, "paypal": paypal}.get(provider)
     if module is None or not is_configured(provider, config):
         messages.error(request, "Enter and save the keys first.")
-        return redirect(reverse("backoffice:payment_settings") + f"#{provider}")
+        return redirect(_settings_url(provider))
     try:
         if request.POST.get("action") == "webhook":
             hook = module.set_up_webhook(config, _webhook_url(provider))
@@ -415,7 +423,7 @@ def payment_check(request, provider):
             messages.success(request, f"Connection works: {module.check_connection(config)}.")
     except ProviderError as exc:
         messages.error(request, str(exc))
-    return redirect(reverse("backoffice:payment_settings") + f"#{provider}")
+    return redirect(_settings_url(provider))
 
 
 @staff_required
@@ -430,4 +438,4 @@ def purge_test_orders(request):
             messages.success(request, f"Deleted: {count['orders']} test order(s), {count['documents']} TEST document(s), {count['plans']} test plan(s).")
         except payments.PurgeError as exc:
             messages.error(request, str(exc))
-    return redirect(reverse("backoffice:payment_settings") + "#sandbox")
+    return redirect(_settings_url("sandbox"))

@@ -1,0 +1,36 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Inbox{% endblock %}
+{% block heading %}Inbox{% endblock %}
+{% block intro %}<p>Mails to {{ config.effective_user|default:"the company mailbox" }}.{% if config.last_fetch_at %} Last read {{ config.last_fetch_at|timesince }} ago.{% endif %}</p>{% endblock %}
+
+{% block content %}
+{% if not config.enabled %}<div class="notice"><p>Reading the mailbox is switched off. <a href="{% url 'backoffice:inbox_settings' %}">Switch it on in the settings.</a></p></div>
+{% elif config.last_error %}<div class="notice error"><p><strong>The mailbox could not be read.</strong> {{ config.last_error }}</p></div>{% endif %}
+
+<nav aria-label="Show">
+  <ul class="subnav">
+    {% for key, title in filters %}<li><a href="?show={{ key }}"{% if key == current %} aria-current="page"{% endif %}>{{ title }}</a></li>{% endfor %}
+    <li><a href="{% url 'backoffice:inbox_settings' %}">Settings</a></li>
+  </ul>
+</nav>
+<form method="post" action="{% url 'backoffice:inbox_check' %}" class="actions">{% csrf_token %}<button type="submit" name="action" value="fetch" class="small ghost">Read the mailbox now</button></form>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Last mail</th><th>From</th><th>Subject</th><th>Customer</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for thread in conversations %}
+      <tr>
+        <td class="num">{{ thread.last_message_at|date:"j M Y, H:i" }}</td>
+        <td>{{ thread.contact_name|default:thread.contact_email }}<br><span class="muted small">{{ thread.contact_email }}</span></td>
+        <td><a class="strong" href="{% url 'backoffice:conversation' thread.pk %}">{{ thread.subject|default:"(no subject)" }}</a>{% if not thread.is_read %} <span class="tag action">new</span>{% endif %}</td>
+        <td>{% if thread.account %}<a href="{% url 'backoffice:customer' thread.account.pk %}?tab=mails">{{ thread.account.name }}</a>{% else %}<span class="muted">not a known customer</span>{% endif %}</td>
+        <td><span class="tag {% if thread.status == 'new' %}action{% elif thread.status == 'answered' %}ok{% else %}quiet{% endif %}">{{ thread.get_status_display }}</span></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">Nothing here.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,19 +1,18 @@
 {% extends "backoffice/base.html" %}
 {% block page_title %}Payment settings{% endblock %}
 {% block heading %}Payment settings{% endblock %}
-{% block intro %}<p>Each section is saved on its own. Keys are stored encrypted and are never shown again. Every change is written to the audit log with your name, without the values.</p>{% endblock %}
+{% block intro %}<p>One tab per subject, each saved on its own. Keys are stored encrypted and are never shown again. Every change is written to the audit log with your name, without the values.</p>{% endblock %}
 
 {% block content %}
 <nav aria-label="Sections">
   <ul class="subnav">
-    {% for section in sections %}<li><a href="#{{ section.key }}">{{ section.title }}{% if section.status %} <span class="tag {{ section.status.1 }}">{{ section.status.0 }}</span>{% endif %}</a></li>{% endfor %}
+    {% for item in sections %}<li><a href="?tab={{ item.key }}"{% if item.key == section.key %} aria-current="page"{% endif %}>{{ item.title }}{% if item.status %} <span class="tag {{ item.status.1 }}">{{ item.status.0 }}</span>{% endif %}</a></li>{% endfor %}
   </ul>
 </nav>
 
-{% if sandbox_open %}<div class="notice error"><p><strong>The sandbox is on for every customer.</strong> Anyone who registers can give themselves any plan without paying. Name the testers in the <a href="#sandbox">Sandbox</a> section, or switch it off before real customers buy.</p></div>{% endif %}
+{% if sandbox_open %}<div class="notice error"><p><strong>The sandbox is on for every customer.</strong> Anyone who registers can give themselves any plan without paying. Name the testers in the <a href="?tab=sandbox">Sandbox</a> tab, or switch it off before real customers buy.</p></div>{% endif %}
 
 <div class="measure">
-{% for section in sections %}
   <section class="panel" id="{{ section.key }}">
     <h2>{{ section.title }}{% if section.status %} <span class="tag {{ section.status.1 }}">{{ section.status.0 }}</span>{% endif %}</h2>
     <p class="muted small">{{ section.intro }}</p>
@@ -28,7 +27,7 @@
       {% if not vat_id and not tax_number %}<div class="notice"><p>An invoice needs the tax number or the VAT ID. Enter the tax number here, or set <code>COMPANY_VAT_ID</code> in <code>.env</code>.</p></div>{% elif vat_id %}<p class="muted small">VAT ID from the server configuration: {{ vat_id }}.</p>{% endif %}
     {% endif %}
 
-    <form method="post" action="{% url 'backoffice:payment_settings' %}#{{ section.key }}" autocomplete="off">
+    <form method="post" action="{% url 'backoffice:payment_settings' %}?tab={{ section.key }}" autocomplete="off">
       {% csrf_token %}
       <input type="hidden" name="section" value="{{ section.key }}">
       <div class="form-fields">{{ section.form.as_div }}</div>
@@ -54,7 +53,6 @@
       {% endif %}
     {% endif %}
   </section>
-{% endfor %}
 </div>
 <p><a class="btn ghost" href="{% url 'backoffice:payment_issues' %}">Back to payments</a></p>
 {% endblock %}

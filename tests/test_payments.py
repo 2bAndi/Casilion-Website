@@ -114,10 +114,10 @@ class MethodTests(PaymentTestCase):
         url = reverse("backoffice:payment_settings")
         page = self.client.get(url)
         self.assertNotContains(page, "sk_test_abc")
-        self.assertNotContains(page, "pp-secret")
+        self.assertNotContains(self.client.get(url + "?tab=paypal"), "pp-secret")
         # An empty key field keeps what is stored; the audit line names fields, not values.
         response = self.client.post(url, {"section": "stripe", "stripe-offer": "on", "stripe-stripe_webhook_secret": "whsec_new"})
-        self.assertRedirects(response, url + "#stripe", fetch_redirect_response=False)
+        self.assertRedirects(response, url + "?tab=stripe", fetch_redirect_response=False)
         config = PaymentSettings.load()
         self.assertEqual((config.stripe_secret_key, config.stripe_webhook_secret), ("sk_test_abc", "whsec_new"))
         line = AuditEvent.objects.filter(action="payment.settings_changed").get()
@@ -143,7 +143,14 @@ class MethodTests(PaymentTestCase):
         self.assertEqual(PaymentSettings.load().stripe_secret_key, "")
         self.client.post(url, {"section": "invoices", "invoices-invoice_prefix": "ZA", "invoices-tax_number": "", "invoices-vat_rate": "19"})
         self.assertEqual(PaymentSettings.load().invoice_prefix, "ZA")
-        self.assertEqual(self.client.get(url).status_code, 200)
+        # One tab is shown at a time; the others are a click away.
+        first = self.client.get(url)
+        self.assertContains(first, "Save Stripe")
+        self.assertNotContains(first, "Save Bank transfer")
+        bank = self.client.get(url + "?tab=bank_transfer")
+        self.assertContains(bank, "Save Bank transfer")
+        self.assertNotContains(bank, "Save Stripe")
+        self.assertContains(self.client.get(url + "?tab=nonsense"), "Save Stripe")
 
 
 class SandboxTests(PaymentTestCase):

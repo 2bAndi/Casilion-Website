@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "apps.audit",
     "apps.billing",
     "apps.invoicing",
+    "apps.mailing",
     "apps.licensing",
     "apps.downloads",
     "apps.support",
@@ -227,6 +228,10 @@ if env("EMAIL_HOST"):
     EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Mails are delivered by the backend chosen above and written to the mail log on the way,
+# so the backoffice can show a customer everything that was sent to them.
+MAIL_DELIVERY_BACKEND = EMAIL_BACKEND
+EMAIL_BACKEND = "apps.mailing.backend.LoggingBackend"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL") or "Cassilion <noreply@cassilion.example>"
 SERVER_EMAIL = env("SERVER_EMAIL") or DEFAULT_FROM_EMAIL
 # Server errors (HTTP 500) are mailed to the operators when DEBUG is off.

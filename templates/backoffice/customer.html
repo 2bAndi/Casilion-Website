@@ -1,0 +1,226 @@
+{% extends "backoffice/base.html" %}
+{% load cassilion %}
+{% block page_title %}{{ account.name }}{% endblock %}
+{% block heading %}{{ account.name }}{% endblock %}
+{% block intro %}<p>{{ account.get_kind_display }} · {{ account.country.name }} · customer since {{ account.created_at|date:"j F Y" }}{% if account.status == "suspended" %} · <span class="tag alert">Suspended</span>{% endif %}</p>{% endblock %}
+
+{% block content %}
+<div class="grid cols-4">
+  <div class="panel"><div class="figure">{% if figures.last_login %}{{ figures.last_login|date:"j M Y" }}{% else %}never{% endif %}</div><p>last sign-in{% if figures.last_login %}, {{ figures.last_login|date:"H:i" }} by {{ figures.last_login_by }}{% endif %}</p></div>
+  <div class="panel"><div class="figure{% if figures.waiting %} alert{% endif %}">{{ figures.waiting }}</div><p>ticket{{ figures.waiting|pluralize }} waiting for us</p></div>
+  <div class="panel"><div class="figure{% if figures.to_answer %} alert{% endif %}">{{ figures.to_answer }}</div><p>mail{{ figures.to_answer|pluralize }} to answer</p></div>
+  <div class="panel"><div class="figure">{{ figures.open_orders }}</div><p>unpaid order{{ figures.open_orders|pluralize }}</p></div>
+</div>
+<p>{% for entitlement in figures.plans %}<span class="tag {% if entitlement.plan.is_free %}quiet{% else %}ok{% endif %}">{{ entitlement.plan }}{% if entitlement.valid_until %} until {{ entitlement.valid_until|date:"j M Y" }}{% endif %}</span> {% endfor %}</p>
+
+<nav aria-label="Customer">
+  <ul class="subnav">
+    {% for key, title in tabs %}<li><a href="?tab={{ key }}"{% if key == tab %} aria-current="page"{% endif %}>{{ title }}</a></li>{% endfor %}
+  </ul>
+</nav>
+
+{% if tab == "overview" %}
+  <div class="grid cols-2">
+    <section class="panel">
+      <h2>Master data</h2>
+      <form method="post" action="{% url 'backoffice:customer' account.pk %}">
+        {% csrf_token %}
+        <div class="form-fields">{{ account_form.as_div }}</div>
+        <h3>Billing address</h3>
+        <div class="form-fields">{{ address_form.as_div }}</div>
+        <h3>Tax and invoices</h3>
+        <div class="form-fields">{{ tax_form.as_div }}</div>
+        <button type="submit">Save customer</button>
+      </form>
+    </section>
+    <div>
+      <section class="panel">
+        <h2>Logins</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Person</th><th>Role</th><th>Last sign-in</th><th>2FA</th></tr></thead>
+            <tbody>
+            {% for member in figures.members %}
+              <tr>
+                <td>{{ member.user.full_name|default:"–" }}<br><a href="mailto:{{ member.user.email }}">{{ member.user.email }}</a>{% if not member.user.is_active %} <span class="tag alert">Blocked</span>{% endif %}</td>
+                <td>{{ member.get_role_display }}</td>
+                <td class="num">{% if member.user.last_login %}{{ member.user.last_login|date:"j M Y, H:i" }}{% else %}<span class="muted">never</span>{% endif %}<br><span class="muted small">registered {{ member.user.date_joined|date:"j M Y" }}</span></td>
+                <td>{% if member.user_id in two_factor %}<span class="tag ok">on</span>{% else %}<span class="tag quiet">off</span>{% endif %}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>AI agents (MCP)</h2>
+        {% if tokens %}
+          <div class="table-wrap"><table class="table">
+            <thead><tr><th>Token</th><th>Of</th><th>Created</th><th>Last used</th></tr></thead>
+            <tbody>{% for token in tokens %}<tr><td>{{ token.name|default:"unnamed" }} <code>{{ token.prefix }}…</code></td><td>{{ token.user.email }}</td><td class="num">{{ token.created_at|date:"j M Y" }}</td><td class="num">{% if token.last_used_at %}{{ token.last_used_at|date:"j M Y, H:i" }}{% else %}<span class="muted">never</span>{% endif %}</td></tr>{% endfor %}</tbody>
+          </table></div>
+        {% else %}<p class="muted">No agent token in use.</p>{% endif %}
+      </section>
+    </div>
+  </div>
+
+{% elif tab == "mails" %}
+  <p class="muted small">Everything the site sent to {{ addresses|join:", " }}, and the mails from the inbox that are put with this customer. Newest first. Sign-in links are not stored.</p>
+  {% if mails %}
+  <ul class="thread">
+    {% for mail in mails %}
+      <li class="msg{% if mail.failed %} rejected{% endif %}">
+        <span class="shape {% if mail.direction == 'in' %}circle{% elif mail.system %}square{% else %}triangle{% endif %}" aria-hidden="true"></span>
+        <div>
+          <div class="meta">
+            <span class="name">{{ mail.subject|default:"(no subject)" }}</span>
+            <span class="tag {% if mail.direction == 'in' %}info{% else %}quiet{% endif %}">{% if mail.direction == "in" %}from the customer{% elif mail.system %}sent by the site{% else %}reply by {{ mail.sender|default:"the team" }}{% endif %}</span>
+            {% if mail.failed %}<span class="tag alert">not delivered</span>{% endif %}
+            <span class="when">{{ mail.when|date:"j M Y, H:i" }}</span>
+          </div>
+          <div class="muted small">{% if mail.direction == "in" %}From {{ mail.sender }}{% else %}To {{ mail.to }}{% endif %}{% if mail.attachments %} · attached: {{ mail.attachments|join:", " }}{% endif %}{% if mail.error %} · {{ mail.error }}{% endif %}</div>
+          <details><summary>Show the text</summary><pre>{{ mail.body|default:"(empty)" }}</pre></details>
+          {% if mail.conversation_id %}<p class="small"><a href="{% url 'backoffice:conversation' mail.conversation_id %}">Open the conversation</a></p>{% endif %}
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p>No mail yet.</p>{% endif %}
+
+{% elif tab == "tickets" %}
+  <h2>Waiting for us</h2>
+  {% if waiting %}
+    <p class="muted small">Tickets a person has to act on: not answered automatically, or a draft of the support AI that was not sent.</p>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Ticket</th><th>Subject</th><th>Status</th><th>Why it waits</th><th>Since</th></tr></thead>
+      <tbody>
+      {% for ticket in waiting %}
+        <tr>
+          <td><a class="strong" href="{% url 'backoffice:ticket' ticket.public_id %}">{{ ticket.public_id }}</a></td>
+          <td>{{ ticket.subject }}{% if ticket.priority == "critical" %} <span class="tag alert">Critical</span>{% endif %}</td>
+          <td><span class="tag {{ ticket.status|tone }}">{{ ticket.get_status_display }}</span></td>
+          <td>{% if ticket.held %}Draft reply waits for review{% elif ticket.status == "bug_candidate" %}Possible product bug{% else %}A person has to answer{% endif %}</td>
+          <td class="num">{{ ticket.updated_at|date:"j M Y, H:i" }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  {% else %}<p>Nothing is waiting.</p>{% endif %}
+
+  <h2>All tickets</h2>
+  {% if tickets %}
+  <ul class="thread">
+    {% for ticket in tickets %}
+      <li class="msg">
+        <span class="shape circle" aria-hidden="true"></span>
+        <div>
+          <div class="meta">
+            <a class="name" href="{% url 'backoffice:ticket' ticket.public_id %}">{{ ticket.public_id }}</a>
+            <span>{{ ticket.subject }}</span>
+            <span class="tag {{ ticket.status|tone }}">{{ ticket.get_status_display }}</span>
+            <span class="when">{{ ticket.created_at|date:"j M Y, H:i" }} · {{ ticket.get_channel_display }}</span>
+          </div>
+          <div class="muted small">{{ ticket.asked|length }} message{{ ticket.asked|length|pluralize }} from the customer · {{ ticket.sent|length }} repl{{ ticket.sent|length|pluralize:"y,ies" }} sent{% if ticket.held %} · {{ ticket.held|length }} draft{{ ticket.held|length|pluralize }} not sent{% endif %}</div>
+          <details><summary>Show questions and replies</summary>
+            {% for message in ticket.asked %}<pre><strong>{{ message.get_author_kind_display }}, {{ message.created_at|date:"j M Y, H:i" }}</strong>
+{{ message.body|truncatechars:1500 }}</pre>{% endfor %}
+            {% for message in ticket.sent %}<pre><strong>{{ message.get_author_kind_display }}{% if message.ai_generated %} (written by AI){% endif %}, sent {{ message.sent_at|default:message.created_at|date:"j M Y, H:i" }}</strong>
+{{ message.body|truncatechars:1500 }}</pre>{% endfor %}
+            {% for message in ticket.held %}<pre><strong>Draft, not sent, {{ message.created_at|date:"j M Y, H:i" }}</strong>
+{{ message.body|truncatechars:1500 }}</pre>{% endfor %}
+          </details>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p>No ticket yet.</p>{% endif %}
+
+{% elif tab == "orders" %}
+  <h2>Orders</h2>
+  {% if orders %}
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Date</th><th>Order</th><th>What</th><th>Amount</th><th>Paid by</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for order in orders %}
+      <tr>
+        <td class="num">{{ order.created_at|date:"j M Y" }}</td>
+        <td><a class="strong" href="{% url 'backoffice:order' order.ref %}">{{ order.ref }}</a>{% if order.is_test %} <span class="tag action">Test</span>{% endif %}</td>
+        <td>{{ order.plan }}{% if order.kind == "renewal" %} <span class="tag quiet">Renewal</span>{% endif %}</td>
+        <td class="num">€{{ order.total }}</td>
+        <td>{{ order.get_payment_method_display }}</td>
+        <td><span class="tag {% if order.status == 'paid' %}ok{% elif order.status == 'pending' %}action{% elif order.status == 'failed' %}alert{% else %}quiet{% endif %}">{{ order.get_status_display }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p>No order yet.</p>{% endif %}
+  <h2>Invoices and credit notes</h2>
+  {% if invoices %}
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Number</th><th>Date</th><th>Document</th><th>Order</th><th>Total</th></tr></thead>
+    <tbody>
+    {% for invoice in invoices %}
+      <tr>
+        <td><a class="strong" href="{% url 'backoffice:invoice_pdf' invoice.number %}">{{ invoice.number }}</a>{% if invoice.is_test %} <span class="tag action">Test</span>{% endif %}</td>
+        <td class="num">{{ invoice.issue_date|date:"j M Y" }}</td>
+        <td>{% if invoice.purpose == "cancellation" %}Cancellation{% elif invoice.is_credit_note %}Credit note{% elif invoice.purpose == "correction" %}Corrected invoice{% else %}Invoice{% endif %}</td>
+        <td><a href="{% url 'backoffice:order' invoice.order.ref %}">{{ invoice.order.ref }}</a></td>
+        <td class="num">€{{ invoice.gross_total }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p>No invoice yet.</p>{% endif %}
+
+{% elif tab == "licenses" %}
+  <h2>Paid plans</h2>
+  {% if subscriptions %}
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Plan</th><th>Status</th><th>Paid until</th><th>Started</th><th>Paid by</th></tr></thead>
+    <tbody>
+    {% for subscription in subscriptions %}
+      <tr>
+        <td>{{ subscription.plan }}</td>
+        <td><span class="tag {% if subscription.status == 'active' %}ok{% elif subscription.status == 'past_due' %}alert{% elif subscription.status == 'cancelled' %}action{% else %}quiet{% endif %}">{{ subscription.get_status_display }}</span></td>
+        <td class="num">{{ subscription.period_end|date:"j M Y"|default:"–" }}</td>
+        <td class="num">{{ subscription.created_at|date:"j M Y" }}</td>
+        <td>{{ subscription.provider|default:"–" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p>No paid plan, now or before.</p>{% endif %}
+  <h2>What the account may use</h2>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Product</th><th>Plan</th><th>State</th><th>From</th><th>Until</th><th>How</th></tr></thead>
+    <tbody>
+    {% for entitlement in entitlements %}
+      <tr>
+        <td>{{ entitlement.product.name }}</td>
+        <td>{{ entitlement.plan.name }}</td>
+        <td>{% if entitlement.is_active %}<span class="tag ok">Active</span>{% else %}<span class="tag quiet">Inactive</span>{% endif %}</td>
+        <td class="num">{{ entitlement.valid_from|date:"j M Y" }}</td>
+        <td class="num">{{ entitlement.valid_until|date:"j M Y"|default:"no end" }}</td>
+        <td>{{ entitlement.get_source_display }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <h2>License files</h2>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>License</th><th>Product</th><th>Plan</th><th>Issued</th><th>State</th></tr></thead>
+    <tbody>
+    {% for license in licenses %}
+      <tr>
+        <td><code>{{ license.license_id }}</code></td>
+        <td>{{ license.entitlement.product.name }}</td>
+        <td>{{ license.entitlement.plan.name }}</td>
+        <td class="num">{{ license.issued_at|date:"j M Y, H:i" }}</td>
+        <td>{% if license.revoked_at %}<span class="tag quiet">Replaced {{ license.revoked_at|date:"j M Y" }}</span>{% else %}<span class="tag ok">In force</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+{% endif %}
+<p><a class="btn ghost" href="{% url 'backoffice:customers' %}">All customers</a></p>
+{% endblock %}

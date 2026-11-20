@@ -1,0 +1,31 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Customers{% endblock %}
+{% block heading %}Customers{% endblock %}
+{% block intro %}<p>{{ total }} customer account{{ total|pluralize }}.</p>{% endblock %}
+
+{% block content %}
+<form method="get" class="search">
+  <input type="text" name="q" value="{{ q }}" placeholder="Name, e-mail address, order or invoice number" aria-label="Search customers">
+  <button type="submit" class="small">Search</button>
+</form>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Customer</th><th>Login</th><th>Country</th><th>Plans</th><th>Waiting for us</th><th>Last sign-in</th><th>Customer since</th></tr></thead>
+    <tbody>
+    {% for row in rows %}
+      <tr>
+        <td><a class="strong" href="{% url 'backoffice:customer' row.account.pk %}">{{ row.account.name }}</a>{% if row.account.status == "suspended" %} <span class="tag alert">Suspended</span>{% endif %}<br><span class="muted small">{{ row.account.get_kind_display }}</span></td>
+        <td>{{ row.login.email|default:"–" }}</td>
+        <td>{{ row.account.country.code }}</td>
+        <td>{% for plan in row.plans %}{{ plan }}{% if not forloop.last %}<br>{% endif %}{% empty %}–{% endfor %}</td>
+        <td>{% if row.account.waiting %}<span class="tag alert">{{ row.account.waiting }} ticket{{ row.account.waiting|pluralize }}</span> {% endif %}{% if row.account.to_answer %}<span class="tag action">{{ row.account.to_answer }} mail{{ row.account.to_answer|pluralize }}</span>{% endif %}{% if not row.account.waiting and not row.account.to_answer %}<span class="muted">nothing</span>{% endif %}</td>
+        <td class="num">{% if row.account.last_login %}{{ row.account.last_login|date:"j M Y, H:i" }}{% else %}<span class="muted">never</span>{% endif %}</td>
+        <td class="num">{{ row.account.created_at|date:"j M Y" }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7">No customer found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

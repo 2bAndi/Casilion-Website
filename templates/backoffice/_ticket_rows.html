@@ -13,7 +13,7 @@
           {% if ticket.needs_human %}<span class="tag">Needs a person</span>{% endif %}
           {% if ticket.bug_report %}<span class="tag quiet">Bug report</span>{% endif %}
         </td>
-        <td>{{ ticket.account.name }}</td>
+        <td><a href="{% url 'backoffice:customer' ticket.account.pk %}?tab=tickets">{{ ticket.account.name }}</a></td>
         <td><span class="tag {{ ticket.status|tone }}">{{ ticket.get_status_display }}</span></td>
         <td>{% if ticket.classification %}{{ ticket.classification|spaced }} <span class="muted">({{ ticket.confidence }})</span>{% else %}<span class="muted">not analysed</span>{% endif %}</td>
         <td class="num">{{ ticket.created_at|date:"j M, H:i" }}</td>

@@ -154,12 +154,15 @@ errors (HTTP 500) are mailed there as well.
 40 4 * * * cd /opt/cassilion && docker compose exec -T web python manage.py expire_subscriptions >> /opt/cassilion/backups/daily.log 2>&1
 45 4 * * * cd /opt/cassilion && docker compose exec -T web python manage.py close_stale_tickets >> /opt/cassilion/backups/daily.log 2>&1
 50 4 * * * cd /opt/cassilion && docker compose exec -T web python manage.py reconcile_payments >> /opt/cassilion/backups/daily.log 2>&1
+*/5 * * * * cd /opt/cassilion && docker compose exec -T web python manage.py fetch_inbox >> /opt/cassilion/backups/inbox.log 2>&1
 ```
 
 `expire_subscriptions` sends the invoice for the next term to plans that end within thirty days,
 reminds about unpaid ones and returns accounts whose plan ran out to the free plan.
 `reconcile_payments` compares the payments of the last three days with what Stripe and PayPal
 list themselves; differences appear in the backoffice under Payments.
+`fetch_inbox` reads new mails from the company mailbox into the backoffice inbox, once reading is
+switched on under Inbox → Settings. It changes nothing on the mail server.
 `close_stale_tickets` closes tickets the customer left unanswered.
 
 ## 8. Backups

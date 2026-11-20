@@ -3,7 +3,7 @@
 {% block page_title %}{{ ticket.public_id }}{% endblock %}
 {% block heading %}{{ ticket.subject }}{% endblock %}
 {% block intro %}
-<p>{{ ticket.public_id }} from {{ ticket.account.name }}{% if ticket.author %} ({{ ticket.author.email }}){% endif %}, {% if ticket.channel == "mcp" %}by an AI agent{% else %}in the customer area{% endif %}{% if ticket.product_version %}, Cassilion {{ ticket.product_version }}{% endif %}</p>
+<p>{{ ticket.public_id }} from <a href="{% url 'backoffice:customer' ticket.account.pk %}?tab=tickets">{{ ticket.account.name }}</a>{% if ticket.author %} ({{ ticket.author.email }}){% endif %}, {% if ticket.channel == "mcp" %}by an AI agent{% else %}in the customer area{% endif %}{% if ticket.product_version %}, Cassilion {{ ticket.product_version }}{% endif %}</p>
 {% endblock %}
 
 {% block content %}

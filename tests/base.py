@@ -27,7 +27,9 @@ test_settings = override_settings(
         "SANDBOX_PAYMENTS": True,
         "SANDBOX_WEBHOOK_SECRET": "test-sandbox-secret",
     },
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    # Django's test runner swaps in the in-memory backend; put the mail log back in front of it.
+    EMAIL_BACKEND="apps.mailing.backend.LoggingBackend",
+    MAIL_DELIVERY_BACKEND="django.core.mail.backends.locmem.EmailBackend",
 )
 
 

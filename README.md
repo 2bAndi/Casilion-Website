@@ -180,6 +180,7 @@ apps/
   accounts/          users, accounts, members, address, tax profile
   billing/           products, plans, orders, payments (Stripe, PayPal, bank transfer, sandbox), renewals
   invoicing/         invoices and credit notes as PDF with the e-invoice inside, month export
+  mailing/           log of every mail the site sent, the company mailbox as inbox (IMAP), replies
   licensing/         entitlements, signed license files
   downloads/         releases, artefacts, expiring links
   support/           tickets, messages, jobs, release gate, job API
@@ -210,6 +211,7 @@ python manage.py seed_demo --tickets       demo data (development only)
 python manage.py create_operator <email>   an operator account for the backoffice (server)
 python manage.py expire_subscriptions      daily: renewal invoices, reminders, end plans that ran out
 python manage.py reconcile_payments        nightly: compare payments with Stripe's and PayPal's records
+python manage.py fetch_inbox               every five minutes: read new mails into the backoffice inbox
 python manage.py close_stale_tickets       daily: close tickets the customer left unanswered
 python manage.py verify_license <file>     check a license file against the public key
 ```
@@ -247,6 +249,27 @@ The nginx password in front of the site lets `/billing/webhook/stripe/` and `/pa
 
 PDFs need Pango (WeasyPrint). The Docker image installs it; on Windows without it the shop
 still runs, invoices are skipped and listed under Payments as "Invoice could not be created".
+
+## Customers and mail
+
+Backoffice → Customers finds an account by name, login, order or invoice number. The customer
+page shows on top when somebody last signed in, how many tickets and mails wait for the team
+and how many orders are unpaid; below, one tab each:
+
+| Tab | What it shows |
+|---|---|
+| Master data | Name, kind, country, status, billing address, VAT ID and billing address for invoices (editable, audited by field name); the logins with last sign-in and two-factor state; agent tokens with last use. |
+| Mails | Every mail the site sent to the customer's addresses (mail log, without sign-in links) and the mails from the inbox that are put with the customer, newest first. |
+| Tickets | First what waits for a person (in review, possible bug, a draft of the support AI that was not sent), then every ticket with the customer's messages and the replies that went out. |
+| Orders | Orders and their invoices and credit notes. |
+| Plans and licenses | Paid plans in every state, what the account may use (active and inactive), the license files issued. |
+
+Backoffice → Inbox is the company mailbox (Inbox → Settings: server, user, password; empty means
+the account the site sends with). `fetch_inbox` reads it over IMAP without changing anything on
+the mail server, threads mails into conversations and puts each with a customer by the sender's
+address, else by an order or ticket number in the text. Replies go out from the backoffice into
+the customer's thread. Mail text is stored and shown as plain text; attachments stay on the mail
+server and only their names are listed.
 
 ## What is real, what is a stand-in
 

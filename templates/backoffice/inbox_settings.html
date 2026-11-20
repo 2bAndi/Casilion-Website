@@ -1,0 +1,24 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Mailbox settings{% endblock %}
+{% block heading %}Mailbox settings{% endblock %}
+{% block intro %}<p>The mailbox customers write to. It is read over IMAP; nothing is changed or deleted on the mail server.</p>{% endblock %}
+
+{% block content %}
+<div class="measure">
+  <section class="panel">
+    <h2>Mailbox {% if config.enabled %}<span class="tag ok">read every few minutes</span>{% else %}<span class="tag quiet">off</span>{% endif %}</h2>
+    <p class="muted small">In use now: {{ config.effective_user|default:"no user" }} at {{ config.effective_host|default:"no server" }}, port {{ config.port }}. {% if config.last_fetch_at %}Last read {{ config.last_fetch_at|date:"j M Y, H:i" }}.{% else %}Never read so far.{% endif %}</p>
+    {% if config.last_error %}<div class="notice error"><p>{{ config.last_error }}</p></div>{% endif %}
+    <form method="post" autocomplete="off">
+      {% csrf_token %}
+      <div class="form-fields">{{ form.as_div }}</div>
+      <div class="actions"><button type="submit">Save mailbox</button></div>
+    </form>
+    <form method="post" action="{% url 'backoffice:inbox_check' %}" class="actions">{% csrf_token %}
+      <button type="submit" name="action" value="check" class="small ghost">Test connection</button>
+    </form>
+    <p class="muted small">The test uses the settings as saved. The mails are read by <code>manage.py fetch_inbox</code>, which the server runs every five minutes (docs/server-setup.md).</p>
+  </section>
+</div>
+<p><a class="btn ghost" href="{% url 'backoffice:inbox' %}">Back to the inbox</a></p>
+{% endblock %}

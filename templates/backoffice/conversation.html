@@ -1,0 +1,56 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}{{ thread.subject|default:"Mail" }}{% endblock %}
+{% block heading %}{{ thread.subject|default:"(no subject)" }}{% endblock %}
+{% block intro %}<p>{{ thread.contact_name }} &lt;{{ thread.contact_email }}&gt; · <span class="tag {% if thread.status == 'new' %}action{% elif thread.status == 'answered' %}ok{% else %}quiet{% endif %}">{{ thread.get_status_display }}</span>{% if thread.is_automatic %} · <span class="tag quiet">automatic mail</span>{% endif %}</p>{% endblock %}
+
+{% block content %}
+<div class="grid cols-2">
+  <section class="panel">
+    <h2>Customer</h2>
+    {% if thread.account %}
+      <p><a class="strong" href="{% url 'backoffice:customer' thread.account.pk %}?tab=mails">{{ thread.account.name }}</a></p>
+      <p class="muted small">The mail came from {{ thread.contact_email }}. Check that this address belongs to the customer before you act on what it asks for.</p>
+      <form method="post">{% csrf_token %}<button type="submit" name="action" value="unassign" class="small ghost">Take away from this customer</button></form>
+    {% else %}
+      <p class="muted">Not put with a customer: the address is no login and no billing address, and no order or ticket number of ours was found in the text.</p>
+      <form method="post">{% csrf_token %}
+        <div class="form-fields"><div><label for="id_customer">Customer: login or billing e-mail address, or the exact account name</label><input type="text" name="customer" id="id_customer" required></div></div>
+        <button type="submit" name="action" value="assign" class="small">Put with this customer</button>
+      </form>
+    {% endif %}
+  </section>
+  <section class="panel">
+    <h2>Status</h2>
+    <form method="post" class="actions">{% csrf_token %}
+      {% if thread.status == "done" %}<button type="submit" name="action" value="reopen" class="small ghost">Back to "to answer"</button>
+      {% else %}<button type="submit" name="action" value="done" class="small ghost">Done, no reply needed</button>{% endif %}
+    </form>
+    <p class="muted small">Nothing is changed on the mail server: the mails stay there as they are.</p>
+  </section>
+</div>
+
+<ul class="thread">
+  {% for mail in mails %}
+    <li class="msg">
+      <span class="shape {% if mail.direction == 'in' %}circle{% else %}triangle{% endif %}" aria-hidden="true"></span>
+      <div>
+        <div class="meta">
+          <span class="name">{% if mail.direction == "in" %}{{ mail.from_name|default:mail.from_email }}{% else %}{{ mail.sent_by.get_full_name|default:mail.from_name }}{% endif %}</span>
+          <span class="tag {% if mail.direction == 'in' %}info{% else %}quiet{% endif %}">{{ mail.get_direction_display }}</span>
+          <span class="when">{{ mail.sent_at|date:"j M Y, H:i" }}</span>
+        </div>
+        <div class="muted small">{% if mail.direction == "in" %}{{ mail.from_email }} to {{ mail.to }}{% else %}to {{ mail.to }}{% endif %}{% if mail.cc %}, cc {{ mail.cc }}{% endif %}{% if mail.attachments %} · attached (on the mail server): {% for file in mail.attachments %}{{ file.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</div>
+        <div class="body">{{ mail.body|default:"(empty)" }}</div>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
+
+<h2>Reply</h2>
+<form method="post" class="measure">
+  {% csrf_token %}
+  <div class="field"><label for="id_body">Reply to {{ thread.contact_email }}, sent from {{ sender }}</label><textarea id="id_body" name="body" rows="8" required></textarea></div>
+  <p class="muted small">The customer's last mail is quoted below your text. The reply is recorded here with your name.</p>
+  <div class="actions"><button type="submit" name="action" value="reply">Send reply</button><a class="btn ghost" href="{% url 'backoffice:inbox' %}">Back to the inbox</a></div>
+</form>
+{% endblock %}

@@ -13,7 +13,7 @@ from apps.licensing import codec, keys
 from apps.licensing.models import License
 from apps.licensing.services import current_entitlement, license_file
 
-from .base import CassilionTestCase, make_customer
+from .base import ADDRESS, CassilionTestCase, make_customer
 
 
 class SignupTests(CassilionTestCase):
@@ -68,7 +68,7 @@ class CheckoutTests(CassilionTestCase):
         self.client.force_login(self.user)
 
     def test_sandbox_purchase_upgrades_the_license(self):
-        response = self.client.post(reverse("billing:checkout_start", args=["professional"]))
+        response = self.client.post(reverse("billing:checkout_start", args=["professional"]), ADDRESS)
         order = Order.objects.get()
         self.assertRedirects(response, reverse("billing:sandbox_checkout", args=[order.ref]))
         # Opening the checkout page changes nothing: only the provider's event does.
@@ -84,7 +84,7 @@ class CheckoutTests(CassilionTestCase):
         self.assertEqual(len(mail.outbox), 1)
 
     def test_failed_payment_changes_nothing(self):
-        response = self.client.post(reverse("billing:checkout_start", args=["supporter"]))
+        response = self.client.post(reverse("billing:checkout_start", args=["supporter"]), ADDRESS)
         self.client.post(response.url, {"outcome": "fail"})
         self.assertEqual(current_entitlement(self.account).plan.code, "community")
         self.assertEqual(Order.objects.get().status, Order.Status.FAILED)
@@ -96,7 +96,7 @@ class CheckoutTests(CassilionTestCase):
         ok = self.client.post(url, body, content_type="application/json", headers=headers)
         again = self.client.post(url, body, content_type="application/json", headers=headers)
         self.assertEqual((ok.status_code, again.status_code), (200, 200))
-        self.assertEqual(PaymentEvent.objects.count(), 1)
+        self.assertEqual(PaymentEvent.objects.filter(source="webhook").count(), 1)
         self.assertEqual(self.account.entitlements.filter(plan__code="business").count(), 1)
 
         forged = self.client.post(url, body, content_type="application/json", headers={"X-Sandbox-Signature": "0" * 64})

@@ -1,0 +1,36 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Invoices{% endblock %}
+{% block heading %}Invoices{% endblock %}
+{% block intro %}<p>Invoices and credit notes of {{ month }}/{{ year }}. Net revenue in {{ year }} so far: €{{ year_net }}.</p>{% endblock %}
+
+{% block content %}
+<form method="get" class="search">
+  <input type="number" name="month" value="{{ month }}" min="1" max="12" aria-label="Month">
+  <input type="number" name="year" value="{{ year }}" min="2026" max="2100" aria-label="Year">
+  <button type="submit" class="small">Show</button>
+  <a class="btn ghost small" href="{% url 'backoffice:invoice_export' year month %}">Download the month for the tax adviser (ZIP)</a>
+</form>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Number</th><th>Date</th><th>Document</th><th>Customer</th><th>Order</th><th>Net</th><th>VAT</th><th>Total</th></tr></thead>
+    <tbody>
+    {% for invoice in invoices %}
+      <tr>
+        <td><a class="strong" href="{% url 'backoffice:invoice_pdf' invoice.number %}">{{ invoice.number }}</a></td>
+        <td class="num">{{ invoice.issue_date|date:"j M Y" }}</td>
+        <td>{% if invoice.purpose == "cancellation" %}Cancellation of {{ invoice.refers_to.number }}{% elif invoice.is_credit_note %}Credit note for {{ invoice.refers_to.number }}{% elif invoice.purpose == "correction" %}Replaces {{ invoice.refers_to.number }}{% else %}Invoice{% if invoice.due_date %}, due {{ invoice.due_date|date:"j M" }}{% endif %}{% endif %}</td>
+        <td>{{ invoice.recipient.lines.0 }}</td>
+        <td><a href="{% url 'backoffice:order' invoice.order.ref %}">{{ invoice.order.ref }}</a></td>
+        <td class="num">€{{ invoice.net_total }}</td>
+        <td class="num">€{{ invoice.tax_total }}</td>
+        <td class="num">€{{ invoice.gross_total }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="8">No documents in this month.</td></tr>
+    {% endfor %}
+    {% if invoices %}<tr><td colspan="5"><strong>Month</strong></td><td class="num">€{{ net }}</td><td></td><td class="num">€{{ gross }}</td></tr>{% endif %}
+    </tbody>
+  </table>
+</div>
+<p class="muted small">The ZIP holds every PDF, a journal as CSV, a DATEV booking batch and the list of payments collected. The account numbers for DATEV are set under Payments → Settings.</p>
+{% endblock %}

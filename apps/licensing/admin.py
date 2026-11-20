@@ -13,8 +13,8 @@ class LicenseInline(admin.TabularInline):
 
 @admin.register(Entitlement)
 class EntitlementAdmin(admin.ModelAdmin):
-    list_display = ["account", "plan", "source", "valid_from", "valid_until", "is_active"]
-    list_filter = ["plan", "source", "is_active"]
+    list_display = ["account", "product", "plan", "source", "valid_from", "valid_until", "is_active"]
+    list_filter = ["product", "plan", "source", "is_active"]
     search_fields = ["account__name"]
     inlines = [LicenseInline]
 

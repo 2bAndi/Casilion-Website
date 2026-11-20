@@ -1,0 +1,30 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Bank statement{% endblock %}
+{% block heading %}Import a bank statement{% endblock %}
+{% block intro %}<p>Incoming transfers are matched to open orders by order number and amount.</p>{% endblock %}
+
+{% block content %}
+<div class="measure">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-fields"><div><label for="id_statement">Statement from the bank (CAMT.053 XML, or CSV with date, amount and purpose)</label><input type="file" name="statement" id="id_statement" accept=".xml,.csv,.txt" required></div></div>
+    <div class="actions"><button type="submit">Import</button><a class="btn ghost" href="{% url 'backoffice:payment_issues' %}">Back</a></div>
+  </form>
+  <p class="muted small">A transfer is booked only when the order number is in its purpose and the amount is exactly right. Everything else is listed below and stays untouched. The file itself is not kept.</p>
+</div>
+
+{% if report %}
+  <h2>Booked: {{ report.matched|length }}</h2>
+  {% if report.matched %}<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>From</th><th>Amount</th><th>Order</th></tr></thead><tbody>
+  {% for row, order in report.matched %}<tr><td class="num">{{ row.date }}</td><td>{{ row.name }}</td><td class="num">€{{ row.amount }}</td><td><a class="strong" href="{% url 'backoffice:order' order.ref %}">{{ order.ref }}</a></td></tr>{% endfor %}
+  </tbody></table></div>{% endif %}
+  <h2>To check by hand: {{ report.problems|length }}</h2>
+  {% if report.problems %}<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>From</th><th>Amount</th><th>Purpose</th><th>Why</th></tr></thead><tbody>
+  {% for row, why in report.problems %}<tr><td class="num">{{ row.date }}</td><td>{{ row.name }}</td><td class="num">€{{ row.amount }}</td><td>{{ row.purpose }}</td><td>{{ why }}</td></tr>{% endfor %}
+  </tbody></table></div>{% endif %}
+  <h2>Without an order number: {{ report.unmatched|length }}</h2>
+  {% if report.unmatched %}<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>From</th><th>Amount</th><th>Purpose</th></tr></thead><tbody>
+  {% for row in report.unmatched %}<tr><td class="num">{{ row.date }}</td><td>{{ row.name }}</td><td class="num">€{{ row.amount }}</td><td>{{ row.purpose }}</td></tr>{% endfor %}
+  </tbody></table></div>{% endif %}
+{% endif %}
+{% endblock %}

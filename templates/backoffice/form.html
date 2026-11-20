@@ -1,0 +1,17 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="measure">
+  {% if hint %}<div class="notice"><p>{{ hint }}</p></div>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-fields">{{ form.as_div }}</div>
+    <div class="actions">
+      <button type="submit">Save</button>
+      <a class="btn ghost" href="{{ back }}">Back</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

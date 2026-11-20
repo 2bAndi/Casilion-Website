@@ -148,14 +148,16 @@ def _confirm_bug(principal, ticket_id: str, issue_url: str) -> dict:
 def _sales_overview(principal) -> dict:
     status = status_snapshot()
     by_plan: dict[str, int] = {}
-    for subscription in Subscription.objects.filter(status=Subscription.Status.ACTIVE).select_related("plan"):
-        by_plan[subscription.plan.name] = by_plan.get(subscription.plan.name, 0) + 1
+    for subscription in Subscription.objects.filter(status=Subscription.Status.ACTIVE).select_related("plan__product"):
+        name = str(subscription.plan)
+        by_plan[name] = by_plan.get(name, 0) + 1
     return {
         "accounts": status["accounts"],
         "active_subscriptions": status["active_subscriptions"],
         "active_by_plan": by_plan,
         "paid_orders_30d": status["paid_orders_30d"],
-        "revenue_eur_30d": status["revenue_eur_30d"],
+        "revenue_eur_30d": float(status["revenue_eur_30d"]),
+        "payment_issues": status["payment_issues"],
     }
 
 

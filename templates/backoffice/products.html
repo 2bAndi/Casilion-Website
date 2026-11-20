@@ -1,0 +1,39 @@
+{% extends "backoffice/base.html" %}
+{% load humanize %}
+{% block page_title %}Products{% endblock %}
+{% block heading %}Products and plans{% endblock %}
+{% block intro %}<p>Every product has its own yearly licenses, from free to paid.</p>{% endblock %}
+
+{% block content %}
+<p><a class="btn small" href="{% url 'backoffice:product_new' %}">New product</a></p>
+{% for product in products %}
+  <section class="panel">
+    <h2>{{ product.name }} {% if not product.is_public %}<span class="tag quiet">Hidden</span>{% endif %}</h2>
+    <p class="muted small">{{ product.tagline }} · code <code>{{ product.code }}</code> · license IDs start with <code>{{ product.license_prefix }}-</code> · {{ product.active }} active paid plan{{ product.active|pluralize }}</p>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Plan</th><th>Code</th><th>Price a year</th><th>Support</th><th>Tickets a month</th><th>Sold</th><th></th></tr></thead>
+        <tbody>
+        {% for plan in product.plans.all %}
+          <tr>
+            <td>{{ plan.name }}{% if not plan.is_public %} <span class="tag quiet">Hidden</span>{% endif %}</td>
+            <td><code>{{ plan.code }}</code></td>
+            <td class="num">{% if plan.self_service %}€{{ plan.price_eur_year|intcomma }}{% else %}by quote{% endif %}</td>
+            <td>{{ plan.get_support_level_display }}</td>
+            <td class="num">{{ plan.ticket_quota_month }}</td>
+            <td>{% if plan.self_service %}in the shop{% else %}by quote{% endif %}</td>
+            <td><a href="{% url 'backoffice:plan' plan.code %}">Edit</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">No plans yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <a class="btn ghost small" href="{% url 'backoffice:plan_new' %}?product={{ product.pk }}">Add a plan</a>
+      <a class="btn ghost small" href="{% url 'backoffice:product' product.code %}">Edit product</a>
+    </div>
+  </section>
+{% endfor %}
+{% endblock %}

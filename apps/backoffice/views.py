@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST
 
 from apps.accounts.models import Account
 from apps.audit.log import audit
-from apps.billing.models import Order, Subscription
+from apps.billing.models import Order, ReconciliationIssue, Subscription
 from apps.mcp_server import tokens
 from apps.mcp_server.models import AgentToken
 from apps.support import services
@@ -42,7 +42,8 @@ def status_snapshot() -> dict:
         "accounts": Account.objects.count(),
         "active_subscriptions": Subscription.objects.filter(status=Subscription.Status.ACTIVE).count(),
         "paid_orders_30d": paid.count(),
-        "revenue_eur_30d": paid.aggregate(total=Sum("amount_eur"))["total"] or 0,
+        "revenue_eur_30d": float(paid.aggregate(sum=Sum("total"))["sum"] or 0),
+        "payment_issues": ReconciliationIssue.objects.filter(resolved=False).count(),
     }
 
 
@@ -50,9 +51,9 @@ def status_snapshot() -> dict:
 def dashboard(request):
     plans = (
         Subscription.objects.filter(status=Subscription.Status.ACTIVE)
-        .values("plan__name")
+        .values("plan__product__name", "plan__name")
         .annotate(n=Count("id"))
-        .order_by("plan__rank")
+        .order_by("plan__product__rank", "plan__rank")
     )
     return render(
         request,

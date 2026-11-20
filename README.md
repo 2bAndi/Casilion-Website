@@ -178,7 +178,8 @@ config/              settings, urls, asgi (Django plus the MCP endpoints)
 apps/
   core/              site, documentation pages, dev and seed commands
   accounts/          users, accounts, members, address, tax profile
-  billing/           plans, subscriptions, orders, provider adapter, sandbox
+  billing/           products, plans, orders, payments (Stripe, PayPal, bank transfer, sandbox), renewals
+  invoicing/         invoices and credit notes as PDF with the e-invoice inside, month export
   licensing/         entitlements, signed license files
   downloads/         releases, artefacts, expiring links
   support/           tickets, messages, jobs, release gate, job API
@@ -207,20 +208,52 @@ python -m ai_worker                        worker only (--once: one job, then ex
 python manage.py test tests                the test suite
 python manage.py seed_demo --tickets       demo data (development only)
 python manage.py create_operator <email>   an operator account for the backoffice (server)
-python manage.py expire_subscriptions      daily: end plans that ran out, back to Community
+python manage.py expire_subscriptions      daily: renewal invoices, reminders, end plans that ran out
+python manage.py reconcile_payments        nightly: compare payments with Stripe's and PayPal's records
 python manage.py close_stale_tickets       daily: close tickets the customer left unanswered
 python manage.py verify_license <file>     check a license file against the public key
 ```
 
 Raw data and everything without a screen of its own: <http://127.0.0.1:8000/ops/admin/>.
 
+## Payments and invoices
+
+A paid plan runs twelve months and is paid in advance, term by term. Nothing is charged
+automatically: thirty days before a term ends the customer gets the invoice for the next one
+with a link to pay and the bank details. An unpaid renewal is reminded once when the term
+ends; after `GRACE_DAYS` the plan falls back to the free one and the open invoice is put on
+the list for a person (collect or void).
+
+| Step | Where |
+|---|---|
+| Products and plans | Backoffice → Products. Prices are final prices per year, VAT included. |
+| Payment accounts, bank account, invoice prefix, tax number, VAT rate, DATEV accounts | Backoffice → Payments → Settings. Keys are stored encrypted (`FIELD_ENCRYPTION_KEY`) and never shown again. "Set up webhook" creates the endpoint at Stripe or PayPal. |
+| Order | The customer picks a method on the order page. Stripe and PayPal send them to their own pages; "paid" comes only from a signed webhook or from asking the provider when the customer returns. |
+| Bank transfer | The order waits (`BANK_TRANSFER_DAYS`). Backoffice → Payments → Import a bank statement (CAMT.053 or CSV) books transfers by order number and amount; an order can also be marked paid by hand. |
+| Invoice | Written when the order is paid (renewals: with the notice), sent with the confirmation, in the customer's "Plan and billing" and in Backoffice → Invoices. Never changed: a refund issues a credit note, a new recipient voids and replaces. |
+| Refund | Backoffice → Orders → the order. Goes back the way the money came; a full refund ends the plan. |
+| Things that need a person | Backoffice → Payments: amount differences, disputes, refunds made at the provider, money for cancelled orders, unpaid renewals. A mail goes to `finance_email` (or the operators). |
+| Tax adviser | Backoffice → Invoices → download the month: PDFs, journal, DATEV booking batch, payments. |
+
+Every payment keeps an append-only history (who or what changed its state, when, and the
+provider's own message). Invoices live in `var/invoices` and are part of the backup.
+
+Going live with Stripe: enter the secret key, press "Test connection", press "Set up webhook",
+buy the smallest plan once with a real card, refund it, then remove `ALLOW_SANDBOX_PAYMENTS`.
+The nginx password in front of the site lets `/billing/webhook/stripe/` and `/paypal/` through
+(`deploy/nginx/cassilion-app.conf`); reload nginx after updating that file.
+
+PDFs need Pango (WeasyPrint). The Docker image installs it; on Windows without it the shop
+still runs, invoices are skipped and listed under Payments as "Invoice could not be created".
+
 ## What is real, what is a stand-in
 
 | Part | State |
 |---|---|
-| Accounts, plans, entitlements, quotas | Real logic. Plan names, prices and quotas are placeholders (migration `billing/0002_seed_plans`). |
+| Accounts, plans, entitlements, quotas | Real logic. Three products (Cassilion, Zuri-AI, Vakaluja), each with its own yearly plans, edited in the backoffice under Products. Plan names, prices and quotas of Cassilion are placeholders; Zuri-AI and Vakaluja start hidden with a free plan only. Support tickets work for Cassilion only. |
 | License files | **Stand-in.** The website signs a small file (Ed25519, key in `var/keys`) that names account and plan. A Cassilion cluster does not verify this file; see the next section. |
-| Payments | **Stand-in.** A sandbox provider with its own checkout page and signed webhooks. No money moves. No invoices, no tax. A real provider plugs in behind `apps/billing/providers/base.py`. |
+| Payments | Real code, taken over from the Tangosummer ticket shop: Stripe Checkout (cards), PayPal, bank transfer with statement import, refunds, disputes, nightly reconciliation. **Tested against played provider answers only, never against the real Stripe or PayPal.** Keys are entered in the backoffice. The sandbox stays as a stand-in for development. See [Payments and invoices](#payments-and-invoices). |
+| Invoices, tax | Real: gapless numbers, PDF/A-3 with ZUGFeRD / Factur-X (EN 16931) inside, credit notes, corrections, month export with DATEV batch. **One tax rule: German VAT for every customer** (`apps/billing/tax.py`). Selling to other countries needs the tax adviser's rules first. |
 | Downloads | Real links with expiry and a download log. The build file is a placeholder. |
 | Input guard, redaction, release gate | Real, rule-based. The injection patterns are a first set, not a study. |
 | AI analysis | **Stand-in by default** (rules). The model path exists and is tested against a fake endpoint, not against a real model. Prompts are a first draft. |
@@ -288,5 +321,5 @@ The start-up sequence was rehearsed under production settings without Docker and
 ## Before this goes anywhere public
 
 With `DEBUG=0` the application refuses to start without `SECRET_KEY` and `AI_WORKER_TOKEN`,
-and refuses the sandbox payment provider unless `.env` acknowledges it (`ALLOW_SANDBOX_PAYMENTS=1`). Beyond that, see the status table above and
+and offers the sandbox payment method only when `.env` says so (`ALLOW_SANDBOX_PAYMENTS=1`). Beyond that, see the status table above and
 sections 10 to 13 of the architecture concept.

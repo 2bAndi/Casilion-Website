@@ -1,0 +1,65 @@
+{% extends "accounts/base.html" %}
+{% block page_title %}Order {{ order.ref }}{% endblock %}
+{% block heading %}Order {{ order.ref }}{% endblock %}
+
+{% block content %}
+<div class="measure">
+  <section class="panel">
+    <h2>{% if order.kind == "renewal" %}Renewal{% else %}Order{% endif %}</h2>
+    <dl class="kv">
+      {% for line in order.lines.all %}
+        <dt>{% if forloop.first %}Ordered{% endif %}</dt>
+        <dd>{{ line.description }}{% if line.period_from %} ({{ line.period_from|date:"j M Y" }} – {{ line.period_to|date:"j M Y" }}){% endif %}</dd>
+      {% endfor %}
+      <dt>Amount</dt><dd>€{{ order.total }}, including VAT</dd>
+      <dt>Placed</dt><dd>{{ order.created_at|date:"j F Y" }}</dd>
+      <dt>Status</dt>
+      <dd><span class="tag {% if order.status == 'paid' %}ok{% elif order.status == 'pending' %}action{% elif order.status == 'failed' %}alert{% else %}quiet{% endif %}">{{ order.get_status_display }}</span>
+        {% if order.paid_at %} on {{ order.paid_at|date:"j F Y" }}{% endif %}</dd>
+      {% if pending and order.due_date %}<dt>Due</dt><dd>{{ order.due_date|date:"j F Y" }}</dd>{% endif %}
+    </dl>
+  </section>
+
+  {% if processing %}
+    <div class="notice"><p>The payment has been accepted and is on its way. The plan starts as soon as the money has arrived; this page then shows "Paid".</p></div>
+  {% endif %}
+
+  {% if bank %}
+    <section class="panel">
+      <h2>Pay by bank transfer</h2>
+      <dl class="kv">
+        <dt>Payee</dt><dd>{{ bank.holder|default:company.NAME }}</dd>
+        <dt>IBAN</dt><dd><code>{{ bank.iban }}</code></dd>
+        {% if bank.bic %}<dt>BIC</dt><dd><code>{{ bank.bic }}</code></dd>{% endif %}
+        {% if bank.bank %}<dt>Bank</dt><dd>{{ bank.bank }}</dd>{% endif %}
+        <dt>Amount</dt><dd>€{{ bank.amount }}</dd>
+        <dt>Reference</dt><dd><code>{{ bank.reference }}</code></dd>
+      </dl>
+      <p class="muted small">Please give the reference exactly as shown. The plan starts when the money has arrived, usually one to two working days after the transfer.</p>
+    </section>
+  {% endif %}
+
+  {% if pending and methods and not processing %}
+    <section class="panel">
+      <h2>{% if bank %}Or pay another way{% else %}Pay now{% endif %}</h2>
+      <form method="post" action="{% url 'billing:order_pay' order.ref %}" class="actions">
+        {% csrf_token %}
+        {% for method in methods %}
+          <button type="submit" name="method" value="{{ method.code }}"{% if not forloop.first %} class="ghost"{% endif %}>{{ method.label }}</button>
+        {% endfor %}
+      </form>
+    </section>
+  {% endif %}
+
+  {% if invoices %}
+    <h2>Documents</h2>
+    <ul>
+      {% for invoice in invoices %}
+        <li><a href="{% url 'billing:invoice' invoice.number %}">{% if invoice.purpose == "cancellation" %}Cancellation{% elif invoice.is_credit_note %}Credit note{% else %}Invoice{% endif %} {{ invoice.number }}</a> of {{ invoice.issue_date|date:"j F Y" }}, €{{ invoice.gross_total }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <p><a class="btn ghost" href="{% url 'billing:overview' %}">Back to plan and billing</a></p>
+</div>
+{% endblock %}

@@ -12,6 +12,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 RUN useradd --create-home --uid 1000 app
 
+# WeasyPrint (invoice PDFs) needs Pango and a font from the operating system.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt requirements-postgres.txt ./
 RUN pip install -r requirements.txt -r requirements-postgres.txt
 

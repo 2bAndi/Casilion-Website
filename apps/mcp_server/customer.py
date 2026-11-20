@@ -121,6 +121,7 @@ def _list_licenses(principal) -> dict:
         "licenses": [
             {
                 "license_id": item.license_id,
+                "product": item.payload.get("product") or "cassilion",
                 "plan": item.entitlement.plan.code,
                 "issued_at": item.issued_at.isoformat(timespec="seconds"),
                 "valid_until": item.payload.get("valid_until"),
@@ -140,7 +141,7 @@ def _get_license_file(principal, license_id: str) -> dict:
     )
     if license is None:
         return {"ok": False, "error": "not_found", "message": "No such license in your account."}
-    return {"license_id": license.license_id, "filename": "cassilion.lic", "content": licensing.license_file(license)}
+    return {"license_id": license.license_id, "filename": licensing.license_filename(license), "content": licensing.license_file(license)}
 
 
 def _list_releases(principal) -> dict:
@@ -171,8 +172,11 @@ def _get_download_link(principal, version: str, platform: str) -> dict:
 
 
 def _get_checkout_link(principal, plan: str) -> dict:
-    choice = Plan.objects.filter(code=plan.strip().lower(), is_public=True).first()
-    plans = [{"code": p.code, "name": p.name, "eur_per_year": p.price_eur_year, "self_service": p.self_service} for p in billing.public_plans()]
+    choice = Plan.objects.filter(code=plan.strip().lower(), is_public=True, product__is_public=True).first()
+    plans = [
+        {"code": p.code, "product": p.product.code, "name": p.name, "eur_per_year": p.price_eur_year, "self_service": p.self_service}
+        for p in Plan.objects.filter(is_public=True, product__is_public=True).select_related("product")
+    ]
     if choice is None:
         return {"ok": False, "error": "not_found", "message": "Unknown plan.", "plans": plans}
     # Paying happens in the browser, by a person. An agent only gets the link.

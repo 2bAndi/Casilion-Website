@@ -109,7 +109,8 @@ Everything runs, and several parts are stand-ins. Before real customers arrive:
 | Part | State | Switch |
 |---|---|---|
 | Search engines | Kept out: header, meta tag, closed `robots.txt` | `SITE_NOINDEX=0` when the site is meant to be found |
-| Payments | Sandbox: no money moves, **anyone who registers can give themselves any plan** | `ALLOW_SANDBOX_PAYMENTS` goes when a real provider exists |
+| Payments | Sandbox still on: no money moves there, **anyone who registers can give themselves any plan**. Stripe, PayPal and bank transfer are entered in the backoffice (Payments → Settings) | remove `ALLOW_SANDBOX_PAYMENTS` once Stripe is set up and tried with a real card (README, "Payments and invoices") |
+| Tax | One rule: German VAT for every customer | the tax adviser's rules for other countries, before selling there |
 | Licenses | Stand-in file signed by the website; not what a cluster verifies | open, see README |
 | Documentation, known issues | Invented examples | replace the files in `knowledge/` |
 | Legal pages | Imprint, privacy and terms are empty pages | fill `templates/core/legal.html` before the site is public in earnest |
@@ -152,9 +153,13 @@ errors (HTTP 500) are mailed there as well.
 20 3 * * * sh /opt/cassilion/docker/backup.sh >> /opt/cassilion/backups/backup.log 2>&1
 40 4 * * * cd /opt/cassilion && docker compose exec -T web python manage.py expire_subscriptions >> /opt/cassilion/backups/daily.log 2>&1
 45 4 * * * cd /opt/cassilion && docker compose exec -T web python manage.py close_stale_tickets >> /opt/cassilion/backups/daily.log 2>&1
+50 4 * * * cd /opt/cassilion && docker compose exec -T web python manage.py reconcile_payments >> /opt/cassilion/backups/daily.log 2>&1
 ```
 
-`expire_subscriptions` returns accounts whose plan ran out to the Community plan.
+`expire_subscriptions` sends the invoice for the next term to plans that end within thirty days,
+reminds about unpaid ones and returns accounts whose plan ran out to the free plan.
+`reconcile_payments` compares the payments of the last three days with what Stripe and PayPal
+list themselves; differences appear in the backoffice under Payments.
 `close_stale_tickets` closes tickets the customer left unanswered.
 
 ## 8. Backups

@@ -9,6 +9,6 @@ def site(request):
         "DEBUG": settings.DEBUG,
         "SITE_NOINDEX": settings.SITE_NOINDEX,
         "current_account": account,
-        "sandbox_payments": settings.CASSILION["PAYMENT_PROVIDER"] == "sandbox",
+        "sandbox_payments": settings.CASSILION["SANDBOX_PAYMENTS"],
         "company": settings.COMPANY,
     }

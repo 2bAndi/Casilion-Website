@@ -4,17 +4,23 @@
 {% block band %}
 <div class="wrap page-head">
   <h1>Plans</h1>
-  <p>Using Cassilion is free. The paid plans add support, billed once a year.</p>
+  <p>Using the software is free. The paid plans add support, billed once a year.</p>
 </div>
 {% endblock %}
 
 {% block content %}
 {% if sandbox_payments %}
-  <div class="notice sandbox"><p>Payments run against a sandbox in this installation. No money moves.</p></div>
+  <div class="notice sandbox"><p>Payments can run against a sandbox in this installation. No money moves there.</p></div>
 {% endif %}
 
+{% for entry in products %}
+{% with product=entry.product current_plan=entry.current_plan %}
+{% if products|length > 1 %}
+  <h2 id="{{ product.code }}">{{ product.name }}</h2>
+  {% if product.tagline %}<p class="lead">{{ product.tagline }}</p>{% endif %}
+{% endif %}
 <div class="plans">
-  {% for plan in plans %}
+  {% for plan in entry.plans %}
     <section class="plan p-{{ plan.code }}{% if current_plan and current_plan.code == plan.code %} current{% endif %}">
       <h3>{{ plan.name }}</h3>
       <div class="price">{% if plan.is_free %}€0{% elif plan.self_service %}€{{ plan.price_eur_year|intcomma }}{% else %}By quote{% endif %}</div>
@@ -30,9 +36,12 @@
         {% if current_plan and current_plan.code == plan.code %}
           <span class="tag ok">Your plan</span>
         {% elif plan.is_free %}
-          {% if not user.is_authenticated %}<a class="btn ghost" href="{% url 'account_signup' %}">Register</a>{% endif %}
+          {% if not user.is_authenticated %}<a class="btn ghost" href="{% url 'account_signup' %}">Register</a>
+          {% elif current_account and not current_plan %}
+            <form method="post" action="{% url 'billing:free_plan' plan.code %}">{% csrf_token %}<button type="submit" class="ghost">Get the free license</button></form>
+          {% endif %}
         {% elif not plan.self_service %}
-          <a class="btn ghost" href="mailto:{{ company.EMAIL }}?subject=Cassilion%20Enterprise">Ask for a quote</a>
+          <a class="btn ghost" href="mailto:{{ company.EMAIL }}?subject={{ product.name|urlencode }}%20{{ plan.name|urlencode }}">Ask for a quote</a>
         {% elif user.is_authenticated and current_account %}
           <a class="btn" href="{% url 'billing:checkout_start' plan.code %}">Choose {{ plan.name }}</a>
         {% else %}
@@ -42,6 +51,8 @@
     </section>
   {% endfor %}
 </div>
+{% endwith %}
+{% endfor %}
 
 <p class="muted small">All prices are final prices in euros and include German VAT. A paid plan runs for twelve months; how it continues and ends is set out in the <a href="{% url 'core:legal' 'terms' %}">terms</a>. Consumers can withdraw within 14 days: <a href="{% url 'core:legal' 'withdrawal' %}">right of withdrawal</a>.</p>
 

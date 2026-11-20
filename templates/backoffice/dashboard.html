@@ -6,6 +6,9 @@
 {% if not status.ai_worker_online %}
   <div class="notice error"><p><strong>The AI worker is not polling.</strong> {% if status.ai_worker_last_seen %}Last seen {{ limits.worker_last_seen|timesince }} ago.{% else %}It has never connected.{% endif %} Tickets wait in the queue until it is back.</p></div>
 {% endif %}
+{% if status.payment_issues %}
+  <div class="notice error"><p><strong>{{ status.payment_issues }} payment matter{{ status.payment_issues|pluralize }} need a person.</strong> <a href="{% url 'backoffice:payment_issues' %}">Open the list</a></p></div>
+{% endif %}
 {% if not status.auto_send %}
   <div class="notice"><p>Shadow mode: every AI-written reply waits for review. Fixed texts (acknowledgements, requests for information) are sent directly.</p></div>
 {% endif %}
@@ -35,8 +38,8 @@
 {% if plans %}
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>Plan</th><th>Active subscriptions</th></tr></thead>
-      <tbody>{% for row in plans %}<tr><td>{{ row.plan__name }}</td><td class="num">{{ row.n }}</td></tr>{% endfor %}</tbody>
+      <thead><tr><th>Product</th><th>Plan</th><th>Active plans</th></tr></thead>
+      <tbody>{% for row in plans %}<tr><td>{{ row.plan__product__name }}</td><td>{{ row.plan__name }}</td><td class="num">{{ row.n }}</td></tr>{% endfor %}</tbody>
     </table>
   </div>
 {% endif %}

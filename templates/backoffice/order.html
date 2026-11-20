@@ -1,0 +1,117 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Order {{ order.ref }}{% endblock %}
+{% block heading %}Order {{ order.ref }}{% endblock %}
+{% block intro %}<p>{{ order.account.name }} · {{ order.get_kind_display }} · <span class="tag {% if order.status == 'paid' %}ok{% elif order.status == 'pending' %}action{% elif order.status == 'failed' %}alert{% else %}quiet{% endif %}">{{ order.get_status_display }}</span></p>{% endblock %}
+
+{% block content %}
+{% for issue in issues %}
+  <div class="notice error"><p><strong>{{ issue.get_kind_display }}.</strong> {{ issue.detail }} <a href="{% url 'backoffice:payment_issues' %}">Payment matters</a></p></div>
+{% endfor %}
+
+<div class="grid cols-2">
+  <section class="panel">
+    <h2>Order</h2>
+    <dl class="kv">
+      {% for line in lines %}
+        <dt>{% if forloop.first %}Ordered{% endif %}</dt>
+        <dd>{{ line.description }}{% if line.period_from %}<br><span class="muted small">{{ line.period_from|date:"j M Y" }} – {{ line.period_to|date:"j M Y" }}{% if line.subscription %} · plan is {{ line.subscription.get_status_display|lower }}{% endif %}</span>{% endif %}</dd>
+      {% endfor %}
+      <dt>Amount</dt><dd>€{{ order.total }} incl. VAT</dd>
+      <dt>Placed</dt><dd>{{ order.created_at|date:"j M Y, H:i" }}{% if order.placed_by %} by {{ order.placed_by.email }}{% endif %}</dd>
+      {% if order.due_date %}<dt>Due</dt><dd>{{ order.due_date|date:"j M Y" }}</dd>{% endif %}
+      {% if order.paid_at %}<dt>Paid</dt><dd>{{ order.paid_at|date:"j M Y, H:i" }} by {{ order.get_payment_method_display|lower }}</dd>{% endif %}
+      {% if order.early_start_requested_at %}<dt>Early start</dt><dd>asked for on {{ order.early_start_requested_at|date:"j M Y, H:i" }}</dd>{% endif %}
+      <dt>Terms</dt><dd>{{ order.terms_version }}</dd>
+    </dl>
+  </section>
+  <section class="panel">
+    <h2>Invoice recipient</h2>
+    <p>{% for line in order.billing.lines %}{{ line }}<br>{% endfor %}{{ order.billing.country }}{% if order.billing.vat_id %}<br>VAT ID {{ order.billing.vat_id }}{% endif %}</p>
+    <h2>Documents</h2>
+    {% if invoices %}
+      <ul>{% for document in invoices %}<li><a href="{% url 'backoffice:invoice_pdf' document.number %}">{{ document.number }}</a> · {% if document.purpose == "cancellation" %}cancellation{% elif document.is_credit_note %}credit note{% elif document.purpose == "correction" %}corrected invoice{% else %}invoice{% endif %} · €{{ document.gross_total }} · {{ document.issue_date|date:"j M Y" }}</li>{% endfor %}</ul>
+    {% else %}<p class="muted">None yet. The invoice is written when the order is paid.</p>{% endif %}
+  </section>
+</div>
+
+<h2>Payments</h2>
+{% if payments %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Started</th><th>Method</th><th>Reference at the provider</th><th>Amount</th><th>Status</th></tr></thead>
+    <tbody>{% for payment in payments %}<tr><td class="num">{{ payment.created_at|date:"j M Y, H:i" }}</td><td>{{ payment.get_provider_display }}</td><td><code>{{ payment.provider_id|default:"–" }}</code></td><td class="num">€{{ payment.amount }}</td><td>{{ payment.get_status_display }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% else %}<p>No payment was started.</p>{% endif %}
+
+<div class="grid cols-2">
+  {% if order.status == "pending" %}
+  <section class="panel">
+    <h2>Money arrived by bank transfer</h2>
+    <p class="muted small">Use this when the €{{ order.total }} are on the bank account and the statement import did not find them. The plan starts and the confirmation with the invoice goes out.</p>
+    <form method="post" class="actions">{% csrf_token %}
+      <button type="submit" name="action" value="mark_paid">Mark as paid</button>
+      <button type="submit" name="action" value="cancel" class="danger">Cancel the order</button>
+    </form>
+  </section>
+  {% endif %}
+  {% if refundable %}
+  <section class="panel">
+    <h2>Refund</h2>
+    <p class="muted small">Up to €{{ refundable }}. The money goes back the way it came, a credit note is issued and sent. A full refund ends the plan today.</p>
+    <form method="post">{% csrf_token %}
+      <div class="form-fields">
+        <div><label for="id_amount">Amount in euros (empty = everything)</label><input type="text" name="amount" id="id_amount" inputmode="decimal"></div>
+        <div><label for="id_reason">Reason (printed on the credit note)</label><input type="text" name="reason" id="id_reason" maxlength="300" required></div>
+      </div>
+      <button type="submit" name="action" value="refund" class="danger">Refund</button>
+    </form>
+  </section>
+  {% endif %}
+  {% if invoice %}
+  <section class="panel">
+    <h2>Correct invoice {{ invoice.number }}</h2>
+    <p class="muted small">Invoices are never changed. A new recipient voids this invoice with a cancellation and issues a new one with the same amounts; both are sent to the customer.</p>
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="number" value="{{ invoice.number }}">
+      <div class="form-fields">
+        <div><label for="id_company">Company</label><input type="text" name="company" id="id_company"></div>
+        <div><label for="id_name">Name</label><input type="text" name="name" id="id_name"></div>
+        <div><label for="id_street">Street and number</label><input type="text" name="street" id="id_street" value="{{ invoice.recipient.street }}"></div>
+        <div><label for="id_postal_code">Postal code</label><input type="text" name="postal_code" id="id_postal_code" value="{{ invoice.recipient.postal_code }}"></div>
+        <div><label for="id_city">City</label><input type="text" name="city" id="id_city" value="{{ invoice.recipient.city }}"></div>
+        <div><label for="id_country">Country (two letters)</label><input type="text" name="country" id="id_country" maxlength="2" value="{{ invoice.recipient.country }}"></div>
+        <div><label for="id_vat_id">VAT ID</label><input type="text" name="vat_id" id="id_vat_id" value="{{ invoice.recipient.vat_id }}"></div>
+        <div><label for="id_correct_reason">Reason</label><input type="text" name="reason" id="id_correct_reason" maxlength="300"></div>
+      </div>
+      <div class="actions">
+        <button type="submit" name="action" value="correct_invoice">Issue corrected invoice</button>
+        {% if order.status == "pending" or order.status == "cancelled" %}<button type="submit" name="action" value="void_invoice" class="danger">Void without replacement</button>{% endif %}
+      </div>
+    </form>
+  </section>
+  {% endif %}
+</div>
+
+<h2>History</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>When</th><th>What</th><th>From</th><th>Amount</th><th>Status</th><th>Note</th></tr></thead>
+    <tbody>
+    {% for row in history %}
+      <tr>
+        <td class="num">{{ row.event.created_at|date:"j M Y, H:i:s" }}</td>
+        <td>{{ row.label }}</td>
+        <td>{{ row.event.get_source_display }}{% if row.event.actor %} ({{ row.event.actor.email }}){% endif %}{% if row.event.provider_type %}<br><code>{{ row.event.provider_type }}</code>{% endif %}</td>
+        <td class="num">{% if row.event.amount is not None %}€{{ row.event.amount }}{% endif %}</td>
+        <td>{% if row.event.status_to %}{{ row.event.status_from|default:"–" }} → {{ row.event.status_to }}{% endif %}</td>
+        <td>{{ row.event.outcome }} {{ row.event.note }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">Nothing happened yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p><a class="btn ghost" href="{% url 'backoffice:orders' %}">All orders</a></p>
+{% endblock %}

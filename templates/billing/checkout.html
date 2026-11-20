@@ -5,24 +5,37 @@
 
 {% block content %}
 <div class="measure">
-  {% if sandbox_payments %}<div class="notice sandbox"><p>Payments run against a sandbox in this installation. No money moves.</p></div>{% endif %}
   {% if error %}<div class="notice error" role="alert"><p>{{ error }}</p></div>{% endif %}
 
   <section class="panel order-summary">
-    <h2>{{ plan.name }} support plan for Cassilion</h2>
+    <h2>{{ plan.name }} support plan for {{ plan.product.name }}</h2>
     <dl class="kv">
       <dt>Customer account</dt><dd>{{ current_account.name }}</dd>
       <dt>Included</dt>
       <dd>{{ plan.get_support_level_display }}; {{ plan.ticket_quota_month }} support tickets and {{ plan.bug_report_quota_month }} bug reports per calendar month; downloads, license file, documentation; MCP access for your AI agent.</dd>
       <dt>Term</dt>
       <dd>Twelve months from activation. If you do not cancel to the end of the twelve months, the plan continues for an indefinite period, is billed for a further twelve months in advance each time, and can then be cancelled at any time with one month's notice, with a pro rata refund.</dd>
-      <dt>Payment</dt><dd>Once a year in advance, by the payment methods shown in the next step.</dd>
+      <dt>Payment</dt><dd>Once a year in advance. Nothing is charged automatically: before a term ends you get the invoice for the next one.</dd>
       <dt>Total price</dt><dd><span class="total">€{{ plan.price_eur_year|intcomma }}</span> per year, including VAT. No further costs.</dd>
     </dl>
   </section>
 
+  {% if not methods %}
+    <div class="notice error"><p>No payment method is available at the moment. Please write to <a href="mailto:{{ company.EMAIL }}">{{ company.EMAIL }}</a>.</p></div>
+  {% else %}
   <form method="post">
     {% csrf_token %}
+    <h2>Invoice address</h2>
+    <p class="muted small">The invoice goes to {{ current_account.name }} at this address.</p>
+    <div class="form-fields">{{ form.as_div }}</div>
+
+    <h2>Payment</h2>
+    <div class="form-fields">
+      {% for method in methods %}
+        <div><label class="check" for="id_method_{{ method.code }}"><input type="radio" name="method" id="id_method_{{ method.code }}" value="{{ method.code }}"{% if forloop.first %} checked{% endif %}> <span>{{ method.label }}{% if method.code == "bank_transfer" %} – the plan starts when the money has arrived{% endif %}</span></label></div>
+      {% endfor %}
+    </div>
+
     {% if is_consumer %}
       <label class="consent" for="id_early_start">
         <input type="checkbox" name="early_start" id="id_early_start" required>
@@ -37,5 +50,6 @@
       <a class="btn ghost" href="{% url 'billing:pricing' %}">Back to the plans</a>
     </div>
   </form>
+  {% endif %}
 </div>
 {% endblock %}

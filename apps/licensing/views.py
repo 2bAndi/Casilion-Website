@@ -11,14 +11,16 @@ from .models import License
 @account_required
 def licenses(request):
     account = request.account
-    entitlement = services.current_entitlement(account)
+    held = [
+        {"entitlement": entitlement, "license": entitlement.licenses.filter(revoked_at__isnull=True).first()}
+        for entitlement in services.entitlements(account)
+    ]
     return render(
         request,
         "licensing/licenses.html",
         {
-            "entitlement": entitlement,
-            "license": entitlement.licenses.filter(revoked_at__isnull=True).first(),
-            "history": License.objects.filter(entitlement__account=account).select_related("entitlement__plan")[:20],
+            "held": held,
+            "history": License.objects.filter(entitlement__account=account).select_related("entitlement__plan", "entitlement__product")[:30],
         },
     )
 
@@ -28,7 +30,7 @@ def download(request, license_id):
     license = get_object_or_404(License, license_id=license_id, entitlement__account=request.account)
     audit("license.downloaded", actor=request.user, account=request.account, obj=license.license_id)
     response = HttpResponse(services.license_file(license), content_type="text/plain; charset=utf-8")
-    response["Content-Disposition"] = 'attachment; filename="cassilion.lic"'
+    response["Content-Disposition"] = f'attachment; filename="{services.license_filename(license)}"'
     return response
 
 

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="{{ language }}">
+<head>
+<meta charset="utf-8">
+<title>{{ inv.number }}</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm 30mm 18mm;
+    @bottom-center { white-space: pre-line; content: "{{ inv.seller.name }} · {{ inv.seller.street }}, {{ inv.seller.postal_code }} {{ inv.seller.city }} · {{ inv.seller.email }}\A {{ inv.seller.register }} · {{ t.director }} {{ inv.seller.director }}{% if inv.seller.tax_number %} · {{ t.tax_no }} {{ inv.seller.tax_number }}{% endif %}{% if inv.seller.vat_id %} · {{ t.vat_id }} {{ inv.seller.vat_id }}{% endif %}"; font: 8pt "DejaVu Sans", sans-serif; color: #666; } }
+  body { font: 10pt/1.45 "DejaVu Sans", sans-serif; color: #222; }
+  .brand { font-weight: 700; font-size: 13pt; letter-spacing: .08em; color: #111; border-bottom: 2px solid #111; padding-bottom: 2mm; margin-bottom: 8mm; }
+  h1 { font-size: 19pt; font-weight: 600; margin: 0 0 2mm; color: #111; }
+  .replaces { color: #555; margin: 0 0 4mm; }
+  .head { display: flex; justify-content: space-between; margin-bottom: 12mm; }
+  .head > div { flex: 0 0 50%; padding-right: 8mm; box-sizing: border-box; }
+  .meta { flex: 1; }
+  .meta td { vertical-align: top; }
+  .sender { font-size: 8pt; color: #666; border-bottom: 1px solid #ccc; margin-bottom: 3mm; }
+  .meta td { padding: 0 0 1mm 6mm; }
+  .meta td:first-child { color: #666; padding-left: 0; }
+  table.items { width: 100%; border-collapse: collapse; margin-top: 8mm; }
+  table.items th { text-align: left; border-bottom: 1.5px solid #222; padding: 2mm 1mm; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .04em; }
+  table.items td { border-bottom: 1px solid #ddd; padding: 2mm 1mm; vertical-align: top; }
+  .r { text-align: right; white-space: nowrap; }
+  .total td { font-weight: bold; border-top: 2px solid #222; border-bottom: 0; padding-top: 3mm; }
+  .note { margin-top: 5mm; font-size: 9.5pt; }
+  .small { font-size: 8.5pt; color: #555; margin-top: 8mm; }
+</style>
+</head>
+<body>
+<div class="brand">{{ inv.seller.name }}</div>
+<div class="head">
+  <div>
+    <div class="sender">{{ inv.seller.name }} · {{ inv.seller.street }} · {{ inv.seller.postal_code }} {{ inv.seller.city }}</div>
+    {% for line in inv.buyer.lines %}{{ line }}<br>{% endfor %}
+    {% if inv.buyer.country and inv.buyer.country != "DE" %}{{ inv.buyer.country }}<br>{% endif %}
+    {% if inv.buyer.vat_id %}{{ t.vat_id }} {{ inv.buyer.vat_id }}<br>{% endif %}
+  </div>
+  <table class="meta">
+    <tr><td>{% if inv.purpose == "cancellation" %}{{ t.cancellation_no }}{% elif inv.kind == "credit_note" %}{{ t.credit_note_no }}{% else %}{{ t.invoice_no }}{% endif %}</td><td><b>{{ inv.number }}</b></td></tr>
+    <tr><td>{{ t.date }}</td><td>{{ inv.issue_date|date:fmt }}</td></tr>
+    <tr><td>{{ t.service }}</td><td>{{ inv.service_from|date:fmt }}{% if inv.service_to != inv.service_from %} – {{ inv.service_to|date:fmt }}{% endif %}</td></tr>
+    <tr><td>{{ t.order }}</td><td>{{ inv.order_number }}</td></tr>
+    <tr><td>{{ t.customer }}</td><td>{{ inv.account_name }}</td></tr>
+    {% if inv.refers_to %}<tr><td>{% if inv.purpose == "correction" %}{{ t.replaces }}{% else %}{{ t.refers }}{% endif %}</td><td>{{ inv.refers_to }}</td></tr>{% endif %}
+  </table>
+</div>
+
+<h1>{% if inv.purpose == "cancellation" %}{{ t.cancellation }}{% elif inv.kind == "credit_note" %}{{ t.credit_note }}{% elif inv.purpose == "correction" %}{{ t.correction }}{% else %}{{ t.invoice }}{% endif %}</h1>
+
+<table class="items">
+  <thead><tr><th>{{ t.description }}</th><th class="r">{{ t.qty }}</th><th class="r">{{ t.unit }}</th><th class="r">{{ t.total }}</th></tr></thead>
+  <tbody>
+  {% for line in inv.lines %}
+    <tr><td>{{ line.description }}</td><td class="r">{{ line.quantity }}</td><td class="r">{{ line.unit_price }}</td><td class="r">{{ line.gross_total }}</td></tr>
+  {% endfor %}
+  {% if not inv.small_business %}
+    {% for row in inv.tax_lines %}<tr><td colspan="3" class="r">{{ row.text }}</td><td class="r">{{ row.tax }}</td></tr>{% endfor %}
+  {% endif %}
+    <tr class="total"><td colspan="3" class="r">{{ t.sum }}</td><td class="r">{{ inv.gross }}</td></tr>
+  </tbody>
+</table>
+
+{% if inv.small_business %}<p class="note">{{ t.small_business }}</p>{% endif %}
+{% if inv.reason %}<p class="note">{{ t.reason }} {{ inv.reason }}</p>{% endif %}
+{% for note in notes %}<p class="note">{{ note }}</p>{% endfor %}
+<p class="small">{{ t.machine }}</p>
+</body>
+</html>

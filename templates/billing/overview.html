@@ -3,45 +3,49 @@
 {% block heading %}Plan and billing{% endblock %}
 
 {% block content %}
-{% if sandbox_payments %}<div class="notice sandbox"><p>Payments run against a sandbox in this installation. No money moves.</p></div>{% endif %}
-
 <div class="grid cols-2">
+  {% for holding in holdings %}
+  {% with entitlement=holding.entitlement subscription=holding.subscription %}
   <section class="panel">
-    <h2>Current plan</h2>
+    <h2>{{ entitlement.product.name }}</h2>
     <dl class="kv">
       <dt>Plan</dt><dd>{{ entitlement.plan.name }}</dd>
       <dt>Support</dt><dd>{{ entitlement.plan.get_support_level_display }}</dd>
       <dt>Tickets a month</dt><dd>{% if entitlement.plan.has_support %}{{ entitlement.plan.ticket_quota_month }}{% else %}none{% endif %}</dd>
       <dt>Valid until</dt><dd>{% if entitlement.valid_until %}{{ entitlement.valid_until|date:"j F Y" }}{% else %}no end date{% endif %}</dd>
-      {% if subscription %}<dt>Subscription</dt><dd>{{ subscription.get_status_display }}</dd>{% endif %}
+      {% if subscription %}<dt>Status</dt><dd>{{ subscription.get_status_display }}</dd>{% endif %}
     </dl>
     <div class="actions">
-      <a class="btn ghost small" href="{% url 'billing:pricing' %}">Change plan</a>
-      {% if subscription and subscription.status == "active" %}
-        <form method="post" action="{% url 'billing:cancel' %}">{% csrf_token %}<button type="submit" class="danger small">Cancel subscription</button></form>
+      <a class="btn ghost small" href="{% url 'billing:pricing' %}#{{ entitlement.product.code }}">Change plan</a>
+      {% if subscription and subscription.status == "active" or subscription and subscription.status == "past_due" %}
+        <form method="post" action="{% url 'billing:cancel' %}">{% csrf_token %}<input type="hidden" name="subscription" value="{{ subscription.pk }}"><button type="submit" class="danger small">Cancel plan</button></form>
       {% endif %}
     </div>
     {% if subscription and subscription.status == "cancelled" %}
-      <p class="muted small">Cancelled. The plan stays active until {{ subscription.period_end|date:"j F Y" }}, then the account returns to Community.</p>
+      <p class="muted small">Cancelled. The plan stays active until {{ subscription.period_end|date:"j F Y" }}, then it returns to the free plan.</p>
+    {% elif subscription and subscription.status == "past_due" %}
+      <p class="muted small">The invoice for the next term is open. Please pay it under Orders below.</p>
     {% endif %}
   </section>
+  {% endwith %}
+  {% endfor %}
 </div>
 
 <h2>Orders</h2>
 {% if orders %}
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>Date</th><th>Order</th><th>Plan</th><th>Amount</th><th>Status</th></tr></thead>
+      <thead><tr><th>Date</th><th>Order</th><th>What</th><th>Amount</th><th>Status</th></tr></thead>
       <tbody>
       {% for order in orders %}
         <tr>
           <td class="num">{{ order.created_at|date:"j M Y" }}</td>
-          <td><code>{{ order.ref }}</code></td>
-          <td>{{ order.plan.name }}</td>
-          <td class="num">€{{ order.amount_eur }}</td>
+          <td><a class="strong" href="{% url 'billing:order' order.ref %}">{{ order.ref }}</a></td>
+          <td>{{ order.plan }}{% if order.kind == "renewal" %} <span class="tag quiet">Renewal</span>{% endif %}</td>
+          <td class="num">€{{ order.total }}</td>
           <td>
-            <span class="tag {% if order.status == 'paid' %}ok{% elif order.status == 'failed' %}alert{% else %}action{% endif %}">{{ order.get_status_display }}</span>
-            {% if order.status == "pending" and sandbox_payments %}<a href="{% url 'billing:sandbox_checkout' order.ref %}">Continue to checkout</a>{% endif %}
+            <span class="tag {% if order.status == 'paid' %}ok{% elif order.status == 'pending' %}action{% elif order.status == 'failed' %}alert{% else %}quiet{% endif %}">{{ order.get_status_display }}</span>
+            {% if order.status == "pending" %}<a href="{% url 'billing:order' order.ref %}">Pay</a>{% endif %}
           </td>
         </tr>
       {% endfor %}
@@ -50,5 +54,27 @@
   </div>
 {% else %}
   <p>No orders yet.</p>
+{% endif %}
+
+<h2>Invoices</h2>
+{% if invoices %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Number</th><th>Document</th><th>Amount</th><th></th></tr></thead>
+      <tbody>
+      {% for invoice in invoices %}
+        <tr>
+          <td class="num">{{ invoice.issue_date|date:"j M Y" }}</td>
+          <td><code>{{ invoice.number }}</code></td>
+          <td>{% if invoice.purpose == "cancellation" %}Cancellation{% elif invoice.is_credit_note %}Credit note{% elif invoice.purpose == "correction" %}Corrected invoice{% else %}Invoice{% endif %}</td>
+          <td class="num">€{{ invoice.gross_total }}</td>
+          <td><a href="{% url 'billing:invoice' invoice.number %}">PDF</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>No invoices yet.</p>
 {% endif %}
 {% endblock %}

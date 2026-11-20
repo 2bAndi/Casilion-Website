@@ -7,3 +7,8 @@ uvicorn>=0.30
 cryptography>=43
 whitenoise>=6.7
 Markdown>=3.6
+# Payments (plain REST to Stripe and PayPal), bank statements, invoices as PDF with the e-invoice inside
+httpx>=0.28
+defusedxml>=0.7
+weasyprint>=66
+factur-x>=3.8

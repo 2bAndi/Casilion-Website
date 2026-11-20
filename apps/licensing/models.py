@@ -4,7 +4,10 @@ from django.db import models
 
 
 class Entitlement(models.Model):
-    """Account X has plan Y from one date to another. The single source of truth for what an account may do."""
+    """Account X has plan Y of product Z from one date to another. The single source of truth for what an account may do.
+
+    An account has at most one active entitlement per product.
+    """
 
     class Source(models.TextChoices):
         FREE = "free", "Free registration"
@@ -13,6 +16,7 @@ class Entitlement(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     account = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, related_name="entitlements")
+    product = models.ForeignKey("billing.Product", on_delete=models.PROTECT, related_name="entitlements")
     plan = models.ForeignKey("billing.Plan", on_delete=models.PROTECT, related_name="entitlements")
     valid_from = models.DateField()
     valid_until = models.DateField(null=True, blank=True, help_text="Empty = no end date.")

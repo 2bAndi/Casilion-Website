@@ -4,8 +4,10 @@
 
 {% block content %}
 <div class="measure">
+  {% for item in held %}
+  {% with entitlement=item.entitlement license=item.license %}
   <div class="panel">
-    <h2>Your license file</h2>
+    <h2>{{ entitlement.product.name }}: your license file</h2>
     {% if license %}
       <dl class="kv">
         <dt>License</dt><dd>{{ license.license_id }}</dd>
@@ -14,20 +16,23 @@
         <dt>Valid until</dt><dd>{% if entitlement.valid_until %}{{ entitlement.valid_until|date:"j F Y" }}{% else %}no end date{% endif %}</dd>
         <dt>Signed with</dt><dd><code>{{ license.key_id }}</code></dd>
       </dl>
-      <p><a class="btn" href="{% url 'licensing:download' license.license_id %}">Download cassilion.lic</a></p>
+      <p><a class="btn" href="{% url 'licensing:download' license.license_id %}">Download {{ entitlement.product.code }}.lic</a></p>
     {% endif %}
   </div>
+  {% endwith %}
+  {% endfor %}
   <div class="notice"><p><strong>Stand-in.</strong> This file is signed by the website with its own key and names your account and plan. It is not yet the license a Cassilion cluster verifies: that one binds a cluster, edition, capacity and term, carries two signatures, and is issued with the product's offline issuer. Connecting the two is an open step.</p></div>
 </div>
 
 <h2>Issued files</h2>
 <div class="table-wrap">
   <table class="table">
-    <thead><tr><th>License</th><th>Plan</th><th>Issued</th><th>State</th><th></th></tr></thead>
+    <thead><tr><th>License</th><th>Product</th><th>Plan</th><th>Issued</th><th>State</th><th></th></tr></thead>
     <tbody>
     {% for item in history %}
       <tr>
         <td><code>{{ item.license_id }}</code></td>
+        <td>{{ item.entitlement.product.name }}</td>
         <td>{{ item.entitlement.plan.name }}</td>
         <td class="num">{{ item.issued_at|date:"j M Y" }}</td>
         <td>{% if item.revoked_at %}<span class="tag quiet">Replaced</span>{% else %}<span class="tag ok">In force</span>{% endif %}</td>

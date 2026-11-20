@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.audit",
     "apps.billing",
+    "apps.invoicing",
     "apps.licensing",
     "apps.downloads",
     "apps.support",
@@ -285,10 +286,20 @@ CASSILION = {
     # Shared secret of the AI worker for the job API (the only door into the application zone).
     "AI_WORKER_TOKEN": env("AI_WORKER_TOKEN") or ("dev-worker-token" if DEBUG else ""),
     "JOB_LEASE_SECONDS": int(env("JOB_LEASE_SECONDS") or 600),
-    # Payments
-    "PAYMENT_PROVIDER": env("PAYMENT_PROVIDER") or "sandbox",
+    # Products: the one every account gets its free license for at registration, and that support works for.
+    "DEFAULT_PRODUCT": env("DEFAULT_PRODUCT") or "cassilion",
+    # Payments. Stripe, PayPal and the bank account are entered in the backoffice (Payments -> Settings)
+    # and stored encrypted with FIELD_ENCRYPTION_KEY. The sandbox is a stand-in where no money moves:
+    # on with DEBUG, and on a staging system only with ALLOW_SANDBOX_PAYMENTS=1.
+    "SANDBOX_PAYMENTS": env_bool("ALLOW_SANDBOX_PAYMENTS", DEBUG),
     "SANDBOX_WEBHOOK_SECRET": env("SANDBOX_WEBHOOK_SECRET") or ("dev-sandbox-secret" if DEBUG else ""),
     "GRACE_DAYS": int(env("GRACE_DAYS") or 14),
+    # A renewal invoice goes out this many days before a paid term ends.
+    "RENEWAL_NOTICE_DAYS": int(env("RENEWAL_NOTICE_DAYS") or 30),
+    # A bank-transfer order waits this many days for the money before it is cancelled.
+    "BANK_TRANSFER_DAYS": int(env("BANK_TRANSFER_DAYS") or 14),
+    # Invoices and credit notes as issued (PDF with the e-invoice inside). Back this directory up.
+    "INVOICE_DIR": Path(env("INVOICE_DIR") or VAR_DIR / "invoices"),
     # Licenses
     "LICENSE_KEY_DIR": Path(env("LICENSE_KEY_DIR") or VAR_DIR / "keys"),
     "LICENSE_KEY_ID": env("LICENSE_KEY_ID") or "cas-lic-dev",
@@ -307,12 +318,9 @@ CASSILION = {
 }
 if not DEBUG and not CASSILION["AI_WORKER_TOKEN"]:
     raise ImproperlyConfigured("AI_WORKER_TOKEN must be set when DEBUG is off.")
-if not DEBUG and CASSILION["PAYMENT_PROVIDER"] == "sandbox" and not env_bool("ALLOW_SANDBOX_PAYMENTS"):
-    # The sandbox hands out paid plans to anyone who presses a button.
-    raise ImproperlyConfigured(
-        "PAYMENT_PROVIDER is 'sandbox' while DEBUG is off. Configure a real provider, "
-        "or set ALLOW_SANDBOX_PAYMENTS=1 on a staging system that takes no real customers."
-    )
+# Key for secrets stored in the database (payment keys). Falls back to SECRET_KEY; once keys
+# are stored, changing either means entering the payment keys again.
+FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY") or ""
 
 LOGGING = {
     "version": 1,

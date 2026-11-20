@@ -1,0 +1,51 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Payments{% endblock %}
+{% block heading %}Payments{% endblock %}
+{% block intro %}<p>What needs a person, and what is waiting for a bank transfer.</p>{% endblock %}
+
+{% block content %}
+<div class="actions">
+  <a class="btn small" href="{% url 'backoffice:bank_import' %}">Import a bank statement</a>
+  <a class="btn ghost small" href="{% url 'backoffice:payment_settings' %}">Settings: payment accounts and invoices</a>
+</div>
+
+<h2>To look at</h2>
+{% if issues %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Since</th><th>What</th><th>Order</th><th>Detail</th><th></th></tr></thead>
+    <tbody>
+    {% for issue in issues %}
+      <tr>
+        <td class="num">{{ issue.created_at|date:"j M Y, H:i" }}</td>
+        <td>{{ issue.get_kind_display }}{% if issue.provider %} <span class="tag quiet">{{ issue.provider }}</span>{% endif %}</td>
+        <td>{% if issue.order %}<a class="strong" href="{% url 'backoffice:order' issue.order.ref %}">{{ issue.order.ref }}</a>{% else %}<code>{{ issue.provider_id }}</code>{% endif %}</td>
+        <td>{{ issue.detail }}</td>
+        <td><form method="post" class="inline">{% csrf_token %}<input type="hidden" name="issue" value="{{ issue.pk }}"><button type="submit" class="small ghost">Done</button></form></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}<p>Nothing is open.</p>{% endif %}
+
+<h2>Waiting for a bank transfer</h2>
+{% if waiting %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Order</th><th>Customer</th><th>Amount</th><th>Due</th></tr></thead>
+    <tbody>{% for order in waiting %}<tr><td><a class="strong" href="{% url 'backoffice:order' order.ref %}">{{ order.ref }}</a></td><td>{{ order.account.name }}</td><td class="num">€{{ order.total }}</td><td class="num">{{ order.due_date|date:"j M Y"|default:"–" }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% else %}<p>No order is waiting for a transfer.</p>{% endif %}
+
+{% if done %}
+<h2>Settled</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Opened</th><th>What</th><th>Detail</th><th>Settled by</th></tr></thead>
+    <tbody>{% for issue in done %}<tr><td class="num">{{ issue.created_at|date:"j M Y" }}</td><td>{{ issue.get_kind_display }}</td><td>{{ issue.detail }}</td><td>{{ issue.resolved_by.email|default:"–" }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

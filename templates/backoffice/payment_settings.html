@@ -1,0 +1,40 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Payment settings{% endblock %}
+{% block heading %}Payment accounts and invoices{% endblock %}
+{% block intro %}<p>Keys are stored encrypted and are never shown again. Every change is written to the audit log with your name, without the values.</p>{% endblock %}
+
+{% block content %}
+{% if sandbox %}<div class="notice sandbox"><p><strong>The sandbox is switched on</strong> (ALLOW_SANDBOX_PAYMENTS or DEBUG). Customers can "pay" there without money. Remove <code>ALLOW_SANDBOX_PAYMENTS</code> from <code>.env</code> before real customers buy.</p></div>{% endif %}
+{% if not vat_id %}<div class="notice"><p>No VAT ID is set (<code>COMPANY_VAT_ID</code> in <code>.env</code>). Enter it there or the tax number below: an invoice needs one of the two.</p></div>{% endif %}
+
+<div class="grid cols-3">
+  <section class="panel">
+    <h2>Stripe {% if state.stripe %}<span class="tag ok">{{ stripe_mode }}</span>{% else %}<span class="tag quiet">not set</span>{% endif %}</h2>
+    <p class="muted small">Webhook address:<br><code>{{ hooks.stripe }}</code><br>{% if stripe_hook %}Signing secret stored.{% else %}No signing secret yet: payments are then confirmed only when the customer comes back to the site.{% endif %}</p>
+    <form method="post" action="{% url 'backoffice:payment_check' 'stripe' %}" class="actions">{% csrf_token %}
+      <button type="submit" name="action" value="check" class="small ghost">Test connection</button>
+      <button type="submit" name="action" value="webhook" class="small ghost">Set up webhook at Stripe</button>
+    </form>
+  </section>
+  <section class="panel">
+    <h2>PayPal {% if state.paypal %}<span class="tag ok">set</span>{% else %}<span class="tag quiet">not set</span>{% endif %}</h2>
+    <p class="muted small">Webhook address:<br><code>{{ hooks.paypal }}</code><br>{% if paypal_hook %}Webhook <code>{{ paypal_hook }}</code>.{% else %}No webhook yet.{% endif %}</p>
+    <form method="post" action="{% url 'backoffice:payment_check' 'paypal' %}" class="actions">{% csrf_token %}
+      <button type="submit" name="action" value="check" class="small ghost">Test connection</button>
+      <button type="submit" name="action" value="webhook" class="small ghost">Set up webhook at PayPal</button>
+    </form>
+  </section>
+  <section class="panel">
+    <h2>Bank transfer {% if state.bank_transfer %}<span class="tag ok">set</span>{% else %}<span class="tag quiet">not set</span>{% endif %}</h2>
+    <p class="muted small">Offered once an IBAN is entered. Incoming money is booked from a bank statement or by hand.</p>
+  </section>
+</div>
+
+<div class="measure">
+  <form method="post" autocomplete="off">
+    {% csrf_token %}
+    <div class="form-fields">{{ form.as_div }}</div>
+    <div class="actions"><button type="submit">Save settings</button><a class="btn ghost" href="{% url 'backoffice:payment_issues' %}">Back</a></div>
+  </form>
+</div>
+{% endblock %}

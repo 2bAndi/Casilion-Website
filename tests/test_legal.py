@@ -8,7 +8,7 @@ from apps.billing.models import Order
 from apps.core import legal
 from apps.core.models import ContractNotice
 
-from .base import CassilionTestCase, make_customer
+from .base import ADDRESS, CassilionTestCase, make_customer
 
 
 class LegalTextTests(CassilionTestCase):
@@ -116,10 +116,10 @@ class OrderPageTests(CassilionTestCase):
             self.assertContains(page, expected)
         self.assertEqual(Order.objects.count(), 0)  # looking at the order page orders nothing
 
-        self.assertContains(self.client.post(url), "Please confirm that support should start right away")
+        self.assertContains(self.client.post(url, ADDRESS), "Please confirm that support should start right away")
         self.assertEqual(Order.objects.count(), 0)
 
-        response = self.client.post(url, {"early_start": "on"})
+        response = self.client.post(url, {**ADDRESS, "early_start": "on"})
         order = Order.objects.get()
         self.assertIsNotNone(order.early_start_requested_at)
         self.assertTrue(order.terms_version)
@@ -129,14 +129,15 @@ class OrderPageTests(CassilionTestCase):
         self.assertIn(order.ref, confirmation.body)
         self.assertIn("expressly asked us to start support", confirmation.body)
         names = [name for name, _content, _type in confirmation.attachments]
-        self.assertEqual(names, ["Cassilion-Terms.html", "Cassilion-Right-of-withdrawal.html"])
-        self.assertIn("Model withdrawal form", confirmation.attachments[1][1])
-        self.assertIn("/legal/withdraw/", confirmation.attachments[1][1])
+        invoice = order.invoices.get()
+        self.assertEqual(names, [f"{invoice.number}.pdf", "Cassilion-Terms.html", "Cassilion-Right-of-withdrawal.html"])
+        self.assertIn("Model withdrawal form", confirmation.attachments[2][1])
+        self.assertIn("/legal/withdraw/", confirmation.attachments[2][1])
 
     def test_company_is_not_asked_about_withdrawal(self):
         user, _account = make_customer(plan="community")
         self.client.force_login(user)
         url = reverse("billing:checkout_start", args=["professional"])
         self.assertNotContains(self.client.get(url), "early_start")
-        self.client.post(url)
+        self.client.post(url, ADDRESS)
         self.assertIsNone(Order.objects.get().early_start_requested_at)

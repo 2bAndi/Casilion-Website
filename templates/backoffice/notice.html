@@ -28,10 +28,17 @@
     {% else %}
       <p class="muted">No customer account uses {{ notice.email }}. Look for the contract by the order number or name under <a href="{% url 'backoffice:customers' %}">Customers</a>.</p>
     {% endif %}
-    <h2>What we did</h2>
+  </section>
+</div>
+
+<h2 id="actions">What you can do</h2>
+<div class="grid cols-2">
+  <section class="panel">
+    <h2>Write down what was done</h2>
+    <p class="muted small">The declaration above stays as it is. Your note and the day it was handled are kept with it.</p>
     <form method="post">
       {% csrf_token %}
-      <div class="field"><label for="id_note">Note</label><textarea id="id_note" name="note" rows="5">{{ notice.handling_note }}</textarea></div>
+      <div class="form-fields"><div><label for="id_note">Note</label><textarea id="id_note" name="note" rows="5">{{ notice.handling_note }}</textarea></div></div>
       <div class="actions">
         {% if notice.handled_at %}<button type="submit" name="action" value="save">Save note</button><button type="submit" name="action" value="reopen" class="ghost">Open again</button>
         {% else %}<button type="submit" name="action" value="done">Save and mark as handled</button><button type="submit" name="action" value="save" class="ghost">Save note only</button>{% endif %}

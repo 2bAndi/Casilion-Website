@@ -6,6 +6,10 @@
      3. tabs, where a page has several views or filters:      <ul class="tabs">
      4. one toolbar: search and filters left, actions right:  <div class="toolbar">
      5. the content: tables as they are, forms and details in  <section class="panel">
+   A page about one thing (a ticket, an order, a mail, a withdrawal) orders its content like this:
+     what it is (panels with the facts), what happened (thread or table), then under the heading
+     "What you can do" one panel per action: heading, one line of what it does, fields, buttons.
+     The history table comes last.
    There are no "back" buttons: the menu shows where you are and leads back. #}
 {% block title %}{% block page_title %}Backoffice{% endblock %} – Cassilion backoffice{% endblock %}
 {% block band %}

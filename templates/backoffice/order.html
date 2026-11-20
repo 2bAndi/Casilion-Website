@@ -45,6 +45,7 @@
 </div>
 {% else %}<p>No payment was started.</p>{% endif %}
 
+{% if order.status == "pending" or refundable or invoice %}<h2 id="actions">What you can do</h2>{% endif %}
 <div class="grid cols-2">
   {% if order.status == "pending" %}
   <section class="panel">
@@ -65,7 +66,7 @@
         <div><label for="id_amount">Amount in euros (empty = everything)</label><input type="text" name="amount" id="id_amount" inputmode="decimal"></div>
         <div><label for="id_reason">Reason (printed on the credit note)</label><input type="text" name="reason" id="id_reason" maxlength="300" required></div>
       </div>
-      <button type="submit" name="action" value="refund" class="danger">Refund</button>
+      <div class="actions"><button type="submit" name="action" value="refund" class="danger">Refund</button></div>
     </form>
   </section>
   {% endif %}

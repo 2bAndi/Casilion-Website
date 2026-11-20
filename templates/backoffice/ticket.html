@@ -3,11 +3,7 @@
 {% block page_title %}{{ ticket.public_id }}{% endblock %}
 {% block heading %}{{ ticket.subject }}{% endblock %}
 {% block intro %}
-<p>{{ ticket.public_id }} from <a href="{% url 'backoffice:customer' ticket.account.pk %}?tab=tickets">{{ ticket.account.name }}</a>{% if ticket.author %} ({{ ticket.author.email }}){% endif %}, {% if ticket.channel == "mcp" %}by an AI agent{% else %}in the customer area{% endif %}{% if ticket.product_version %}, Cassilion {{ ticket.product_version }}{% endif %}</p>
-{% endblock %}
-
-{% block content %}
-<p class="actions">
+<p>{{ ticket.public_id }} from <a href="{% url 'backoffice:customer' ticket.account.pk %}?tab=tickets">{{ ticket.account.name }}</a>{% if ticket.author %} ({{ ticket.author.email }}){% endif %}, {% if ticket.channel == "mcp" %}by an AI agent{% else %}in the customer area{% endif %}{% if ticket.product_version %}, Cassilion {{ ticket.product_version }}{% endif %} ·
   <span class="tag {{ ticket.status|tone }}">{{ ticket.get_status_display }}</span>
   {% if ticket.priority == "critical" %}<span class="tag alert">Critical</span>{% endif %}
   {% if ticket.flagged %}<span class="tag action">Guard flag</span>{% endif %}
@@ -15,29 +11,11 @@
   {% if ticket.bug_report %}<span class="tag quiet">One-way bug report</span>{% endif %}
   {% if ticket.issue_url %}<a href="{{ ticket.issue_url }}" rel="noopener noreferrer">Linked issue</a>{% endif %}
 </p>
+{% endblock %}
 
+{% block content %}
 {% if draft %}
-  <h2>Draft from the support AI</h2>
-  {% if blocked %}
-    <div class="notice error"><p><strong>A guard blocked this result.</strong> Do not send the draft unchanged. Check the guard report below, then edit it or write the reply yourself.</p></div>
-  {% endif %}
-  <form method="post" class="measure">
-    {% csrf_token %}
-    <input type="hidden" name="draft" value="{{ draft.pk }}">
-    <div class="field">
-      <label for="draft-body">Reply to the customer</label>
-      <span class="helptext">Edit freely. An AI notice is added when it is sent.</span>
-      <textarea id="draft-body" name="body" rows="16">{{ draft.body }}</textarea>
-    </div>
-    <div class="field">
-      <label for="draft-note">Note, if you reject</label>
-      <input type="text" id="draft-note" name="note" maxlength="300">
-    </div>
-    <div class="actions">
-      <button type="submit" name="action" value="approve" class="signal">Send to customer</button>
-      <button type="submit" name="action" value="reject" class="ghost">Reject draft</button>
-    </div>
-  </form>
+  <div class="notice{% if blocked %} error{% endif %}"><p><strong>A draft from the support AI waits for you.</strong> {% if blocked %}A guard blocked this result: do not send it unchanged. {% endif %}Read the finding and the conversation, then decide under <a href="#actions">What you can do</a>.</p></div>
 {% endif %}
 
 <div class="grid cols-2">
@@ -95,29 +73,58 @@
 <h2>Conversation</h2>
 {% include "support/_thread.html" with thread=thread show_redacted=True %}
 
-<h2>Write as a person</h2>
-<form method="post" class="measure">
-  {% csrf_token %}
-  <div class="field">
-    <label for="reply-body">Message</label>
-    <textarea id="reply-body" name="body" rows="6"></textarea>
-  </div>
-  <p><label class="check"><input type="checkbox" name="internal"> Internal note, not visible to the customer</label></p>
-  <button type="submit" name="action" value="reply">Send</button>
-</form>
-
-<h2>Decide</h2>
-<div class="actions">
-  {% if ticket.status == "bug_candidate" %}
-    <form method="post" class="actions">
+<h2 id="actions">What you can do</h2>
+<div class="grid cols-2">
+  {% if draft %}
+  <section class="panel">
+    <h2>Send or reject the draft</h2>
+    <p class="muted small">Edit the text freely. A notice that an AI wrote it is added when it is sent. A rejected draft is kept in the history and not sent.</p>
+    <form method="post">
       {% csrf_token %}
-      <input type="url" name="issue_url" placeholder="Link to the issue (optional)" aria-label="Link to the issue">
-      <button type="submit" name="action" value="confirm_bug">Confirm as product bug</button>
-      <button type="submit" name="action" value="dismiss_bug" class="ghost">Not a bug</button>
+      <input type="hidden" name="draft" value="{{ draft.pk }}">
+      <div class="form-fields">
+        <div><label for="draft-body">Reply to the customer</label><textarea id="draft-body" name="body" rows="16">{{ draft.body }}</textarea></div>
+        <div><label for="draft-note">Note, if you reject</label><input type="text" id="draft-note" name="note" maxlength="300"></div>
+      </div>
+      <div class="actions">
+        <button type="submit" name="action" value="approve" class="signal">Send to customer</button>
+        <button type="submit" name="action" value="reject" class="danger">Reject draft</button>
+      </div>
     </form>
+  </section>
+  {% endif %}
+  <section class="panel">
+    <h2>Write as a person</h2>
+    <p class="muted small">Your reply goes to the customer under your name, or stays with the team as an internal note.</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-fields">
+        <div><label for="reply-body">Message</label><textarea id="reply-body" name="body" rows="6"></textarea></div>
+        <div><label class="check" for="reply-internal"><input type="checkbox" name="internal" id="reply-internal"> <span>Internal note, not visible to the customer</span></label></div>
+      </div>
+      <div class="actions"><button type="submit" name="action" value="reply">Send</button></div>
+    </form>
+  </section>
+  {% if ticket.status == "bug_candidate" %}
+  <section class="panel">
+    <h2>Is it a product bug?</h2>
+    <p class="muted small">Confirmed: the customer has already been told that engineering looks at it. Not a bug: the ticket goes back to review.</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-fields"><div><label for="issue-url">Link to the issue (optional)</label><input type="url" name="issue_url" id="issue-url"></div></div>
+      <div class="actions">
+        <button type="submit" name="action" value="confirm_bug">Confirm as product bug</button>
+        <button type="submit" name="action" value="dismiss_bug" class="ghost">Not a bug</button>
+      </div>
+    </form>
+  </section>
   {% endif %}
   {% if ticket.is_open %}
-    <form method="post">{% csrf_token %}<button type="submit" name="action" value="close" class="ghost">Close ticket</button></form>
+  <section class="panel">
+    <h2>Close the ticket</h2>
+    <p class="muted small">Nothing more to do. The customer sees the ticket as closed; nothing is deleted.</p>
+    <form method="post" class="actions">{% csrf_token %}<button type="submit" name="action" value="close" class="danger">Close ticket</button></form>
+  </section>
   {% endif %}
 </div>
 

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import customers, inbox, sales, views
+from . import customers, inbox, office, sales, views
 
 app_name = "backoffice"
 
@@ -12,6 +12,17 @@ urlpatterns = [
     path("sent/", views.sent_log, name="sent_log"),
     path("customers/", customers.customers, name="customers"),
     path("customers/<uuid:pk>/", customers.customer, name="customer"),
+    path("customers/<uuid:pk>/grant/", office.grant_plan, name="grant_plan"),
+    path("customers/<uuid:pk>/end-plan/", office.end_plan, name="end_plan"),
+    path("customers/<uuid:pk>/login/", office.login_block, name="login_block"),
+    path("audit/", office.audit_log, name="audit_log"),
+    path("releases/", office.releases, name="releases"),
+    path("releases/new/", office.release, name="release_new"),
+    path("releases/<int:pk>/", office.release, name="release"),
+    path("team/", office.team, name="team"),
+    path("team/change/", office.team_change, name="team_change"),
+    path("notices/", office.notices, name="notices"),
+    path("notices/<str:reference>/", office.notice, name="notice"),
     path("inbox/", inbox.inbox, name="inbox"),
     path("inbox/settings/", inbox.inbox_settings, name="inbox_settings"),
     path("inbox/check/", inbox.inbox_check, name="inbox_check"),

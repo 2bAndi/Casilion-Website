@@ -3,13 +3,13 @@
 {% block heading %}Payment settings{% endblock %}
 {% block intro %}<p>One tab per subject, each saved on its own. Keys are stored encrypted and are never shown again. Every change is written to the audit log with your name, without the values.</p>{% endblock %}
 
-{% block content %}
-<nav aria-label="Sections">
-  <ul class="subnav">
-    {% for item in sections %}<li><a href="?tab={{ item.key }}"{% if item.key == section.key %} aria-current="page"{% endif %}>{{ item.title }}{% if item.status %} <span class="tag {{ item.status.1 }}">{{ item.status.0 }}</span>{% endif %}</a></li>{% endfor %}
-  </ul>
-</nav>
+{% block tabs %}
+<ul class="tabs" aria-label="Sections">
+  {% for item in sections %}<li><a href="?tab={{ item.key }}"{% if item.key == section.key %} aria-current="page"{% endif %}>{{ item.title }}{% if item.status %} <span class="state">· {{ item.status.0 }}</span>{% endif %}</a></li>{% endfor %}
+</ul>
+{% endblock %}
 
+{% block content %}
 {% if sandbox_open %}<div class="notice error"><p><strong>The sandbox is on for every customer.</strong> Anyone who registers can give themselves any plan without paying. Name the testers in the <a href="?tab=sandbox">Sandbox</a> tab, or switch it off before real customers buy.</p></div>{% endif %}
 
 <div class="measure">
@@ -54,5 +54,4 @@
     {% endif %}
   </section>
 </div>
-<p><a class="btn ghost" href="{% url 'backoffice:payment_issues' %}">Back to payments</a></p>
 {% endblock %}

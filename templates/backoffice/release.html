@@ -1,0 +1,53 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}{% if release %}Release {{ release.version }}{% else %}New release{% endif %}{% endblock %}
+{% block heading %}{% if release %}Release {{ release.version }}{% else %}New release{% endif %}{% endblock %}
+
+{% block content %}
+<div class="grid cols-2">
+  <section class="panel">
+    <h2>Release</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-fields">{{ form.as_div }}</div>
+      <div class="actions"><button type="submit" name="action" value="save">Save release</button></div>
+    </form>
+    <p class="muted small">The notes are public and shown as plain text. A release without files can be published, but offers nothing to download.</p>
+  </section>
+
+  {% if release %}
+  <section class="panel">
+    <h2>Files</h2>
+    {% if artefacts %}
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Platform</th><th>File</th><th>Size</th><th>Downloads</th><th></th></tr></thead>
+      <tbody>
+      {% for artefact in artefacts %}
+        <tr>
+          <td>{{ artefact.platform }}</td>
+          <td>{{ artefact.filename }}<br><span class="muted small">SHA-256 {{ artefact.sha256|slice:":16" }}…</span></td>
+          <td class="num">{{ artefact.size_bytes|filesizeformat }}</td>
+          <td class="num">{{ artefact.fetched }}</td>
+          <td><form method="post" class="inline">{% csrf_token %}<input type="hidden" name="artefact" value="{{ artefact.pk }}"><button type="submit" name="action" value="remove_file" class="small danger">Remove</button></form></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}<p class="muted">No file is offered yet.</p>{% endif %}
+
+    <h3>Add a file</h3>
+    {% if files %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-fields">
+          <div><label for="id_file">File on the server</label><select name="file" id="id_file">{% for name in files %}<option value="{{ name }}">{{ name }}</option>{% endfor %}</select></div>
+          <div><label for="id_platform">Platform, for example linux-x86_64 or windows-x86_64</label><input type="text" name="platform" id="id_platform" maxlength="40" required></div>
+        </div>
+        <button type="submit" name="action" value="add_file" class="small">Offer this file</button>
+      </form>
+    {% else %}
+      <p class="muted small">No new file found. Builds are not uploaded through the browser: copy them on the server into <code>{{ folder }}</code> (inside the container; on the host <code>data/var/releases/{{ release.version }}/</code>), then reload this page. Size and checksum are taken from the file.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

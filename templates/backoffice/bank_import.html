@@ -8,7 +8,7 @@
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="form-fields"><div><label for="id_statement">Statement from the bank (CAMT.053 XML, or CSV with date, amount and purpose)</label><input type="file" name="statement" id="id_statement" accept=".xml,.csv,.txt" required></div></div>
-    <div class="actions"><button type="submit">Import</button><a class="btn ghost" href="{% url 'backoffice:payment_issues' %}">Back</a></div>
+    <div class="actions"><button type="submit">Import</button></div>
   </form>
   <p class="muted small">A transfer is booked only when the order number is in its purpose and the amount is exactly right. Everything else is listed below and stays untouched. The file itself is not kept.</p>
 </div>

@@ -1,10 +1,13 @@
 {% extends "backoffice/base.html" %}
-{% block heading %}Backoffice{% endblock %}
+{% block heading %}Overview{% endblock %}
 {% block intro %}<p>Signed in as {{ user.email }}</p>{% endblock %}
 
 {% block content %}
 {% if not status.ai_worker_online %}
   <div class="notice error"><p><strong>The AI worker is not polling.</strong> {% if status.ai_worker_last_seen %}Last seen {{ limits.worker_last_seen|timesince }} ago.{% else %}It has never connected.{% endif %} Tickets wait in the queue until it is back.</p></div>
+{% endif %}
+{% if status.open_notices %}
+  <div class="notice error"><p><strong>{{ status.open_notices }} withdrawal{{ status.open_notices|pluralize }} or cancellation{{ status.open_notices|pluralize }} declared on the website wait{{ status.open_notices|pluralize:"s," }} to be handled.</strong> <a href="{% url 'backoffice:notices' %}">Open the list</a></p></div>
 {% endif %}
 {% if status.payment_issues %}
   <div class="notice error"><p><strong>{{ status.payment_issues }} payment matter{{ status.payment_issues|pluralize }} need a person.</strong> <a href="{% url 'backoffice:payment_issues' %}">Open the list</a></p></div>

@@ -64,7 +64,11 @@ def _figures(account) -> dict:
     members = list(account.memberships.select_related("user"))
     seen = [m.user for m in members if m.user.last_login]
     last = max(seen, key=lambda u: u.last_login) if seen else None
+    from apps.core.models import ContractNotice
+
+    emails = [m.user.email for m in members]
     return {
+        "notices": ContractNotice.objects.filter(email__in=emails, handled_at__isnull=True),
         "last_login": last.last_login if last else None,
         "last_login_by": last.email if last else "",
         "plans": licensing.entitlements(account),
@@ -124,5 +128,8 @@ def customer(request, pk):
     elif tab == "licenses":
         context["subscriptions"] = account.subscriptions.select_related("plan__product")
         context["entitlements"] = account.entitlements.select_related("plan__product").order_by("-is_active", "-created_at")
+        from .office import GrantForm
+
+        context["grant_form"] = GrantForm()
         context["licenses"] = License.objects.filter(entitlement__account=account).select_related("entitlement__plan__product")[:50]
     return render(request, "backoffice/customer.html", context)

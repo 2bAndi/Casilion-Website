@@ -1,0 +1,42 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}{{ notice.reference }}{% endblock %}
+{% block heading %}{{ notice.get_kind_display }} {{ notice.reference }}{% endblock %}
+{% block intro %}<p>Received {{ notice.received_at|date:"j F Y, H:i" }} · {% if notice.handled_at %}<span class="tag ok">Handled {{ notice.handled_at|date:"j F Y" }}</span>{% else %}<span class="tag alert">To handle</span>{% endif %}</p>{% endblock %}
+
+{% block content %}
+<div class="grid cols-2">
+  <section class="panel">
+    <h2>The declaration, as it arrived</h2>
+    <dl class="kv">
+      <dt>Name</dt><dd>{{ notice.name }}</dd>
+      <dt>E-mail</dt><dd>{{ notice.email }}</dd>
+      <dt>Contract</dt><dd>{{ notice.contract }}</dd>
+      {% if notice.cancel_type %}<dt>Kind</dt><dd>{{ notice.get_cancel_type_display }}</dd>{% endif %}
+      {% if notice.cancel_at %}<dt>To end</dt><dd>{{ notice.cancel_at }}</dd>{% endif %}
+      {% if notice.cancel_reason %}<dt>Reason</dt><dd>{{ notice.cancel_reason }}</dd>{% endif %}
+      <dt>Language</dt><dd>{{ notice.language }}</dd>
+      <dt>Signed in as</dt><dd>{{ notice.user.email|default:"not signed in" }}</dd>
+      <dt>Confirmation</dt><dd>{% if notice.confirmation_sent %}sent to the customer{% else %}not sent{% endif %}</dd>
+    </dl>
+    <p class="muted small">This text is evidence and cannot be changed. The form is open to anyone, so check that the sender is the customer before you act.</p>
+  </section>
+  <section class="panel">
+    <h2>Customer</h2>
+    {% if account %}
+      <p><a class="strong" href="{% url 'backoffice:customer' account.pk %}?tab=orders">{{ account.name }}</a> has a login or billing address {{ notice.email }}.</p>
+      <p class="muted small">A withdrawal is carried out on the order (refund, which ends the plan); a cancellation in the customer's plans.</p>
+    {% else %}
+      <p class="muted">No customer account uses {{ notice.email }}. Look for the contract by the order number or name under <a href="{% url 'backoffice:customers' %}">Customers</a>.</p>
+    {% endif %}
+    <h2>What we did</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="field"><label for="id_note">Note</label><textarea id="id_note" name="note" rows="5">{{ notice.handling_note }}</textarea></div>
+      <div class="actions">
+        {% if notice.handled_at %}<button type="submit" name="action" value="save">Save note</button><button type="submit" name="action" value="reopen" class="ghost">Open again</button>
+        {% else %}<button type="submit" name="action" value="done">Save and mark as handled</button><button type="submit" name="action" value="save" class="ghost">Save note only</button>{% endif %}
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

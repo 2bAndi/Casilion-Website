@@ -4,6 +4,12 @@
 {% block heading %}{{ account.name }}{% endblock %}
 {% block intro %}<p>{{ account.get_kind_display }} · {{ account.country.name }} · customer since {{ account.created_at|date:"j F Y" }}{% if account.status == "suspended" %} · <span class="tag alert">Suspended</span>{% endif %}</p>{% endblock %}
 
+{% block tabs %}
+<ul class="tabs" aria-label="Customer">
+  {% for key, title in tabs %}<li><a href="?tab={{ key }}"{% if key == tab %} aria-current="page"{% endif %}>{{ title }}</a></li>{% endfor %}
+</ul>
+{% endblock %}
+
 {% block content %}
 <div class="grid cols-4">
   <div class="panel"><div class="figure">{% if figures.last_login %}{{ figures.last_login|date:"j M Y" }}{% else %}never{% endif %}</div><p>last sign-in{% if figures.last_login %}, {{ figures.last_login|date:"H:i" }} by {{ figures.last_login_by }}{% endif %}</p></div>
@@ -13,11 +19,9 @@
 </div>
 <p>{% for entitlement in figures.plans %}<span class="tag {% if entitlement.plan.is_free %}quiet{% else %}ok{% endif %}">{{ entitlement.plan }}{% if entitlement.valid_until %} until {{ entitlement.valid_until|date:"j M Y" }}{% endif %}</span> {% endfor %}</p>
 
-<nav aria-label="Customer">
-  <ul class="subnav">
-    {% for key, title in tabs %}<li><a href="?tab={{ key }}"{% if key == tab %} aria-current="page"{% endif %}>{{ title }}</a></li>{% endfor %}
-  </ul>
-</nav>
+{% for notice in figures.notices %}
+  <div class="notice error"><p><strong>{{ notice.get_kind_display }} declared on {{ notice.received_at|date:"j F Y" }}</strong> and not handled yet. <a href="{% url 'backoffice:notice' notice.reference %}">Open {{ notice.reference }}</a></p></div>
+{% endfor %}
 
 {% if tab == "overview" %}
   <div class="grid cols-2">
@@ -38,7 +42,7 @@
         <h2>Logins</h2>
         <div class="table-wrap">
           <table class="table">
-            <thead><tr><th>Person</th><th>Role</th><th>Last sign-in</th><th>2FA</th></tr></thead>
+            <thead><tr><th>Person</th><th>Role</th><th>Last sign-in</th><th>2FA</th><th></th></tr></thead>
             <tbody>
             {% for member in figures.members %}
               <tr>
@@ -46,6 +50,7 @@
                 <td>{{ member.get_role_display }}</td>
                 <td class="num">{% if member.user.last_login %}{{ member.user.last_login|date:"j M Y, H:i" }}{% else %}<span class="muted">never</span>{% endif %}<br><span class="muted small">registered {{ member.user.date_joined|date:"j M Y" }}</span></td>
                 <td>{% if member.user_id in two_factor %}<span class="tag ok">on</span>{% else %}<span class="tag quiet">off</span>{% endif %}</td>
+                <td>{% if not member.user.is_staff %}<form method="post" action="{% url 'backoffice:login_block' account.pk %}" class="inline">{% csrf_token %}<input type="hidden" name="user" value="{{ member.user.pk }}">{% if member.user.is_active %}<button type="submit" name="action" value="block" class="small danger">Block</button>{% else %}<button type="submit" name="action" value="unblock" class="small ghost">Unblock</button>{% endif %}</form>{% endif %}</td>
               </tr>
             {% endfor %}
             </tbody>
@@ -201,11 +206,20 @@
         <td>{% if entitlement.is_active %}<span class="tag ok">Active</span>{% else %}<span class="tag quiet">Inactive</span>{% endif %}</td>
         <td class="num">{{ entitlement.valid_from|date:"j M Y" }}</td>
         <td class="num">{{ entitlement.valid_until|date:"j M Y"|default:"no end" }}</td>
-        <td>{{ entitlement.get_source_display }}</td>
+        <td>{{ entitlement.get_source_display }}{% if entitlement.is_active and entitlement.source == "manual" %} <form method="post" action="{% url 'backoffice:end_plan' account.pk %}" class="inline">{% csrf_token %}<input type="hidden" name="entitlement" value="{{ entitlement.pk }}"><button type="submit" class="small danger">End it</button></form>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table></div>
+  <section class="panel measure">
+    <h2>Give a plan by hand</h2>
+    <p class="muted small">For a plan by quote, a goodwill extension or a partner: no order, no invoice. The account gets a new license file at once, and your reason goes into the audit log. Not possible while the customer pays for a plan of the same product.</p>
+    <form method="post" action="{% url 'backoffice:grant_plan' account.pk %}">
+      {% csrf_token %}
+      <div class="form-fields">{{ grant_form.as_div }}</div>
+      <button type="submit">Give this plan</button>
+    </form>
+  </section>
   <h2>License files</h2>
   <div class="table-wrap"><table class="table">
     <thead><tr><th>License</th><th>Product</th><th>Plan</th><th>Issued</th><th>State</th></tr></thead>
@@ -222,5 +236,4 @@
     </tbody>
   </table></div>
 {% endif %}
-<p><a class="btn ghost" href="{% url 'backoffice:customers' %}">All customers</a></p>
 {% endblock %}

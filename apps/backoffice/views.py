@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 from apps.accounts.models import Account
 from apps.audit.log import audit
 from apps.billing.models import Order, ReconciliationIssue, Subscription
+from apps.core.models import ContractNotice
 from apps.mcp_server import tokens
 from apps.mcp_server.models import AgentToken
 from apps.support import services
@@ -44,6 +45,7 @@ def status_snapshot() -> dict:
         "paid_orders_30d": paid.count(),
         "revenue_eur_30d": float(paid.aggregate(sum=Sum("total"))["sum"] or 0),
         "payment_issues": ReconciliationIssue.objects.filter(resolved=False).count(),
+        "open_notices": ContractNotice.objects.filter(handled_at__isnull=True).count(),
     }
 
 

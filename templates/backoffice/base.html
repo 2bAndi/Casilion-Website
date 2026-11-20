@@ -1,5 +1,12 @@
 {% extends "base.html" %}
-{% load cassilion %}
+{% load cassilion backoffice %}
+{# Every backoffice page is built the same way, top to bottom:
+     1. the head: title and one line of what the page is for (blocks heading, intro)
+     2. the menu: areas of work, then the pages of the current area (apps/backoffice/nav.py)
+     3. tabs, where a page has several views or filters:      <ul class="tabs">
+     4. one toolbar: search and filters left, actions right:  <div class="toolbar">
+     5. the content: tables as they are, forms and details in  <section class="panel">
+   There are no "back" buttons: the menu shows where you are and leads back. #}
 {% block title %}{% block page_title %}Backoffice{% endblock %} – Cassilion backoffice{% endblock %}
 {% block band %}
 <div class="wrap page-head">
@@ -9,21 +16,8 @@
 {% endblock %}
 
 {% block main %}
-<nav aria-label="Backoffice">
-  <ul class="subnav">
-    <li><a href="{% url 'backoffice:dashboard' %}"{% if request.path == '/ops/' %} aria-current="page"{% endif %}>Overview</a></li>
-    <li><a href="{% url 'backoffice:review_queue' %}"{% nav_current 'backoffice:review_queue' %}>Review queue</a></li>
-    <li><a href="{% url 'backoffice:tickets' %}"{% nav_current 'backoffice:tickets' %}>All tickets</a></li>
-    <li><a href="{% url 'backoffice:sent_log' %}"{% nav_current 'backoffice:sent_log' %}>Sent log</a></li>
-    <li><a href="{% url 'backoffice:customers' %}"{% nav_current 'backoffice:customers' %}>Customers</a></li>
-    <li><a href="{% url 'backoffice:inbox' %}"{% nav_current 'backoffice:inbox' %}>Inbox</a></li>
-    <li><a href="{% url 'backoffice:orders' %}"{% nav_current 'backoffice:orders' %}>Orders</a></li>
-    <li><a href="{% url 'backoffice:invoices' %}"{% nav_current 'backoffice:invoices' %}>Invoices</a></li>
-    <li><a href="{% url 'backoffice:payment_issues' %}"{% nav_current 'backoffice:payment_issues' %}>Payments</a></li>
-    <li><a href="{% url 'backoffice:products' %}"{% nav_current 'backoffice:products' 'backoffice:plan_new' %}>Products</a></li>
-    <li><a href="{% url 'backoffice:settings' %}"{% nav_current 'backoffice:settings' %}>Switches</a></li>
-    <li><a href="{% url 'admin:index' %}">Raw data</a></li>
-  </ul>
-</nav>
+{% backoffice_nav %}
+{% block tabs %}{% endblock %}
+{% block toolbar %}{% endblock %}
 {% block content %}{% endblock %}
 {% endblock %}

@@ -3,17 +3,22 @@
 {% block heading %}Inbox{% endblock %}
 {% block intro %}<p>Mails to {{ config.effective_user|default:"the company mailbox" }}.{% if config.last_fetch_at %} Last read {{ config.last_fetch_at|timesince }} ago.{% endif %}</p>{% endblock %}
 
+{% block tabs %}
+<ul class="tabs" aria-label="Show">
+  {% for key, title in filters %}<li><a href="?show={{ key }}"{% if key == current %} aria-current="page"{% endif %}>{{ title }}</a></li>{% endfor %}
+</ul>
+{% endblock %}
+
+{% block toolbar %}
+<div class="toolbar">
+  <div class="right"><form method="post" action="{% url 'backoffice:inbox_check' %}">{% csrf_token %}<button type="submit" name="action" value="fetch" class="small">Read the mailbox now</button></form></div>
+</div>
+{% endblock %}
+
 {% block content %}
-{% if not config.enabled %}<div class="notice"><p>Reading the mailbox is switched off. <a href="{% url 'backoffice:inbox_settings' %}">Switch it on in the settings.</a></p></div>
+{% if not config.enabled %}<div class="notice"><p>Reading the mailbox is switched off. <a href="{% url 'backoffice:inbox_settings' %}">Switch it on under Mailbox.</a></p></div>
 {% elif config.last_error %}<div class="notice error"><p><strong>The mailbox could not be read.</strong> {{ config.last_error }}</p></div>{% endif %}
 
-<nav aria-label="Show">
-  <ul class="subnav">
-    {% for key, title in filters %}<li><a href="?show={{ key }}"{% if key == current %} aria-current="page"{% endif %}>{{ title }}</a></li>{% endfor %}
-    <li><a href="{% url 'backoffice:inbox_settings' %}">Settings</a></li>
-  </ul>
-</nav>
-<form method="post" action="{% url 'backoffice:inbox_check' %}" class="actions">{% csrf_token %}<button type="submit" name="action" value="fetch" class="small ghost">Read the mailbox now</button></form>
 
 <div class="table-wrap">
   <table class="table">

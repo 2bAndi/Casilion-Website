@@ -1,0 +1,10 @@
+<nav aria-label="Backoffice">
+  <ul class="areas">
+    {% for item in areas %}<li><a href="{{ item.url }}"{% if item.current %} aria-current="true"{% endif %}>{{ item.label }}{% if item.number %} <span class="count">{{ item.number }}</span>{% endif %}</a></li>{% endfor %}
+  </ul>
+  {% if pages %}
+  <ul class="pages" aria-label="{{ area.label }}">
+    {% for page in pages %}<li><a href="{{ page.url }}"{% if page.current %} aria-current="page"{% endif %}>{{ page.label }}{% if page.number %} <span class="count">{{ page.number }}</span>{% endif %}</a></li>{% endfor %}
+  </ul>
+  {% else %}<div class="pages"></div>{% endif %}
+</nav>

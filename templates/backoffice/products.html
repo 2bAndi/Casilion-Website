@@ -4,8 +4,11 @@
 {% block heading %}Products and plans{% endblock %}
 {% block intro %}<p>Every product has its own yearly licenses, from free to paid.</p>{% endblock %}
 
+{% block toolbar %}
+<div class="toolbar"><div class="right"><a class="btn small" href="{% url 'backoffice:product_new' %}">New product</a></div></div>
+{% endblock %}
+
 {% block content %}
-<p><a class="btn small" href="{% url 'backoffice:product_new' %}">New product</a></p>
 {% for product in products %}
   <section class="panel">
     <h2>{{ product.name }} {% if not product.is_public %}<span class="tag quiet">Hidden</span>{% endif %}</h2>

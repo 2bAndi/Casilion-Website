@@ -1,6 +1,6 @@
 {% extends "backoffice/base.html" %}
-{% block page_title %}Mailbox settings{% endblock %}
-{% block heading %}Mailbox settings{% endblock %}
+{% block page_title %}Mailbox{% endblock %}
+{% block heading %}Mailbox{% endblock %}
 {% block intro %}<p>The mailbox customers write to. It is read over IMAP; nothing is changed or deleted on the mail server.</p>{% endblock %}
 
 {% block content %}
@@ -20,5 +20,4 @@
     <p class="muted small">The test uses the settings as saved. The mails are read by <code>manage.py fetch_inbox</code>, which the server runs every five minutes (docs/server-setup.md).</p>
   </section>
 </div>
-<p><a class="btn ghost" href="{% url 'backoffice:inbox' %}">Back to the inbox</a></p>
 {% endblock %}

@@ -1,0 +1,45 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Audit log{% endblock %}
+{% block heading %}Audit log{% endblock %}
+{% block intro %}<p>Who did what, when, and for which customer. Nothing here can be changed or deleted. Secrets and message texts are never written to it.</p>{% endblock %}
+
+{% block toolbar %}
+<div class="toolbar">
+  <form method="get">
+    <div><label for="id_area">Area</label><select name="area" id="id_area">{% for key, title in areas %}<option value="{{ key }}"{% if key == area %} selected{% endif %}>{{ title }}</option>{% endfor %}</select></div>
+    <div><label for="id_who">Who: e-mail, or operator, user, agent, ai, system</label><input type="text" name="who" id="id_who" value="{{ who }}"></div>
+    <div><label for="id_q">Customer, order, invoice, action</label><input type="text" name="q" id="id_q" value="{{ q }}"></div>
+    <div><label for="id_from">From</label><input type="date" name="from" id="id_from" value="{{ since|date:'Y-m-d' }}"></div>
+    <div><label for="id_to">To</label><input type="date" name="to" id="id_to" value="{{ until|date:'Y-m-d' }}"></div>
+    <div><label class="check" for="id_changes"><input type="checkbox" name="changes" value="1" id="id_changes"{% if changes %} checked{% endif %}> <span>Changes only</span></label></div>
+    <button type="submit" class="small">Show</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>When</th><th>Who</th><th>What</th><th>Customer</th><th>Object</th><th>Details</th></tr></thead>
+    <tbody>
+    {% for event in page %}
+      <tr>
+        <td class="num">{{ event.at|date:"j M Y, H:i:s" }}</td>
+        <td>{{ event.actor.email|default:"–" }}<br><span class="muted small">{{ event.actor_kind }}</span></td>
+        <td><code>{{ event.action }}</code></td>
+        <td>{% if event.account %}<a href="{% url 'backoffice:customer' event.account.pk %}">{{ event.account.name }}</a>{% endif %}</td>
+        <td>{{ event.object_ref }}</td>
+        <td class="small">{{ event.detail }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">Nothing matches.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="actions">
+  {% if page.has_previous %}<a class="btn ghost small" href="?{{ query }}&amp;page={{ page.previous_page_number }}">Newer</a>{% endif %}
+  <span class="muted small">Page {{ page.number }} of {{ page.paginator.num_pages }}, {{ page.paginator.count }} entr{{ page.paginator.count|pluralize:"y,ies" }}</span>
+  {% if page.has_next %}<a class="btn ghost small" href="?{{ query }}&amp;page={{ page.next_page_number }}">Older</a>{% endif %}
+</div>
+{% endblock %}

@@ -51,6 +51,6 @@
   {% csrf_token %}
   <div class="field"><label for="id_body">Reply to {{ thread.contact_email }}, sent from {{ sender }}</label><textarea id="id_body" name="body" rows="8" required></textarea></div>
   <p class="muted small">The customer's last mail is quoted below your text. The reply is recorded here with your name.</p>
-  <div class="actions"><button type="submit" name="action" value="reply">Send reply</button><a class="btn ghost" href="{% url 'backoffice:inbox' %}">Back to the inbox</a></div>
+  <div class="actions"><button type="submit" name="action" value="reply">Send reply</button></div>
 </form>
 {% endblock %}

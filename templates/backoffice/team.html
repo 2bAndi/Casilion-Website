@@ -1,0 +1,45 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Team{% endblock %}
+{% block heading %}Team{% endblock %}
+{% block intro %}<p>Who can use the backoffice. Operators work in it; owners also decide who is in the team.</p>{% endblock %}
+
+{% block content %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Person</th><th>Role</th><th>Last sign-in</th><th>2FA</th>{% if owner %}<th></th>{% endif %}</tr></thead>
+    <tbody>
+    {% for person in people %}
+      <tr>
+        <td>{{ person.full_name|default:"–" }}<br>{{ person.email }}{% if not person.is_active %} <span class="tag alert">Blocked</span>{% endif %}{% if person == user %} <span class="tag quiet">you</span>{% endif %}</td>
+        <td>{% if person.is_superuser %}Owner{% else %}Operator{% endif %}</td>
+        <td class="num">{% if person.last_login %}{{ person.last_login|date:"j M Y, H:i" }}{% else %}<span class="muted">never</span>{% endif %}</td>
+        <td>{% if person.two_factor %}<span class="tag ok">on</span>{% else %}<span class="tag alert">off</span>{% endif %}</td>
+        {% if owner %}
+        <td>{% if person != user %}
+          <form method="post" action="{% url 'backoffice:team_change' %}" class="actions">{% csrf_token %}<input type="hidden" name="user" value="{{ person.pk }}">
+            {% if person.is_superuser %}<button type="submit" name="action" value="unmake_owner" class="small ghost">Make operator</button>{% else %}<button type="submit" name="action" value="make_owner" class="small ghost">Make owner</button>{% endif %}
+            {% if person.is_active %}<button type="submit" name="action" value="block" class="small danger">Block</button>{% else %}<button type="submit" name="action" value="unblock" class="small ghost">Unblock</button>{% endif %}
+            <button type="submit" name="action" value="remove" class="small danger">Remove from team</button>
+          </form>
+        {% endif %}</td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if owner %}
+<section class="panel measure">
+  <h2>Add somebody</h2>
+  <p class="muted small">The person registers on the site with their own password first. Then enter their address here. They should switch on two-factor sign-in before they start.</p>
+  <form method="post" action="{% url 'backoffice:team_change' %}">
+    {% csrf_token %}
+    <div class="form-fields"><div><label for="id_email">E-mail address of the login</label><input type="email" name="email" id="id_email" required></div></div>
+    <button type="submit" name="action" value="add">Add as operator</button>
+  </form>
+</section>
+{% else %}
+<p class="muted">Only an owner can add, remove or block team members.</p>
+{% endif %}
+{% endblock %}

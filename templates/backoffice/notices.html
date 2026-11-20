@@ -1,0 +1,34 @@
+{% extends "backoffice/base.html" %}
+{% block page_title %}Withdrawals and cancellations{% endblock %}
+{% block heading %}Withdrawals and cancellations{% endblock %}
+{% block intro %}<p>What customers declared through the two forms on the website. The time of receipt counts for the deadlines.</p>{% endblock %}
+
+{% block tabs %}
+<ul class="tabs" aria-label="Show">
+  <li><a href="?show=open"{% if show == "open" %} aria-current="page"{% endif %}>To handle</a></li>
+  <li><a href="?show=done"{% if show == "done" %} aria-current="page"{% endif %}>Handled</a></li>
+  <li><a href="?show=all"{% if show == "all" %} aria-current="page"{% endif %}>All</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Received</th><th>Reference</th><th>What</th><th>From</th><th>Contract, in the customer's words</th><th>State</th></tr></thead>
+    <tbody>
+    {% for notice in notices %}
+      <tr>
+        <td class="num">{{ notice.received_at|date:"j M Y, H:i" }}</td>
+        <td><a class="strong" href="{% url 'backoffice:notice' notice.reference %}">{{ notice.reference }}</a></td>
+        <td>{{ notice.get_kind_display }}{% if notice.cancel_type %}<br><span class="muted small">{{ notice.get_cancel_type_display }}</span>{% endif %}</td>
+        <td>{{ notice.name }}<br><span class="muted small">{{ notice.email }}</span></td>
+        <td>{{ notice.contract|truncatechars:80 }}</td>
+        <td>{% if notice.handled_at %}<span class="tag ok">Handled {{ notice.handled_at|date:"j M" }}</span>{% else %}<span class="tag alert">To handle</span>{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">Nothing here.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

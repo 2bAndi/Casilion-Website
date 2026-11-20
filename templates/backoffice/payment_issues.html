@@ -4,11 +4,6 @@
 {% block intro %}<p>What needs a person, and what is waiting for a bank transfer.</p>{% endblock %}
 
 {% block content %}
-<div class="actions">
-  <a class="btn small" href="{% url 'backoffice:bank_import' %}">Import a bank statement</a>
-  <a class="btn ghost small" href="{% url 'backoffice:payment_settings' %}">Settings: payment accounts and invoices</a>
-</div>
-
 <h2>To look at</h2>
 {% if issues %}
 <div class="table-wrap">

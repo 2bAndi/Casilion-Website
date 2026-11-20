@@ -216,7 +216,27 @@ python manage.py close_stale_tickets       daily: close tickets the customer lef
 python manage.py verify_license <file>     check a license file against the public key
 ```
 
-Raw data and everything without a screen of its own: <http://127.0.0.1:8000/ops/admin/>.
+The backoffice has a page for everything the team does. Django's own admin is still there at
+<http://127.0.0.1:8000/ops/admin/> as an emergency exit for owners; it is no longer in the menu.
+
+## Running the backoffice
+
+The backoffice has one menu in two rows: the areas of work (Overview, Support, Customers, Sales,
+Products, Operations) and, below, the pages of the area you are in. It is defined in one place,
+`apps/backoffice/nav.py`; a number next to an entry says how much waits there for a person.
+Every page is built the same way (`templates/backoffice/base.html`): head, menu, tabs where a
+page has several views (`class="tabs"`), one toolbar with search left and actions right
+(`class="toolbar"`), then the content. A new page gets an entry in `nav.py` and fills the blocks
+`tabs`, `toolbar` and `content`.
+
+| Page | For |
+|---|---|
+| Releases | Program versions: notes, channel, published or hidden, and the files offered. Builds are copied into `var/releases/<version>/` on the server (CI or by hand), then offered here; size and checksum come from the file. A file customers downloaded cannot be removed, so the list of who has it stays. |
+| Withdrawals | What customers declared through the withdrawal and cancellation forms. The declaration cannot be changed; the team writes what it did and marks it handled. Open ones are announced on the overview and on the customer page. |
+| Team | Who can use the backoffice. Operators work in it; owners (Django superusers, e.g. from `create_operator`) add, remove and block team members. Nobody can change their own access. |
+| Audit log | Who did what, when, for which customer: filter by area, person, text and date, with or without mere views. Read only. |
+| Customers → Master data | Block or unblock a login of a customer. |
+| Customers → Plans and licenses | Give a plan by hand (by quote, goodwill, partner) with an end date and a reason, and end it again. Not possible on top of a plan the customer pays for. |
 
 ## Payments and invoices
 

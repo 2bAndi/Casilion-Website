@@ -30,6 +30,7 @@ class OfficeTestCase(CassilionTestCase):
 
 class NavigationTests(OfficeTestCase):
     def test_one_menu_with_areas_and_their_pages(self):
+        self.client.force_login(self.owner)
         page = self.client.get(reverse("backoffice:dashboard"))
         for area in ["Overview", "Support", "Customers", "Sales", "Products", "Operations"]:
             self.assertContains(page, area)

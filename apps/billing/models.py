@@ -416,8 +416,10 @@ class PaymentSettings(models.Model):
         if not self.sandbox_enabled:
             return False
         testers = self.tester_list
-        if user is None or not testers:
+        if user is None:
             return True
+        if not testers:
+            return settings.CASSILION["SANDBOX_FOR_EVERYONE"] or bool(getattr(user, "is_staff", False))
         return getattr(user, "email", "").lower() in testers
 
     @property

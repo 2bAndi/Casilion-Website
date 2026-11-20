@@ -183,13 +183,13 @@ def find_conversation(parsed: Parsed) -> Conversation | None:
     return next((c for c in candidates if normalize_subject(c.subject) == subject), None)
 
 
-def match(conversation: Conversation, text: str) -> None:
+def match(conversation: Conversation, text: str, sender: str = "") -> None:
     """Put the conversation with a customer account, if one can be told: the login or billing
     address it came from, else an order or ticket number of ours in the text. A number alone is
     a hint, not proof of who wrote: the page shows the sender's address next to the account."""
     if conversation.account_id:
         return
-    account = account_for_address(conversation.contact_email)
+    account = account_for_address(sender or conversation.contact_email)
     if account is None:
         from apps.billing.models import Order
         from apps.support.models import Ticket
@@ -221,7 +221,7 @@ def store(raw: bytes, *, uid: int | None = None, uidvalidity: int | None = None)
     elif not parsed.automatic:
         conversation.status, conversation.is_automatic, conversation.is_read = Conversation.Status.NEW, False, False
     conversation.last_message_at = max(conversation.last_message_at, parsed.date)
-    match(conversation, f"{parsed.subject}\n{parsed.body[:20000]}")
+    match(conversation, f"{parsed.subject}\n{parsed.body[:20000]}", sender=parsed.from_email)
     conversation.save()
     InboxMessage.objects.create(
         conversation=conversation,

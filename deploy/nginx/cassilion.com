@@ -16,6 +16,7 @@ server {
 
     location /.well-known/acme-challenge/ { root /var/www/html; }
 
+    server_tokens off;
     include snippets/cassilion-app.conf;
 }
 

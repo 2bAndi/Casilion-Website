@@ -2,6 +2,7 @@
 from django import forms
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
 
 from apps.accounts.models import Account
@@ -11,7 +12,7 @@ from apps.mailing.backend import account_for_address
 from apps.mailing.imap import MailboxError, open_mailbox
 from apps.mailing.models import Conversation, MailboxSettings
 
-from .views import staff_required
+from .views import owner_required, staff_required
 
 FILTERS = [("new", "To answer"), ("answered", "Answered"), ("done", "Done"), ("automatic", "Automatic mails"), ("all", "All")]
 
@@ -107,7 +108,8 @@ class MailboxForm(forms.ModelForm):
         return obj
 
 
-@staff_required
+@sensitive_post_parameters()
+@owner_required
 def inbox_settings(request):
     config = MailboxSettings.load()
     form = MailboxForm(request.POST or None, instance=config)

@@ -101,7 +101,7 @@ class BrokenBackend:
 class InboxTests(CassilionTestCase):
     def setUp(self):
         self.user, self.account = make_customer(email="dana@example.com")
-        self.operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, full_name="Olivia Operator")
+        self.operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, is_superuser=True, full_name="Olivia Operator")
         mail.outbox.clear()
 
     def test_mails_become_conversations_and_find_their_customer(self):

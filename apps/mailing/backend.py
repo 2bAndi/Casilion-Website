@@ -34,6 +34,11 @@ def record(message, *, ok: bool, error: str = "") -> None:
 
     recipients = [*(message.to or []), *(message.cc or [])]
     account = next((a for a in map(account_for_address, recipients) if a is not None), None)
+    body = AUTH_LINK.sub("[sign-in link, not stored]", str(message.body or ""))
+    admins = {(a if isinstance(a, str) else a[1]).lower() for a in settings.ADMINS}
+    if admins and str(message.subject).startswith(settings.EMAIL_SUBJECT_PREFIX) and {r.lower() for r in recipients} <= admins:
+        # Django's error report: a traceback with request data. It goes to the operators' mailbox, not into the database.
+        body = "[server error report, not stored]"
     names = []
     for attachment in message.attachments or []:
         name = attachment[0] if isinstance(attachment, tuple) else getattr(attachment, "get_filename", lambda: "")()
@@ -41,7 +46,7 @@ def record(message, *, ok: bool, error: str = "") -> None:
     MailLog.objects.create(
         to=", ".join(recipients)[:500],
         subject=str(message.subject)[:300],
-        body=AUTH_LINK.sub("[sign-in link, not stored]", str(message.body or ""))[:100_000],
+        body=body[:100_000],
         attachments=names,
         status=MailLog.Status.SENT if ok else MailLog.Status.FAILED,
         error=error[:500],

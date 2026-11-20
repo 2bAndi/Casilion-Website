@@ -1,11 +1,14 @@
 """The operators' side: review queue, tickets with the AI's analysis, sent log, switches."""
 from datetime import timedelta
+from functools import wraps
 
 from django import forms
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
+from allauth.mfa.utils import is_mfa_enabled
+from django.conf import settings
+from django.contrib.auth.views import redirect_to_login
 from django.db.models import Count, Sum
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect, render, resolve_url
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -21,7 +24,34 @@ from shared.schemas import ANSWER_CLASSES
 
 from .models import SupportSettings
 
-staff_required = user_passes_test(lambda u: u.is_active and u.is_staff, login_url="account_login")
+
+
+def _gate(view, *, owner: bool):
+    """The door of the backoffice: a team member, signed in with a second factor; some pages for owners only."""
+
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        user = request.user
+        if not (user.is_authenticated and user.is_active and user.is_staff):
+            return redirect_to_login(request.get_full_path(), resolve_url("account_login"))
+        if settings.CASSILION["REQUIRE_MFA_FOR_STAFF"] and not is_mfa_enabled(user):
+            messages.error(request, "The backoffice needs two-factor authentication. Turn it on here, then come back.")
+            return redirect("mfa_index")
+        if owner and not user.is_superuser:
+            messages.error(request, "This page is for the owners of the site.")
+            return redirect("backoffice:dashboard")
+        return view(request, *args, **kwargs)
+
+    return wrapped
+
+
+def staff_required(view):
+    return _gate(view, owner=False)
+
+
+def owner_required(view):
+    """Money, keys and who is on the team: decided by the people who run the site, not by every operator."""
+    return _gate(view, owner=True)
 
 
 def status_snapshot() -> dict:
@@ -187,7 +217,9 @@ def settings_view(request):
 @staff_required
 @require_POST
 def operator_token_create(request):
-    _record, plaintext = tokens.issue(request.user, kind=AgentToken.Kind.OPERATOR, name=request.POST.get("name", ""))
+    _record, plaintext = tokens.issue(
+        request.user, kind=AgentToken.Kind.OPERATOR, name=request.POST.get("name", ""), days_valid=settings.CASSILION["OPERATOR_TOKEN_DAYS"]
+    )
     request.session["new_operator_token"] = plaintext
     return redirect("backoffice:settings")
 

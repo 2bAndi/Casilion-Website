@@ -163,6 +163,8 @@ def _sales_overview(principal) -> dict:
 
 def _set_auto_send(principal, enabled: bool) -> dict:
     limits = SupportSettings.load()
+    if enabled and not limits.auto_send:
+        return {"ok": False, "error": "backoffice_only", "message": "Automatic sending is switched on by a person in the backoffice (Support settings). This tool only switches it off."}
     limits.auto_send = enabled
     limits.save()
     audit("support.settings_changed", actor=principal.user, actor_kind="operator", data={"auto_send": enabled, "via": "mcp"})
@@ -231,7 +233,7 @@ def build() -> MCPServer:
 
     @server.tool(title="Switch automatic sending")
     async def set_auto_send(enabled: bool) -> dict:
-        """The kill switch. Off = every AI-written reply waits for review."""
+        """The kill switch: enabled=false makes every AI-written reply wait for review. Switching on is done by a person in the backoffice."""
         return await call(KIND, _set_auto_send, enabled=enabled)
 
     return server

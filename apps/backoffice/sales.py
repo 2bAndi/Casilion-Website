@@ -11,6 +11,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
 
 from apps.audit.log import audit
@@ -23,7 +24,7 @@ from apps.invoicing import export
 from apps.invoicing import services as invoicing
 from apps.invoicing.models import Invoice
 
-from .views import staff_required
+from .views import owner_required, staff_required
 
 # --------------------------------------------------------------------------- products and plans
 
@@ -359,7 +360,8 @@ def _webhook_url(provider: str) -> str:
     return settings.CASSILION["SITE_URL"].rstrip("/") + reverse("billing:webhook", args=[provider])
 
 
-@staff_required
+@sensitive_post_parameters()
+@owner_required
 def payment_settings(request):
     config = PaymentSettings.load()
     posted = request.POST.get("section") if request.method == "POST" else None
@@ -397,7 +399,7 @@ def payment_settings(request):
             "stripe_hook": bool(config.stripe_webhook_secret),
             "paypal_hook": config.paypal_webhook_id,
             "hooks": {"stripe": _webhook_url("stripe"), "paypal": _webhook_url("paypal")},
-            "sandbox_open": state["sandbox"] and not config.tester_list,
+            "sandbox_open": state["sandbox"] and not config.tester_list and settings.CASSILION["SANDBOX_FOR_EVERYONE"],
             "testers": config.tester_list,
             "test_orders": payments.test_order_count(),
             "vat_id": settings.COMPANY["VAT_ID"],
@@ -406,7 +408,7 @@ def payment_settings(request):
     )
 
 
-@staff_required
+@owner_required
 @require_POST
 def payment_check(request, provider):
     """Try the stored keys against the provider, or create our webhook there."""
@@ -426,7 +428,7 @@ def payment_check(request, provider):
     return redirect(_settings_url(provider))
 
 
-@staff_required
+@owner_required
 @require_POST
 def purge_test_orders(request):
     """Delete what was bought through the sandbox. Asked for by a person, with a tick to confirm."""

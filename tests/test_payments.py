@@ -109,7 +109,7 @@ class MethodTests(PaymentTestCase):
             cursor.execute("SELECT stripe_secret_key, paypal_secret FROM billing_paymentsettings")
             stored = cursor.fetchone()
         self.assertTrue(all(value.startswith("enc:") for value in stored))
-        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, is_superuser=True)
         self.client.force_login(operator)
         url = reverse("backoffice:payment_settings")
         page = self.client.get(url)
@@ -125,7 +125,7 @@ class MethodTests(PaymentTestCase):
         self.assertNotIn("whsec_new", json.dumps(line.data))
 
     def test_each_section_is_saved_on_its_own(self):
-        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, is_superuser=True)
         self.client.force_login(operator)
         url = reverse("backoffice:payment_settings")
         # Saving the bank section touches neither Stripe nor PayPal nor the invoice settings.
@@ -156,7 +156,7 @@ class MethodTests(PaymentTestCase):
 class SandboxTests(PaymentTestCase):
     def setUp(self):
         super().setUp()
-        self.operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+        self.operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, is_superuser=True)
 
     def buy(self, plan="professional"):
         response = self.client.post(reverse("billing:checkout_start", args=[plan]), {**ADDRESS, "method": "sandbox"})
@@ -315,7 +315,7 @@ class StripeTests(PaymentTestCase):
         order = self.order()
         self.stripe_event("checkout.session.completed", self.session(order))
         self.provider.on("POST", "/v1/refunds", {"id": "re_1"})
-        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, is_superuser=True)
         self.client.force_login(operator)
         url = reverse("backoffice:order", args=[order.ref])
         self.client.post(url, {"action": "refund", "amount": "25,00", "reason": "Goodwill"})
@@ -454,7 +454,7 @@ class BankTransferTests(PaymentTestCase):
 
     def test_the_team_marks_an_order_paid_and_an_unpaid_one_is_given_up(self):
         order = self.order(method="bank_transfer")
-        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, is_superuser=True)
         self.client.force_login(operator)
         self.client.post(reverse("backoffice:order", args=[order.ref]), {"action": "mark_paid"})
         order.refresh_from_db()
@@ -519,7 +519,7 @@ class InvoiceTests(PaymentTestCase):
     def test_a_new_recipient_voids_and_replaces_the_invoice(self):
         order = self.paid()
         invoice = order.invoices.get()
-        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, is_superuser=True)
         self.client.force_login(operator)
         self.client.post(reverse("backoffice:order", args=[order.ref]), {
             "action": "correct_invoice", "number": invoice.number, "company": "Example Holding AG", "street": "Neue Str. 2",
@@ -535,7 +535,7 @@ class InvoiceTests(PaymentTestCase):
 
     def test_month_export_for_the_tax_adviser(self):
         invoice = self.paid().invoices.get()
-        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, is_superuser=True)
         self.client.force_login(operator)
         today = timezone.localdate()
         self.assertContains(self.client.get(reverse("backoffice:invoices")), invoice.number)
@@ -645,7 +645,7 @@ class ProductTests(PaymentTestCase):
 
     def test_products_and_plans_are_edited_in_the_backoffice(self):
         self.assertEqual(self.client.get(reverse("backoffice:products")).status_code, 302)  # customers have no business here
-        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True, is_superuser=True)
         self.client.force_login(operator)
         self.assertContains(self.client.get(reverse("backoffice:products")), "Zuri-AI")
         zuri = Product.objects.get(code="zuri-ai")

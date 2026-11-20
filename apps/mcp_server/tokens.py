@@ -2,6 +2,8 @@ import hashlib
 import secrets
 from datetime import timedelta
 
+from allauth.mfa.utils import is_mfa_enabled
+from django.conf import settings
 from django.utils import timezone
 
 from apps.audit.log import audit
@@ -51,6 +53,8 @@ def lookup(plaintext: str, kind: str) -> AgentToken | None:
     if record is None or not record.user.is_active or (record.expires_at and record.expires_at < now):
         return None
     if kind == AgentToken.Kind.OPERATOR and not record.user.is_staff:
+        return None
+    if kind == AgentToken.Kind.OPERATOR and settings.CASSILION["REQUIRE_MFA_FOR_STAFF"] and not is_mfa_enabled(record.user):
         return None
     if kind == AgentToken.Kind.CUSTOMER and (record.account is None or record.account.status != "active"):
         return None

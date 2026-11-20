@@ -28,6 +28,9 @@ RUN DEBUG=0 SECRET_KEY=build AI_WORKER_TOKEN=build ALLOW_SANDBOX_PAYMENTS=1 CASS
     && mkdir -p /app/var \
     && chown -R app:app /app
 
+# A container never runs with development defaults, whatever the .env file forgets.
+ENV DEBUG=0
+
 USER app
 EXPOSE 8000
 ENTRYPOINT ["sh", "/app/docker/entrypoint.sh"]

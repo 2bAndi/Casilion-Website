@@ -16,6 +16,7 @@ class Page:
     label: str
     also: tuple[str, ...] = ()  # further addresses that belong to this page
     count: str = ""  # key of a number shown next to the label when it is not zero
+    owner: bool = False  # offered to owners only
     url: str = ""
     current: bool = False
     number: int = 0
@@ -42,7 +43,7 @@ def areas() -> list[Area]:
             Page("inbox", "Inbox", count="mails"),
             Page("sent_log", "Sent replies"),
             Page("settings", "Support settings"),
-            Page("inbox_settings", "Mailbox"),
+            Page("inbox_settings", "Mailbox", owner=True),
         ]),
         Area("Customers", [
             Page("customers", "Customers"),
@@ -53,7 +54,7 @@ def areas() -> list[Area]:
             Page("invoices", "Invoices"),
             Page("payment_issues", "Payments", count="payments"),
             Page("bank_import", "Bank statement"),
-            Page("payment_settings", "Payment settings"),
+            Page("payment_settings", "Payment settings", owner=True),
         ]),
         Area("Products", [
             Page("products", "Products and plans", also=("/ops/plans/",)),
@@ -81,9 +82,11 @@ def counts() -> dict[str, int]:
     }
 
 
-def build(path: str) -> dict:
+def build(path: str, owner: bool = True) -> dict:
     """The menu for the page at ``path``: which area and which page are current."""
     menu, numbers = areas(), counts()
+    for area in menu:
+        area.pages = [page for page in area.pages if owner or not page.owner]
     best, best_length = None, -1
     for area in menu:
         for page in area.pages:

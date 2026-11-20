@@ -280,7 +280,7 @@ def _send_receipt(notice: ContractNotice) -> bool:
     if operators:
         EmailMessage(
             f"[Cassilion] {notice.get_kind_display()} received ({notice.reference})",
-            body + f"\n\n--\nOpen in the backoffice: {settings.CASSILION['SITE_URL']}/ops/admin/core/contractnotice/{notice.pk}/change/",
+            body + f"\n\n--\nOpen in the backoffice: {settings.CASSILION['SITE_URL']}{reverse('backoffice:notice', args=[notice.reference])}",
             settings.DEFAULT_FROM_EMAIL,
             operators,
             reply_to=[notice.email],

@@ -247,7 +247,10 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     # Browsers then refuse plain HTTP for that long: set it only once the certificate is in place for good.
-    SECURE_HSTS_SECONDS = int(env("SECURE_HSTS_SECONDS") or 0)
+    SECURE_HSTS_SECONDS = int(env("SECURE_HSTS_SECONDS") or 31536000)
+    # The site runs behind exactly one proxy (the host nginx). Without this every visitor has the proxy's
+    # address, and the sign-in limits count all of them as one.
+    ALLAUTH_TRUSTED_PROXY_COUNT = int(env("TRUSTED_PROXY_COUNT") or 1)
 
 if django.VERSION >= (6, 0):
     # Built-in Content Security Policy: no third-party origins, no inline scripts.
@@ -317,6 +320,15 @@ CASSILION = {
     # Support
     "OPERATOR_EMAILS": env_list("OPERATOR_EMAILS", "ops@cassilion.example"),
     "REQUIRE_MFA_FOR_AGENT_TOKENS": env_bool("REQUIRE_MFA_FOR_AGENT_TOKENS", not DEBUG),
+    # The backoffice and operator tokens need two-factor authentication on the team member's login.
+    "REQUIRE_MFA_FOR_STAFF": env_bool("REQUIRE_MFA_FOR_STAFF", not DEBUG),
+    # A team member is signed out after this many hours, a customer after Django's two weeks.
+    "STAFF_SESSION_HOURS": int(env("STAFF_SESSION_HOURS") or 12),
+    "OPERATOR_TOKEN_DAYS": int(env("OPERATOR_TOKEN_DAYS") or 90),
+    # Django's own admin (/ops/admin/). The backoffice pages replace it; off unless asked for.
+    "DJANGO_ADMIN": env_bool("DJANGO_ADMIN", DEBUG),
+    # With the sandbox on and no tester named: every customer may use it (development), else the team only.
+    "SANDBOX_FOR_EVERYONE": env_bool("SANDBOX_FOR_EVERYONE", DEBUG),
     # MCP transport: Host and Origin values the MCP endpoints accept.
     "MCP_ALLOWED_HOSTS": env_list("MCP_ALLOWED_HOSTS", "127.0.0.1:*,localhost:*,[::1]:*,testserver"),
     "MCP_ALLOWED_ORIGINS": env_list("MCP_ALLOWED_ORIGINS", "http://127.0.0.1:*,http://localhost:*,http://[::1]:*"),

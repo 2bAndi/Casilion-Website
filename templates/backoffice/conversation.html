@@ -25,7 +25,7 @@
           <span class="tag {% if mail.direction == 'in' %}info{% else %}quiet{% endif %}">{{ mail.get_direction_display }}</span>
           <span class="when">{{ mail.sent_at|date:"j M Y, H:i" }}</span>
         </div>
-        <div class="muted small">{% if mail.direction == "in" %}{{ mail.from_email }} to {{ mail.to }}{% else %}to {{ mail.to }}{% endif %}{% if mail.cc %}, cc {{ mail.cc }}{% endif %}{% if mail.attachments %} · attached (on the mail server): {% for file in mail.attachments %}{{ file.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</div>
+        <div class="muted small">{% if mail.direction == "in" %}{{ mail.from_email }} to {{ mail.to }}{% if mail.reply_to and mail.reply_to != mail.from_email|lower %} · <strong>asks for the answer at another address: {{ mail.reply_to }}</strong>{% endif %}{% else %}to {{ mail.to }}{% endif %}{% if mail.cc %}, cc {{ mail.cc }}{% endif %}{% if mail.attachments %} · attached (on the mail server): {% for file in mail.attachments %}{{ file.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</div>
         <div class="body">{{ mail.body|default:"(empty)" }}</div>
       </div>
     </li>

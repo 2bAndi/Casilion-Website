@@ -116,7 +116,9 @@ Everything runs, and several parts are stand-ins. Before real customers arrive:
 | Legal pages | Imprint, privacy and terms are empty pages | fill `templates/core/legal.html` before the site is public in earnest |
 | Downloads | No release is published on a fresh server | – |
 | Agent tokens | Need two-factor authentication on the customer's account | `REQUIRE_MFA_FOR_AGENT_TOKENS` |
-| HSTS | Off | `SECURE_HSTS_SECONDS`, once the certificate is in place for good |
+| HSTS | One year | `SECURE_HSTS_SECONDS` (0 switches it off) |
+| Backoffice | Needs two-factor authentication; payment settings, mailbox settings and the team are for owners | `REQUIRE_MFA_FOR_STAFF` |
+| Django admin | Off | `DJANGO_ADMIN` |
 
 ## 5. Updates
 

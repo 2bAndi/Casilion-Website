@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Order {{ plan.name }} – Cassilion{% endblock %}
+{% block band %}<div class="wrap page-head"><h1>Your order</h1><p>Check the order. It becomes binding only when you press the button at the bottom.</p></div>{% endblock %}
+
+{% block content %}
+<div class="measure">
+  {% if sandbox_payments %}<div class="notice sandbox"><p>Payments run against a sandbox in this installation. No money moves.</p></div>{% endif %}
+  {% if error %}<div class="notice error" role="alert"><p>{{ error }}</p></div>{% endif %}
+
+  <section class="panel order-summary">
+    <h2>{{ plan.name }} support plan for Cassilion</h2>
+    <dl class="kv">
+      <dt>Customer account</dt><dd>{{ current_account.name }}</dd>
+      <dt>Included</dt>
+      <dd>{{ plan.get_support_level_display }}; {{ plan.ticket_quota_month }} support tickets and {{ plan.bug_report_quota_month }} bug reports per calendar month; downloads, license file, documentation; MCP access for your AI agent.</dd>
+      <dt>Term</dt>
+      <dd>Twelve months from activation. If you do not cancel to the end of the twelve months, the plan continues for an indefinite period, is billed for a further twelve months in advance each time, and can then be cancelled at any time with one month's notice, with a pro rata refund.</dd>
+      <dt>Payment</dt><dd>Once a year in advance, by the payment methods shown in the next step.</dd>
+      <dt>Total price</dt><dd><span class="total">€{{ plan.price_eur_year|intcomma }}</span> per year, including VAT. No further costs.</dd>
+    </dl>
+  </section>
+
+  <form method="post">
+    {% csrf_token %}
+    {% if is_consumer %}
+      <label class="consent" for="id_early_start">
+        <input type="checkbox" name="early_start" id="id_early_start" required>
+        <span>I expressly ask you to start support right away, before the 14-day withdrawal period has ended. I know that, if I withdraw from the contract, I pay a proportionate amount for what has been provided until then.</span>
+      </label>
+    {% else %}
+      <p class="muted small">You are ordering for a company account. The right of withdrawal applies to consumers only.</p>
+    {% endif %}
+    <p class="small">The <a href="{% url 'core:legal' 'terms' %}">terms and conditions</a> apply. {% if is_consumer %}As a consumer you can withdraw within 14 days: <a href="{% url 'core:legal' 'withdrawal' %}">right of withdrawal</a>. {% endif %}How we process your data is described in the <a href="{% url 'core:legal' 'privacy' %}">privacy notice</a>.</p>
+    <div class="actions">
+      <button type="submit" class="signal">Order with obligation to pay</button>
+      <a class="btn ghost" href="{% url 'billing:pricing' %}">Back to the plans</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -10,4 +10,5 @@ def site(request):
         "SITE_NOINDEX": settings.SITE_NOINDEX,
         "current_account": account,
         "sandbox_payments": settings.CASSILION["PAYMENT_PROVIDER"] == "sandbox",
+        "company": settings.COMPANY,
     }

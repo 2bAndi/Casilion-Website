@@ -6,7 +6,7 @@ verified and applied exactly once, changes a subscription or an entitlement.
 from datetime import timedelta
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -33,14 +33,23 @@ def active_subscription(account) -> Subscription | None:
 
 
 @transaction.atomic
-def start_checkout(account, user, plan: Plan, request=None) -> tuple[Order, str]:
-    """Create a pending order and return it with the provider's checkout URL."""
+def start_checkout(account, user, plan: Plan, request=None, *, early_start: bool = False) -> tuple[Order, str]:
+    """Create a pending order and return it with the provider's checkout URL.
+
+    early_start: a consumer expressly asked for support to begin within the withdrawal period.
+    """
     if plan.price_eur_year <= 0 or not plan.self_service:
         raise CheckoutError(f"{plan.name} cannot be bought in the shop.")
     provider = get_provider()
     subscription = Subscription.objects.create(account=account, plan=plan, provider=provider.name)
     order = Order.objects.create(
-        account=account, subscription=subscription, plan=plan, placed_by=user, amount_eur=plan.price_eur_year
+        account=account,
+        subscription=subscription,
+        plan=plan,
+        placed_by=user,
+        amount_eur=plan.price_eur_year,
+        early_start_requested_at=timezone.now() if early_start else None,
+        terms_version=settings.COMPANY["LEGAL_AS_OF"],
     )
     audit("billing.checkout_started", actor=user, account=account, obj=order.ref, data={"plan": plan.code})
     return order, provider.create_checkout(order, request)
@@ -87,7 +96,7 @@ def _apply(event: ProviderEvent) -> None:
         subscription.save()
         licensing.grant(account, order.plan, source="subscription", valid_until=period_end)
         audit("billing.paid", account=account, obj=order.ref, data={"plan": order.plan.code, "until": str(period_end)})
-        _notify(order, f"Your {order.plan.name} plan is active until {period_end:%d %B %Y}. A new license file is ready in your account.")
+        _confirm_order(order, period_end)
 
     elif event.type == EVENT_FAILED:
         order.status = Order.Status.FAILED
@@ -136,7 +145,78 @@ def expire_due(today=None) -> int:
     return ended
 
 
-def _notify(order: Order, text: str) -> None:
-    recipient = order.placed_by.email if order.placed_by else None
-    if recipient:
-        send_mail(f"[Cassilion] {order.plan.name} plan", text, settings.DEFAULT_FROM_EMAIL, [recipient], fail_silently=True)
+def _confirm_order(order: Order, period_end) -> None:
+    """The order confirmation. It carries the terms and the withdrawal policy as files.
+
+    German consumer law wants the confirmation of the contract, with its terms and the
+    instructions on withdrawal, on a durable medium. A link to a web page is not one.
+    """
+    from apps.core import legal  # imported here: core imports billing for the home page
+
+    user = order.placed_by
+    if not user:
+        return
+    lang = user.locale if user.locale in legal.LANGUAGES else "en"
+    company, site = settings.COMPANY, settings.CASSILION["SITE_URL"]
+    if lang == "de":
+        lines = [
+            f"Guten Tag {user.get_short_name()},",
+            "",
+            "vielen Dank für Ihre Bestellung. Wir bestätigen den Vertrag:",
+            "",
+            f"Bestellnummer: {order.ref}",
+            f"Tarif: {order.plan.name}, Laufzeit zwölf Monate bis {period_end:%d.%m.%Y}",
+            f"Preis: {order.amount_eur} EUR pro Jahr, einschließlich Umsatzsteuer",
+            f"Kundenkonto: {order.account.name}",
+            "",
+            "Der Tarif ist freigeschaltet. Eine neue Lizenzdatei liegt in Ihrem Kundenkonto bereit.",
+        ]
+        if order.early_start_requested_at:
+            lines += [
+                "",
+                "Sie haben bei der Bestellung ausdrücklich verlangt, dass wir mit dem Support vor Ablauf der "
+                "Widerrufsfrist beginnen. Widerrufen Sie den Vertrag, zahlen Sie für die bis dahin erbrachte Leistung "
+                "einen anteiligen Betrag.",
+            ]
+        lines += [
+            "",
+            "Im Anhang finden Sie unsere Allgemeinen Geschäftsbedingungen und die Widerrufsbelehrung mit dem Muster-Widerrufsformular.",
+            f"Vertrag widerrufen: {site}/legal/withdraw/?lang=de",
+            f"Verträge hier kündigen: {site}/legal/cancel/?lang=de",
+            "",
+            "Mit freundlichen Grüßen",
+        ]
+        subject = f"[Cassilion] Bestellbestätigung {order.ref}"
+    else:
+        lines = [
+            f"Hello {user.get_short_name()},",
+            "",
+            "Thank you for your order. We confirm the contract:",
+            "",
+            f"Order number: {order.ref}",
+            f"Plan: {order.plan.name}, term twelve months until {period_end:%d %B %Y}",
+            f"Price: EUR {order.amount_eur} per year, including VAT",
+            f"Customer account: {order.account.name}",
+            "",
+            "The plan is active. A new license file is ready in your account.",
+        ]
+        if order.early_start_requested_at:
+            lines += [
+                "",
+                "When ordering you expressly asked us to start support before the withdrawal period ends. If you "
+                "withdraw from the contract, you pay a proportionate amount for what has been provided until then.",
+            ]
+        lines += [
+            "",
+            "Attached are our terms and conditions and the withdrawal policy with the model withdrawal form.",
+            f"Withdraw from contract: {site}/legal/withdraw/?lang=en",
+            f"Cancel contracts here: {site}/legal/cancel/?lang=en",
+            "",
+            "Kind regards",
+        ]
+        subject = f"[Cassilion] Order confirmation {order.ref}"
+    lines += [company["NAME"], f"{company['STREET']}, {company['POSTAL_CODE']} {company['CITY']}", company["EMAIL"]]
+    message = EmailMessage(subject, "\n".join(lines), settings.DEFAULT_FROM_EMAIL, [user.email], reply_to=[company["EMAIL"]])
+    for name, content, mimetype in legal.documents(lang):
+        message.attach(name, content, mimetype)
+    message.send(fail_silently=True)

@@ -11,13 +11,6 @@ from shared.corpus import slugify
 
 from . import knowledge
 
-LEGAL_PAGES = {
-    "imprint": "Imprint",
-    "privacy": "Privacy notice",
-    "terms": "Terms and license agreement",
-}
-
-
 def home(request):
     return render(request, "core/home.html", {"plans": public_plans()})
 
@@ -44,12 +37,6 @@ def doc(request, slug):
         extension_configs={"toc": {"slugify": slugify}},
     )
     return render(request, "core/doc.html", {"page": page, "html": mark_safe(html), "docs": knowledge.corpus().docs.values()})
-
-
-def legal(request, slug):
-    if slug not in LEGAL_PAGES:
-        raise Http404
-    return render(request, "core/legal.html", {"title": LEGAL_PAGES[slug]})
 
 
 def favicon(request):

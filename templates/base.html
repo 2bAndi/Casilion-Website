@@ -1,5 +1,5 @@
 {% load static cassilion %}<!DOCTYPE html>
-<html lang="en">
+<html lang="{% block html_lang %}en{% endblock %}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -58,11 +58,17 @@
       {% block foot_links %}<a href="{% url 'core:home' %}">Product</a>{% endblock %}
       <a href="{% url 'core:docs' %}">Documentation</a>
       <a href="{% url 'billing:pricing' %}">Plans</a>
-      <a href="{% url 'core:legal' 'terms' %}">Terms and license</a>
-      <a href="{% url 'core:legal' 'privacy' %}">Privacy</a>
-      <a href="{% url 'core:legal' 'imprint' %}">Imprint</a>
     </div>
-    <p>© 2026 Zuri-AI GmbH. Cassilion is an independent product. Apache Cassandra and Cassandra are trademarks of the Apache Software Foundation, which does not endorse or sponsor Cassilion. Other product names belong to their respective owners.</p>
+    {# German law wants these reachable from every page, and the two functions set apart from the texts. #}
+    <nav class="foot-legal" aria-label="Legal">
+      <a href="{% url 'core:legal' 'imprint' %}">Legal notice <span lang="de">(Impressum)</span></a>
+      <a href="{% url 'core:legal' 'privacy' %}">Privacy <span lang="de">(Datenschutz)</span></a>
+      <a href="{% url 'core:legal' 'terms' %}">Terms <span lang="de">(AGB)</span></a>
+      <a href="{% url 'core:legal' 'withdrawal' %}">Right of withdrawal <span lang="de">(Widerrufsbelehrung)</span></a>
+      <a class="foot-action" href="{% url 'core:withdraw' %}">Withdraw from contract <span lang="de">(Vertrag widerrufen)</span></a>
+      <a class="foot-action" href="{% url 'core:cancel_contract' %}">Cancel contracts here <span lang="de">(Verträge hier kündigen)</span></a>
+    </nav>
+    <p>© 2026 {{ company.NAME }}. Cassilion is an independent product. Apache Cassandra and Cassandra are trademarks of the Apache Software Foundation, which does not endorse or sponsor Cassilion. Other product names belong to their respective owners.</p>
   </div>
 </footer>
 {% block extra_body %}{% endblock %}

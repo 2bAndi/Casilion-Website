@@ -250,3 +250,10 @@ footer .wrap{display:flex;flex-direction:column;gap:14px}
 .hero-globe{--d:min(860px,68vw);position:absolute;top:50%;left:calc(50% + min(310px,24vw));width:var(--d);height:var(--d);transform:translate(-50%,-50%);object-fit:cover;mix-blend-mode:screen;opacity:.55;pointer-events:none;-webkit-mask-image:radial-gradient(closest-side,#000 66%,transparent 98%);mask-image:radial-gradient(closest-side,#000 66%,transparent 98%)}
 @media (max-width:980px){.hero-globe{--d:min(640px,125vw);left:50%;top:300px;opacity:.38}}
 @media print{.hero-globe{display:none}}
+
+/* ---- legal links, legal texts, withdrawal and cancellation forms --------------------------- */
+.foot-legal { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; color: var(--muted); }
+.foot-legal a { color: inherit; text-decoration: none; }
+.foot-legal a:hover { color: var(--text); }
+.foot-legal a.foot-action { color: var(--text); border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 12px; }
+.foot-legal a.foot-action:hover { border-color: var(--accent); }

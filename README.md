@@ -227,7 +227,7 @@ Raw data and everything without a screen of its own: <http://127.0.0.1:8000/ops/
 | Output guard | Real checks. The source fingerprint and grounding checks need tuning on real material. |
 | Documentation, known issues | **Invented examples.** Commands and option names are not Cassilion's. |
 | MCP sign-in | **Interim.** Personal agent tokens. Two-factor can be required (`REQUIRE_MFA_FOR_AGENT_TOKENS`). OAuth 2.1 is the target. |
-| Legal pages, texts | Empty pages; English only, German prepared. |
+| Legal pages, texts | Imprint, privacy notice, terms, withdrawal policy in German and English; withdrawal function, cancellation button, binding order page. First version without a lawyer's review, see [docs/legal.md](docs/legal.md). The rest of the site is English only. |
 | Operations | Missing: backups, rate limits, monitoring, deployment, evaluation set for the AI. |
 
 ## Open points against the product
@@ -267,6 +267,13 @@ python manage.py test tests
 injection and redaction, the wall between Analyst and Responder, every output check, both
 MCP endpoints through the real ASGI application, and the pages of customer area and backoffice.
 The suite passes on SQLite and on PostgreSQL 16.
+
+## Legal pages
+
+Imprint, privacy notice, terms and withdrawal policy (German binding, English translation), the
+withdrawal function and the cancellation button German law asks for, and an order page with a
+binding order button. What exists, which assumptions it rests on and what to check before the
+site goes public: [docs/legal.md](docs/legal.md).
 
 ## On the server
 

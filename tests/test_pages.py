@@ -10,7 +10,7 @@ from apps.support.models import Message, Ticket
 
 from .base import CassilionTestCase, make_customer, run_worker_once
 
-PUBLIC = ["core:home", "core:docs", "billing:pricing", "account_login", "account_signup", "licensing:public_key", "core:healthz"]
+PUBLIC = ["core:home", "core:docs", "billing:pricing", "account_login", "account_signup", "licensing:public_key", "core:healthz", "core:withdraw", "core:cancel_contract"]
 CUSTOMER = ["accounts:dashboard", "accounts:settings", "billing:overview", "licensing:licenses", "downloads:downloads", "support:list", "support:new", "mcp_server:agents"]
 OPERATOR = ["backoffice:dashboard", "backoffice:review_queue", "backoffice:tickets", "backoffice:sent_log", "backoffice:settings"]
 

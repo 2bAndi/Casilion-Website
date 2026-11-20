@@ -1,0 +1,92 @@
+<p>Hier steht, welche personenbezogenen Daten wir auf {{ SITE_URL }} verarbeiten, wozu, auf welcher Rechtsgrundlage und wie lange.</p>
+
+<h2>1. Verantwortlicher</h2>
+<address>
+  {{ company.NAME }}<br>
+  {{ company.STREET }}<br>
+  {{ company.POSTAL_CODE }} {{ company.CITY }}, Deutschland<br>
+  Telefon: {{ company.PHONE }}<br>
+  E-Mail: <a href="mailto:{{ company.EMAIL }}">{{ company.EMAIL }}</a>
+</address>
+<p>Fragen zum Datenschutz und alle Anträge zu Ihren Rechten richten Sie bitte an diese Adresse.</p>
+
+<h2>2. Das Wichtigste in Kürze</h2>
+<ul>
+  <li>Diese Website verwendet keine Analyse- oder Werbedienste und bildet keine Nutzungsprofile.</li>
+  <li>Schriften, Bilder, Videos und Skripte liefern wir vom eigenen Server aus. Beim Aufruf der Seiten werden keine Inhalte von Dritten geladen.</li>
+  <li>Cookies setzen wir nur, soweit sie für Anmeldung und Formulare technisch nötig sind. Eine Einwilligung ist dafür nicht erforderlich.</li>
+  <li>Ihre Daten verarbeiten wir auf Servern in der Europäischen Union.</li>
+</ul>
+
+<h2>3. Aufruf der Website</h2>
+<p>Bei jedem Aufruf verarbeitet der Webserver die IP-Adresse, Datum und Uhrzeit, die aufgerufene Adresse, die übertragene Datenmenge, den Statuscode, die zuvor besuchte Seite (Referrer) und die Kennung des Browsers. Das ist nötig, um die Seite auszuliefern, Störungen zu beheben und Angriffe abzuwehren.</p>
+<p>Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. f DSGVO; unser berechtigtes Interesse ist der sichere und stabile Betrieb. Die Protokolle löschen wir nach spätestens 14 Tagen, sofern sie nicht zur Aufklärung eines konkreten Vorfalls länger gebraucht werden.</p>
+<p>Die Website betreiben wir auf einem Server der IONOS SE, Elgendorfer Str. 57, 56410 Montabaur, Deutschland. IONOS verarbeitet die Daten in unserem Auftrag (Art. 28 DSGVO).</p>
+
+<h2>4. Cookies</h2>
+<p>Wir setzen ausschließlich technisch notwendige Cookies (§ 25 Abs. 2 Nr. 2 TDDDG):</p>
+<ul>
+  <li><code>sessionid</code>: hält Sie nach der Anmeldung angemeldet. Wird beim Abmelden gelöscht, sonst nach spätestens zwei Wochen.</li>
+  <li><code>csrftoken</code>: schützt Formulare vor Missbrauch durch fremde Websites. Laufzeit ein Jahr.</li>
+  <li><code>django_language</code>: merkt sich eine von Ihnen gewählte Sprache. Wird nur gesetzt, wenn Sie die Sprache umstellen.</li>
+</ul>
+
+<h2>5. Kundenkonto</h2>
+<p>Für das Kundenkonto verarbeiten wir Ihre E-Mail-Adresse, Ihren Namen, das Passwort (nur als nicht umkehrbaren Prüfwert), die Art des Kontos (Privatperson oder Unternehmen), den Namen des Kontos oder Unternehmens und das Land. Freiwillig können Sie eine Anschrift, eine Umsatzsteuer-Identifikationsnummer und eine abweichende Rechnungsadresse hinterlegen. Richten Sie die Anmeldung in zwei Schritten ein, speichern wir das dafür nötige Geheimnis und Ihre Wiederherstellungscodes.</p>
+<p>Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. b DSGVO (Vertrag über das Kundenkonto). Wir speichern die Daten, bis das Konto gelöscht wird. Die Löschung können Sie jederzeit per E-Mail verlangen. Daten, die wir nach Handels- und Steuerrecht aufbewahren müssen, löschen wir nach Ablauf dieser Fristen.</p>
+
+<h2>6. Bestellungen und Zahlung</h2>
+<p>Bei einer Bestellung verarbeiten wir den gewählten Tarif, den Betrag, Bestellnummer und Zeitpunkt, den Zahlungsstatus, die Laufzeit sowie Ihre Erklärungen im Bestellvorgang. Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. b DSGVO, für die Aufbewahrung von Buchungsunterlagen Art. 6 Abs. 1 Buchst. c DSGVO in Verbindung mit § 147 AO und § 257 HGB (bis zu zehn Jahre).</p>
+{% if sandbox_payments %}
+<p>Derzeit ist kein Zahlungsdienstleister angebunden, und es werden keine Zahlungsdaten verarbeitet. Bevor kostenpflichtige Tarife bestellt werden können, nennen wir an dieser Stelle den Zahlungsdienstleister.</p>
+{% else %}
+<p>Die Zahlung wickelt der im Bestellvorgang genannte Zahlungsdienstleister in eigener Verantwortung ab. Er erhält von uns Bestellnummer, Betrag und Tarif. Ihre Zahlungsdaten geben Sie unmittelbar beim Zahlungsdienstleister ein; wir erhalten nur die Mitteilung über den Erfolg der Zahlung.</p>
+{% endif %}
+
+<h2>7. Lizenzen und Downloads</h2>
+<p>Zu Ihrem Konto erzeugen wir Lizenzdateien. Sie enthalten den Namen des Kontos, den Tarif und die Gültigkeit. Wir speichern, welche Lizenzdateien ausgestellt wurden und welche Programmversionen wann über Ihr Konto heruntergeladen wurden. Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. b DSGVO; die Download-Liste dient außerdem dazu, Sie über Sicherheitsprobleme einer heruntergeladenen Version informieren zu können (Art. 6 Abs. 1 Buchst. f DSGVO).</p>
+
+<h2>8. Support und Einsatz von künstlicher Intelligenz</h2>
+<p>Wenn Sie ein Support-Ticket oder einen Fehlerbericht senden, verarbeiten wir den Inhalt, die angegebene Programmversion, mitgesandte Protokolle und Diagnosedaten sowie den Verlauf des Tickets. Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. b DSGVO, bei Fehlerberichten im kostenlosen Tarif Art. 6 Abs. 1 Buchst. f DSGVO (Verbesserung des Produkts).</p>
+<p>Support-Anfragen beantwortet zuerst ein KI-System:</p>
+<ul>
+  <li>Bevor das KI-System Ihren Text erhält, entfernt ein automatischer Filter erkennbare Geheimnisse (zum Beispiel Passwörter und Schlüssel) und erkennbare personenbezogene Angaben (zum Beispiel E-Mail-Adressen und IP-Adressen). Mitgesandte Diagnosedaten speichern wir nur in dieser bereinigten Form.</li>
+  <li>Das KI-System betreiben wir selbst. Inhalte Ihrer Tickets geben wir nicht an Anbieter von KI-Diensten weiter und verwenden sie nicht zum Training von KI-Modellen.</li>
+  <li>Antworten des KI-Systems sind als „von KI verfasst“ gekennzeichnet. Unsere Mitarbeitenden können jedes Ticket einsehen und Antworten prüfen, ändern oder selbst schreiben.</li>
+  <li>Das KI-System trifft keine Entscheidungen mit rechtlicher Wirkung für Sie; eine automatisierte Entscheidung im Sinne von Art. 22 DSGVO findet nicht statt.</li>
+</ul>
+<p>Bitte senden Sie in Tickets keine besonderen Kategorien personenbezogener Daten (etwa Gesundheitsdaten) und keine Daten Dritter, die für die Anfrage nicht nötig sind. Tickets speichern wir, solange Ihr Konto besteht; danach löschen oder anonymisieren wir sie.</p>
+
+<h2>9. Zugang für KI-Agenten (MCP)</h2>
+<p>Sie können einem eigenen KI-Agenten Zugriff auf Ihr Kundenkonto geben. Dafür speichern wir zu jedem Zugangstoken einen Prüfwert, den von Ihnen vergebenen Namen, den Zeitpunkt der Erstellung, der letzten Verwendung und des Widerrufs. Was der Agent über die Schnittstelle abruft oder sendet, verarbeiten wir wie Ihre eigenen Eingaben im Kundenkonto. Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. b DSGVO. Für die Verarbeitung beim Anbieter Ihres KI-Agenten sind Sie und dieser Anbieter verantwortlich.</p>
+
+<h2>10. E-Mails und Kontakt</h2>
+<p>Wir senden Ihnen E-Mails, die für Konto und Vertrag nötig sind: Bestätigung der Adresse, Zurücksetzen des Passworts, Bestell- und Eingangsbestätigungen, Nachrichten zu Tickets. Werbung senden wir nicht. Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. b DSGVO.</p>
+<p>Der Versand läuft über unseren eigenen Mailserver und zur Zustellung über die Brevo GmbH, Köpenicker Str. 126, 10179 Berlin, Deutschland, die als Auftragsverarbeiter für uns tätig ist (Art. 28 DSGVO).</p>
+<p>Schreiben Sie uns per E-Mail oder rufen Sie an, verarbeiten wir Ihre Angaben, um Ihr Anliegen zu bearbeiten (Art. 6 Abs. 1 Buchst. b oder f DSGVO), und löschen sie, wenn sie dafür nicht mehr gebraucht werden und keine Aufbewahrungspflicht besteht.</p>
+
+<h2>11. Widerrufs- und Kündigungsfunktion</h2>
+<p>Über <a href="{{ base }}{% url 'core:withdraw' %}?lang=de">„Vertrag widerrufen“</a> und <a href="{{ base }}{% url 'core:cancel_contract' %}?lang=de">„Verträge hier kündigen“</a> können Sie Erklärungen online abgeben. Wir verarbeiten dabei Ihren Namen, Ihre Angaben zum Vertrag, die E-Mail-Adresse für die Bestätigung, bei Kündigungen Art, Grund und gewünschten Zeitpunkt sowie Datum und Uhrzeit des Eingangs. Mit diesen Angaben senden wir Ihnen die Eingangsbestätigung und bearbeiten Ihre Erklärung.</p>
+<p>Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. c DSGVO in Verbindung mit § 356a und § 312k BGB sowie Art. 6 Abs. 1 Buchst. b DSGVO. Wir speichern die Erklärungen als Nachweis bis zum Ablauf der gesetzlichen Verjährungs- und Aufbewahrungsfristen.</p>
+
+<h2>12. Protokoll sicherheitsrelevanter Vorgänge</h2>
+<p>Wir protokollieren Vorgänge wie Bestellungen, Kündigungen, das Erstellen und Widerrufen von Zugangstoken und Eingriffe unserer Mitarbeitenden mit Zeitpunkt, Konto und handelnder Person. IP-Adressen und Inhalte von Nachrichten stehen nicht in diesem Protokoll. Rechtsgrundlage ist Art. 6 Abs. 1 Buchst. f DSGVO; unser berechtigtes Interesse ist die Nachvollziehbarkeit und die Abwehr von Missbrauch.</p>
+
+<h2>13. Datensicherungen</h2>
+<p>Von der Datenbank erstellen wir täglich Sicherungen. Sie liegen auf unserem Server und werden nach spätestens acht Wochen überschrieben. Gelöschte Daten verschwinden daher erst nach dieser Zeit auch aus den Sicherungen.</p>
+
+<h2>14. Empfänger und Drittländer</h2>
+<p>Ihre Daten erhalten nur die genannten Auftragsverarbeiter und, soweit gesetzlich vorgeschrieben, Behörden. Wir übermitteln keine Daten in Länder außerhalb der Europäischen Union und des Europäischen Wirtschaftsraums.</p>
+
+<h2>15. Ihre Rechte</h2>
+<p>Sie haben das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) und Datenübertragbarkeit (Art. 20). Eine erteilte Einwilligung können Sie jederzeit mit Wirkung für die Zukunft widerrufen.</p>
+<div class="box">
+  <h3>Widerspruchsrecht</h3>
+  <p>Soweit wir Daten auf Grundlage von Art. 6 Abs. 1 Buchst. f DSGVO verarbeiten, können Sie der Verarbeitung jederzeit aus Gründen widersprechen, die sich aus Ihrer besonderen Situation ergeben (Art. 21 DSGVO). Eine E-Mail an {{ company.EMAIL }} genügt.</p>
+</div>
+<p>Sie können sich außerdem bei einer Datenschutz-Aufsichtsbehörde beschweren (Art. 77 DSGVO), zum Beispiel bei der für uns zuständigen Behörde: Der Hessische Beauftragte für Datenschutz und Informationsfreiheit, Gustav-Stresemann-Ring 1, 65189 Wiesbaden.</p>
+
+<h2>16. Pflicht zur Angabe von Daten</h2>
+<p>Ohne die Angaben in Abschnitt 5 können wir kein Kundenkonto einrichten, ohne die Angaben in Abschnitt 6 keine Bestellung ausführen. Alle anderen Angaben sind freiwillig.</p>
+
+<p class="asof">Stand: {{ company.LEGAL_AS_OF }}</p>

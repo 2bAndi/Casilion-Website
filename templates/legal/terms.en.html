@@ -1,0 +1,99 @@
+<p>Terms and conditions of {{ company.NAME }} for the customer account and the support plans for Cassilion.</p>
+
+<h2>1 Scope and provider</h2>
+<ol>
+  <li>These terms apply to all contracts you conclude with us through {{ SITE_URL }}: the customer account, the free Community plan and the paid support plans.</li>
+  <li>Your contracting party is {{ company.NAME }}, {{ company.STREET }}, {{ company.POSTAL_CODE }} {{ company.CITY }}, Germany, {{ company.REGISTER_COURT }}, {{ company.REGISTER_NO }}, phone {{ company.PHONE }}, e-mail {{ company.EMAIL }}.</li>
+  <li>Our offer is addressed to consumers and to businesses. A consumer is any natural person who enters into a transaction for purposes that are predominantly outside their trade, business or profession. A business is anyone who acts in the exercise of their trade, business or profession when concluding the contract.</li>
+  <li>Terms of the customer that differ from these do not apply unless we expressly agree to them.</li>
+</ol>
+
+<h2>2 Services</h2>
+<ol>
+  <li><strong>Customer account.</strong> The customer account is free. It gives you downloads, license files, the documentation and, depending on the plan, support.</li>
+  <li><strong>Community plan.</strong> The Community plan is free and includes no support. You can send bug reports. We read them; there is no claim to an individual reply.</li>
+  <li><strong>Support plans.</strong> The paid plans add support to the use of Cassilion. What a plan includes, in particular the number of support tickets per calendar month and whether a person can be brought in, follows from the plan description at the time of your order. Unused tickets lapse at the end of the month.</li>
+  <li><strong>Nature of support.</strong> Support is a service: we work towards a correct and helpful answer, but we do not owe a particular result and, unless the plan description says otherwise, no particular response or resolution times.</li>
+  <li><strong>Enterprise.</strong> Services marked "by quote" on the website are agreed individually.</li>
+</ol>
+
+<h2>3 Software and license</h2>
+<ol>
+  <li>Use of the Cassilion software is governed by the license terms that come with the software and the license file and that you can read before downloading. These terms and conditions grant no further rights of use.</li>
+  <li>A support plan does not change the scope of the software license unless the plan description says otherwise.</li>
+</ol>
+
+<h2>4 Conclusion of the contract</h2>
+<ol>
+  <li>The contract on the customer account and the Community plan is concluded when you register and confirm your e-mail address.</li>
+  <li>The presentation of the plans on the website is not a binding offer. You make a binding offer when you press the button "Order with obligation to pay" on the order page. Before that, the page shows your order at a glance, and you can stop or change it by going back to the plans.</li>
+  <li>The contract is concluded when we confirm your order by e-mail or activate the plan in your customer account, at the latest when the payment is collected.</li>
+  <li>We store the text of the contract. You can see your orders in the customer account. You receive these terms and the withdrawal policy by e-mail with the order confirmation.</li>
+  <li>The contract languages are German and English.</li>
+</ol>
+
+<h2>5 Prices and payment</h2>
+<ol>
+  <li>All prices are final prices in euros and include statutory value added tax. There are no shipping costs.</li>
+  <li>The fee is due for one year in advance when the contract is concluded. The payment methods shown in the order process are available.</li>
+  <li>If you are in default with a payment, we may suspend support after a reminder with a reasonable deadline until the payment has arrived.</li>
+</ol>
+
+<h2>6 Term and cancellation</h2>
+<ol>
+  <li>A support plan runs for twelve months from activation.</li>
+  <li>If you do not cancel to the end of this term, the contract continues for an indefinite period. The fee then becomes due in advance for a further twelve months each time. After the extension you can cancel at any time with one month's notice; we refund the fee for the time after the end of the contract pro rata.</li>
+  <li>You can cancel in the customer account, through the button <a href="{{ base }}{% url 'core:cancel_contract' %}?lang=en">"Cancel contracts here"</a>, or in text form, for example by e-mail.</li>
+  <li>We can cancel a support plan with one month's notice to the end of the current term.</li>
+  <li>The right to cancel for good cause without notice remains unaffected.</li>
+  <li>After a support plan ends, the Community plan applies to your customer account. You can end the customer account and the Community plan at any time without notice by asking us to delete the account.</li>
+</ol>
+
+<h2>7 Right of withdrawal</h2>
+<ol>
+  <li>Consumers have a right of withdrawal for paid plans. The details are in the <a href="{{ base }}{% url 'core:legal' 'withdrawal' %}?lang=en">withdrawal policy</a>.</li>
+  <li>You can also declare the withdrawal online through the button <a href="{{ base }}{% url 'core:withdraw' %}?lang=en">"Withdraw from contract"</a>.</li>
+  <li>We start support before the withdrawal period ends only if you expressly ask for it when ordering.</li>
+</ol>
+
+<h2>8 Your obligations</h2>
+<ol>
+  <li>You give correct details when registering and ordering and keep them up to date.</li>
+  <li>You keep your password, second factor and access tokens for AI agents secret. You are responsible for actions that an AI agent set up by you takes through the MCP interface with your access token.</li>
+  <li>Before you send support requests, logs or diagnostic data, you remove passwords, keys and other secrets from them, and personal data of third parties as far as the request does not need it.</li>
+  <li>You do not misuse the website, the support or the interfaces. Misuse is in particular an attempt to get around safeguards, to use the support assistant for purposes other than support for Cassilion, or to retrieve content automatically on a large scale.</li>
+  <li>For serious or repeated breaches we may block access after a warning. Where there is imminent danger, a provisional block without warning is permitted.</li>
+</ol>
+
+<h2>9 Support by artificial intelligence</h2>
+<ol>
+  <li>Support requests are answered first by an AI system. Replies written by an AI system are marked as such.</li>
+  <li>AI replies can contain errors. Check advice before you apply it to production systems, and back up your data first.</li>
+  <li>You can ask in a ticket for a person to look at the request. Whether and how fast that happens depends on your plan. Reports of data loss, data corruption and security vulnerabilities always go to a person.</li>
+</ol>
+
+<h2>10 Defects</h2>
+<p>The statutory provisions apply.</p>
+
+<h2>11 Liability</h2>
+<ol>
+  <li>We are liable without limitation for intent and gross negligence, for injury to life, body or health, under the German Product Liability Act, and as far as we have given a guarantee.</li>
+  <li>For a slightly negligent breach of an essential contractual obligation, our liability is limited to the foreseeable damage typical for this kind of contract. Essential obligations are those whose fulfilment makes the performance of the contract possible in the first place and on which you may regularly rely.</li>
+  <li>Otherwise our liability for slight negligence is excluded.</li>
+  <li>For free services we are liable, except in the cases of paragraph 1, only for intent and gross negligence.</li>
+  <li>Paragraphs 1 to 4 also apply in favour of our employees and agents.</li>
+</ol>
+
+<h2>12 Changes to these terms</h2>
+<p>A running contract is governed by the terms agreed when you ordered. Changed terms apply to you only once you agree to them, for example with a new order.</p>
+
+<h2>13 Applicable law and place of jurisdiction</h2>
+<ol>
+  <li>The law of the Federal Republic of Germany applies, excluding the UN Convention on Contracts for the International Sale of Goods. If you are a consumer habitually resident in another country, you keep the protection of the mandatory provisions of that country.</li>
+  <li>If you are a merchant, a legal entity under public law or a special fund under public law, {{ company.CITY }} is the exclusive place of jurisdiction for all disputes arising from this contract.</li>
+</ol>
+
+<h2>14 Consumer dispute resolution</h2>
+<p>We are neither willing nor obliged to take part in dispute resolution proceedings before a consumer arbitration board.</p>
+
+<p class="asof">Last updated: {{ company.LEGAL_AS_OF }}</p>

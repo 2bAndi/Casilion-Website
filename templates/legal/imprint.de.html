@@ -1,0 +1,38 @@
+<address>
+  <strong>{{ company.NAME }}</strong><br>
+  {{ company.STREET }}<br>
+  {{ company.POSTAL_CODE }} {{ company.CITY }}<br>
+  Deutschland
+</address>
+
+<p>Vertreten durch den Geschäftsführer: {{ company.DIRECTOR }}</p>
+
+<h2>Kontakt</h2>
+<p>
+  Telefon: <a href="tel:{{ company.PHONE|cut:' ' }}">{{ company.PHONE }}</a><br>
+  E-Mail: <a href="mailto:{{ company.EMAIL }}">{{ company.EMAIL }}</a>
+</p>
+
+<h2>Registereintrag</h2>
+<p>
+  Eingetragen im Handelsregister.<br>
+  Registergericht: {{ company.REGISTER_COURT }}<br>
+  Registernummer: {{ company.REGISTER_NO }}
+</p>
+
+{% if company.VAT_ID or company.ECON_ID %}
+<h2>Identifikationsnummern</h2>
+<p>
+  {% if company.VAT_ID %}Umsatzsteuer-Identifikationsnummer nach § 27a Umsatzsteuergesetz: {{ company.VAT_ID }}{% if company.ECON_ID %}<br>{% endif %}{% endif %}
+  {% if company.ECON_ID %}Wirtschafts-Identifikationsnummer nach § 139c Abgabenordnung: {{ company.ECON_ID }}{% endif %}
+</p>
+{% endif %}
+
+<h2>Inhaltlich verantwortlich</h2>
+<p>{{ company.DIRECTOR }}, Anschrift wie oben.</p>
+
+<h2>Verbraucherstreitbeilegung</h2>
+<p>Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+
+<h2>Marken</h2>
+<p>Cassilion ist ein Produkt der {{ company.NAME }}. Apache Cassandra und Cassandra sind Marken der Apache Software Foundation, die Cassilion weder unterstützt noch fördert. Andere Produktnamen gehören ihren jeweiligen Inhabern.</p>

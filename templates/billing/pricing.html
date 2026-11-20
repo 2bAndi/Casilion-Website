@@ -18,7 +18,7 @@
     <section class="plan p-{{ plan.code }}{% if current_plan and current_plan.code == plan.code %} current{% endif %}">
       <h3>{{ plan.name }}</h3>
       <div class="price">{% if plan.is_free %}€0{% elif plan.self_service %}€{{ plan.price_eur_year|intcomma }}{% else %}By quote{% endif %}</div>
-      <div class="per">{% if plan.self_service and not plan.is_free %}per year{% elif plan.is_free %}no charge{% else %}by agreement{% endif %}</div>
+      <div class="per">{% if plan.self_service and not plan.is_free %}per year, incl. VAT{% elif plan.is_free %}no charge{% else %}by agreement{% endif %}</div>
       <ul>
         <li>{{ plan.get_support_level_display }}</li>
         <li>{% if plan.has_support %}{{ plan.ticket_quota_month }} tickets a month{% else %}No tickets{% endif %}</li>
@@ -32,9 +32,9 @@
         {% elif plan.is_free %}
           {% if not user.is_authenticated %}<a class="btn ghost" href="{% url 'account_signup' %}">Register</a>{% endif %}
         {% elif not plan.self_service %}
-          <a class="btn ghost" href="mailto:sales@cassilion.example">Ask for a quote</a>
+          <a class="btn ghost" href="mailto:{{ company.EMAIL }}?subject=Cassilion%20Enterprise">Ask for a quote</a>
         {% elif user.is_authenticated and current_account %}
-          <form method="post" action="{% url 'billing:checkout_start' plan.code %}">{% csrf_token %}<button type="submit">Choose {{ plan.name }}</button></form>
+          <a class="btn" href="{% url 'billing:checkout_start' plan.code %}">Choose {{ plan.name }}</a>
         {% else %}
           <a class="btn" href="{% url 'account_signup' %}">Register to buy</a>
         {% endif %}
@@ -42,6 +42,8 @@
     </section>
   {% endfor %}
 </div>
+
+<p class="muted small">All prices are final prices in euros and include German VAT. A paid plan runs for twelve months; how it continues and ends is set out in the <a href="{% url 'core:legal' 'terms' %}">terms</a>. Consumers can withdraw within 14 days: <a href="{% url 'core:legal' 'withdrawal' %}">right of withdrawal</a>.</p>
 
 <div class="measure">
   <h2>What support means here</h2>

@@ -1,0 +1,92 @@
+<p>This notice says which personal data we process on {{ SITE_URL }}, for what purpose, on which legal basis and for how long.</p>
+
+<h2>1. Controller</h2>
+<address>
+  {{ company.NAME }}<br>
+  {{ company.STREET }}<br>
+  {{ company.POSTAL_CODE }} {{ company.CITY }}, Germany<br>
+  Phone: {{ company.PHONE }}<br>
+  E-mail: <a href="mailto:{{ company.EMAIL }}">{{ company.EMAIL }}</a>
+</address>
+<p>Please send questions about data protection and all requests concerning your rights to this address.</p>
+
+<h2>2. In brief</h2>
+<ul>
+  <li>This website uses no analytics or advertising services and builds no usage profiles.</li>
+  <li>Fonts, images, videos and scripts come from our own server. Opening a page loads no content from third parties.</li>
+  <li>We set cookies only where sign-in and forms technically need them. No consent is required for these.</li>
+  <li>We process your data on servers in the European Union.</li>
+</ul>
+
+<h2>3. Visiting the website</h2>
+<p>On every request the web server processes the IP address, date and time, the address requested, the amount of data transferred, the status code, the page visited before (referrer) and the browser identification. This is needed to deliver the page, fix faults and fend off attacks.</p>
+<p>The legal basis is Art. 6(1)(f) GDPR; our legitimate interest is secure and stable operation. We delete the logs after 14 days at the latest, unless they are needed longer to clear up a specific incident.</p>
+<p>We run the website on a server of IONOS SE, Elgendorfer Str. 57, 56410 Montabaur, Germany. IONOS processes the data on our behalf (Art. 28 GDPR).</p>
+
+<h2>4. Cookies</h2>
+<p>We set only technically necessary cookies (section 25(2) no. 2 of the German TDDDG):</p>
+<ul>
+  <li><code>sessionid</code>: keeps you signed in. Deleted when you sign out, otherwise after two weeks at the latest.</li>
+  <li><code>csrftoken</code>: protects forms against misuse by other websites. Lifetime one year.</li>
+  <li><code>django_language</code>: remembers a language you chose. Set only if you switch the language.</li>
+</ul>
+
+<h2>5. Customer account</h2>
+<p>For the customer account we process your e-mail address, your name, the password (only as a non-reversible hash), the kind of account (private person or company), the name of the account or company, and the country. You may add an address, a VAT identification number and a separate billing e-mail address. If you set up two-step sign-in, we store the secret it needs and your recovery codes.</p>
+<p>The legal basis is Art. 6(1)(b) GDPR (contract on the customer account). We keep the data until the account is deleted. You can ask for deletion by e-mail at any time. Data we must retain under commercial and tax law is deleted when those periods end.</p>
+
+<h2>6. Orders and payment</h2>
+<p>For an order we process the plan chosen, the amount, order number and time, the payment status, the term, and the declarations you made in the order process. The legal basis is Art. 6(1)(b) GDPR, and for keeping accounting records Art. 6(1)(c) GDPR together with section 147 of the German Fiscal Code and section 257 of the German Commercial Code (up to ten years).</p>
+{% if sandbox_payments %}
+<p>No payment service provider is connected at present, and no payment data is processed. Before paid plans can be ordered, we will name the payment service provider here.</p>
+{% else %}
+<p>The payment is handled by the payment service provider named in the order process, under its own responsibility. It receives the order number, amount and plan from us. You enter your payment details directly with the provider; we only receive the message that the payment succeeded.</p>
+{% endif %}
+
+<h2>7. Licenses and downloads</h2>
+<p>We create license files for your account. They contain the name of the account, the plan and the validity. We store which license files were issued and which program versions were downloaded through your account, and when. The legal basis is Art. 6(1)(b) GDPR; the download list also lets us inform you about security problems in a version you downloaded (Art. 6(1)(f) GDPR).</p>
+
+<h2>8. Support and use of artificial intelligence</h2>
+<p>When you send a support ticket or a bug report, we process its content, the program version you state, logs and diagnostic data you include, and the history of the ticket. The legal basis is Art. 6(1)(b) GDPR, for bug reports on the free plan Art. 6(1)(f) GDPR (improving the product).</p>
+<p>Support requests are answered first by an AI system:</p>
+<ul>
+  <li>Before the AI system receives your text, an automatic filter removes recognisable secrets (for example passwords and keys) and recognisable personal details (for example e-mail addresses and IP addresses). Diagnostic data you include is stored only in this cleaned form.</li>
+  <li>We operate the AI system ourselves. We do not pass the content of your tickets to providers of AI services and do not use it to train AI models.</li>
+  <li>Replies of the AI system are marked "written by AI". Our staff can see every ticket and can check, change or write replies themselves.</li>
+  <li>The AI system makes no decisions with legal effect for you; there is no automated decision-making within the meaning of Art. 22 GDPR.</li>
+</ul>
+<p>Please do not send special categories of personal data (such as health data) in tickets, nor data of third parties that the request does not need. We keep tickets as long as your account exists; after that we delete or anonymise them.</p>
+
+<h2>9. Access for AI agents (MCP)</h2>
+<p>You can give an AI agent of your own access to your customer account. For each access token we store a hash, the name you gave it, and the times it was created, last used and revoked. What the agent retrieves or sends through the interface is processed like your own input in the customer account. The legal basis is Art. 6(1)(b) GDPR. You and the provider of your AI agent are responsible for the processing on that provider's side.</p>
+
+<h2>10. E-mails and contact</h2>
+<p>We send you the e-mails that the account and the contract need: confirmation of your address, password reset, order confirmations and confirmations of receipt, messages about tickets. We send no advertising. The legal basis is Art. 6(1)(b) GDPR.</p>
+<p>Mail is sent through our own mail server and, for delivery, through Brevo GmbH, Köpenicker Str. 126, 10179 Berlin, Germany, which acts as a processor for us (Art. 28 GDPR).</p>
+<p>If you write to us by e-mail or call us, we process what you tell us in order to deal with your request (Art. 6(1)(b) or (f) GDPR) and delete it when it is no longer needed for that and no retention duty applies.</p>
+
+<h2>11. Withdrawal and cancellation functions</h2>
+<p>Through <a href="{{ base }}{% url 'core:withdraw' %}?lang=en">"Withdraw from contract"</a> and <a href="{{ base }}{% url 'core:cancel_contract' %}?lang=en">"Cancel contracts here"</a> you can make declarations online. We process your name, what you state about the contract, the e-mail address for the confirmation, for cancellations the kind, reason and requested date, and the date and time of receipt. We use this to send you the confirmation of receipt and to process your declaration.</p>
+<p>The legal basis is Art. 6(1)(c) GDPR together with sections 356a and 312k of the German Civil Code, and Art. 6(1)(b) GDPR. We keep the declarations as evidence until the statutory limitation and retention periods have ended.</p>
+
+<h2>12. Log of security-relevant events</h2>
+<p>We log events such as orders, cancellations, the creation and revocation of access tokens, and actions of our staff, with the time, the account and the acting person. IP addresses and message contents are not in this log. The legal basis is Art. 6(1)(f) GDPR; our legitimate interest is traceability and the prevention of misuse.</p>
+
+<h2>13. Backups</h2>
+<p>We back up the database daily. The backups are kept on our server and overwritten after eight weeks at the latest. Deleted data therefore disappears from the backups only after that time.</p>
+
+<h2>14. Recipients and third countries</h2>
+<p>Your data goes only to the processors named above and, where the law requires it, to authorities. We do not transfer data to countries outside the European Union and the European Economic Area.</p>
+
+<h2>15. Your rights</h2>
+<p>You have the right of access (Art. 15 GDPR), to rectification (Art. 16), erasure (Art. 17), restriction of processing (Art. 18) and data portability (Art. 20). You can withdraw a consent you gave at any time with effect for the future.</p>
+<div class="box">
+  <h3>Right to object</h3>
+  <p>Where we process data on the basis of Art. 6(1)(f) GDPR, you can object to the processing at any time on grounds relating to your particular situation (Art. 21 GDPR). An e-mail to {{ company.EMAIL }} is enough.</p>
+</div>
+<p>You can also lodge a complaint with a data protection supervisory authority (Art. 77 GDPR), for example the one responsible for us: Der Hessische Beauftragte für Datenschutz und Informationsfreiheit, Gustav-Stresemann-Ring 1, 65189 Wiesbaden, Germany.</p>
+
+<h2>16. Whether you must provide data</h2>
+<p>Without the details in section 5 we cannot set up a customer account, and without those in section 6 we cannot carry out an order. All other details are voluntary.</p>
+
+<p class="asof">Last updated: {{ company.LEGAL_AS_OF }}</p>

@@ -1,0 +1,39 @@
+<p>Consumers have a fourteen-day right of withdrawal for contracts on paid plans. A consumer is any natural person who enters into a transaction for purposes that are predominantly outside their trade, business or profession.</p>
+
+<div class="box">
+<h2>Instructions on withdrawal</h2>
+
+<h3>Right of withdrawal</h3>
+<p>You have the right to withdraw from this contract within fourteen days without giving any reason.</p>
+<p>The withdrawal period is fourteen days from the day of the conclusion of the contract.</p>
+<p>To exercise the right of withdrawal, you must inform us ({{ company.NAME }}, {{ company.STREET }}, {{ company.POSTAL_CODE }} {{ company.CITY }}, Germany, phone: {{ company.PHONE }}, e-mail: {{ company.EMAIL }}) of your decision to withdraw from this contract by an unequivocal statement (for example a letter sent by post or an e-mail). You may use the model withdrawal form below, but it is not obligatory.</p>
+<p>You can also exercise your right of withdrawal online at <a href="{{ base }}{% url 'core:withdraw' %}?lang=en">{{ SITE_URL }}{% url 'core:withdraw' %}</a>. If you use this online function, we will send you without delay, on a durable medium (for example by e-mail), a confirmation of receipt with information on the content of the declaration of withdrawal and the date and time of its receipt.</p>
+<p>To meet the withdrawal deadline, it is sufficient for you to send your communication concerning your exercise of the right of withdrawal before the withdrawal period has expired.</p>
+
+<h3>Effects of withdrawal</h3>
+<p>If you withdraw from this contract, we shall reimburse to you all payments received from you, including the costs of delivery (with the exception of the supplementary costs resulting from your choice of a type of delivery other than the least expensive type of standard delivery offered by us), without undue delay and in any event not later than fourteen days from the day on which we are informed about your decision to withdraw from this contract. We will carry out such reimbursement using the same means of payment as you used for the initial transaction, unless you have expressly agreed otherwise; in any event, you will not incur any fees as a result of such reimbursement.</p>
+<p>If you requested to begin the performance of services during the withdrawal period, you shall pay us an amount which is in proportion to what has been provided until you have communicated to us your withdrawal from this contract, in comparison with the full coverage of the contract.</p>
+</div>
+
+<div class="box">
+<h2>Model withdrawal form</h2>
+<p>(Complete and return this form only if you wish to withdraw from the contract.)</p>
+<ul>
+  <li>To {{ company.NAME }}, {{ company.STREET }}, {{ company.POSTAL_CODE }} {{ company.CITY }}, Germany, e-mail: {{ company.EMAIL }}:</li>
+  <li>I/We (*) hereby give notice that I/We (*) withdraw from my/our (*) contract of sale of the following goods (*)/for the provision of the following service (*)</li>
+  <li>Ordered on (*)/received on (*)</li>
+  <li>Name of consumer(s)</li>
+  <li>Address of consumer(s)</li>
+  <li>Signature of consumer(s) (only if this form is notified on paper)</li>
+  <li>Date</li>
+</ul>
+<p>(*) Delete as appropriate.</p>
+</div>
+
+<h2>Notes</h2>
+<ul>
+  <li>The free Community plan can be ended at any time without notice by having your customer account deleted. No withdrawal is needed for that.</li>
+  <li>After the withdrawal period, you end a running plan by cancelling it: <a href="{{ base }}{% url 'core:cancel_contract' %}?lang=en">Cancel contracts here</a>.</li>
+</ul>
+
+<p class="asof">Last updated: {{ company.LEGAL_AS_OF }}</p>

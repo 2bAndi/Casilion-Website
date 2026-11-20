@@ -1,0 +1,40 @@
+<p>Provider identification under section 5 of the German Digital Services Act (Impressum).</p>
+
+<address>
+  <strong>{{ company.NAME }}</strong><br>
+  {{ company.STREET }}<br>
+  {{ company.POSTAL_CODE }} {{ company.CITY }}<br>
+  Germany
+</address>
+
+<p>Represented by its managing director (Geschäftsführer): {{ company.DIRECTOR }}</p>
+
+<h2>Contact</h2>
+<p>
+  Phone: <a href="tel:{{ company.PHONE|cut:' ' }}">{{ company.PHONE }}</a><br>
+  E-mail: <a href="mailto:{{ company.EMAIL }}">{{ company.EMAIL }}</a>
+</p>
+
+<h2>Commercial register</h2>
+<p>
+  Registered in the commercial register (Handelsregister).<br>
+  Register court: {{ company.REGISTER_COURT }}<br>
+  Register number: {{ company.REGISTER_NO }}
+</p>
+
+{% if company.VAT_ID or company.ECON_ID %}
+<h2>Identification numbers</h2>
+<p>
+  {% if company.VAT_ID %}VAT identification number under section 27a of the German VAT Act: {{ company.VAT_ID }}{% if company.ECON_ID %}<br>{% endif %}{% endif %}
+  {% if company.ECON_ID %}Business identification number under section 139c of the German Fiscal Code: {{ company.ECON_ID }}{% endif %}
+</p>
+{% endif %}
+
+<h2>Responsible for the content</h2>
+<p>{{ company.DIRECTOR }}, address as above.</p>
+
+<h2>Consumer dispute resolution</h2>
+<p>We are neither willing nor obliged to take part in dispute resolution proceedings before a consumer arbitration board.</p>
+
+<h2>Trademarks</h2>
+<p>Cassilion is a product of {{ company.NAME }}. Apache Cassandra and Cassandra are trademarks of the Apache Software Foundation, which does not endorse or sponsor Cassilion. Other product names belong to their respective owners.</p>

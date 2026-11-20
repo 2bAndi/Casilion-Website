@@ -86,6 +86,11 @@ class Order(models.Model):
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    # What the customer declared on the order page. Kept as evidence, never changed afterwards.
+    early_start_requested_at = models.DateTimeField(
+        null=True, blank=True, help_text="A consumer asked for support to start before the withdrawal period ends."
+    )
+    terms_version = models.CharField(max_length=20, blank=True, help_text="Date of the terms the order was placed under.")
 
     class Meta:
         ordering = ["-created_at"]

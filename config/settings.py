@@ -259,6 +259,26 @@ if django.VERSION >= (6, 0):
         "frame-ancestors": [CSP.NONE],
     }
 
+# --- Provider identification (imprint, privacy notice, terms, withdrawal policy) -----------
+# The legal pages, the footer and the order mails read the company data from here, so a change
+# of address or a new VAT ID is one line in .env and not an edit in eight texts.
+COMPANY = {
+    "NAME": env("COMPANY_NAME") or "Zuri-AI GmbH",
+    "STREET": env("COMPANY_STREET") or "Lautzenhardtweg 10",
+    "POSTAL_CODE": env("COMPANY_POSTAL_CODE") or "63069",
+    "CITY": env("COMPANY_CITY") or "Offenbach am Main",
+    "DIRECTOR": env("COMPANY_DIRECTOR") or "Jörn Henning Wunderlich",
+    "REGISTER_COURT": env("COMPANY_REGISTER_COURT") or "Amtsgericht Offenbach am Main",
+    "REGISTER_NO": env("COMPANY_REGISTER_NO") or "HRB 57727",
+    # Shown in the imprint only when set. Either one satisfies § 5 (1) no. 6 DDG.
+    "VAT_ID": env("COMPANY_VAT_ID") or "",
+    "ECON_ID": env("COMPANY_ECON_ID") or "",
+    "PHONE": env("COMPANY_PHONE") or "+49 151 11572555",
+    "EMAIL": env("COMPANY_EMAIL") or "contact@zuri-ai.com",
+    # Date shown as "last updated" on the legal pages; change it when a text changes.
+    "LEGAL_AS_OF": env("LEGAL_AS_OF") or "2026-11-20",
+}
+
 # --- Cassilion ---------------------------------------------------------------------------
 CASSILION = {
     "SITE_URL": SITE_URL,

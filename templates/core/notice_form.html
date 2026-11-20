@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block html_lang %}{{ lang }}{% endblock %}
+{% block title %}{{ title }} – Cassilion{% endblock %}
+{% block band %}
+<div class="wrap page-head">
+  <h1>{{ t.title }}</h1>
+  <p>{{ t.intro }}</p>
+  <p class="lang-switch">
+    {% if lang == "de" %}<span aria-current="true">Deutsch</span> <a href="?lang=en" lang="en" hreflang="en">English</a>
+    {% else %}<a href="?lang=de" lang="de" hreflang="de">Deutsch</a> <span aria-current="true">English</span>{% endif %}
+  </p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="measure" lang="{{ lang }}">
+  {% if error %}<div class="notice error" role="alert"><p>{{ error }}</p></div>{% endif %}
+  <form method="post" class="panel notice-form" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="lang" value="{{ lang }}">
+    <div class="field">
+      <label for="id_name">{{ t.name }}</label>
+      <input type="text" name="name" id="id_name" maxlength="200" required autocomplete="name" value="{{ form.name.value|default:'' }}"{% if form.name.errors %} aria-invalid="true" aria-describedby="err_name"{% endif %}>
+      {% for e in form.name.errors %}<span class="field-error" id="err_name">{{ e }}</span>{% endfor %}
+    </div>
+    <div class="field">
+      <label for="id_contract">{{ t.contract }}</label>
+      <span class="helptext" id="help_contract">{{ t.contract_help }}</span>
+      <input type="text" name="contract" id="id_contract" maxlength="300" required aria-describedby="help_contract" value="{{ form.contract.value|default:'' }}"{% if form.contract.errors %} aria-invalid="true"{% endif %}>
+      {% for e in form.contract.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
+    </div>
+    {% if kind == "cancellation" %}
+    <fieldset class="field">
+      <legend>{{ t.cancel_type }}</legend>
+      <label class="choice"><input type="radio" name="cancel_type" value="ordinary"{% if form.cancel_type.value != "extraordinary" %} checked{% endif %}> {{ t.ordinary }}</label>
+      <label class="choice"><input type="radio" name="cancel_type" value="extraordinary"{% if form.cancel_type.value == "extraordinary" %} checked{% endif %}> {{ t.extraordinary }}</label>
+    </fieldset>
+    <div class="field">
+      <label for="id_cancel_reason">{{ t.cancel_reason }}</label>
+      <span class="helptext" id="help_reason">{{ t.cancel_reason_help }}</span>
+      <textarea name="cancel_reason" id="id_cancel_reason" rows="3" maxlength="2000" aria-describedby="help_reason">{{ form.cancel_reason.value|default:'' }}</textarea>
+    </div>
+    <div class="field">
+      <label for="id_cancel_at">{{ t.cancel_at }}</label>
+      <span class="helptext" id="help_at">{{ t.cancel_at_help }}</span>
+      <input type="text" name="cancel_at" id="id_cancel_at" maxlength="60" aria-describedby="help_at" value="{{ form.cancel_at.value|default:'' }}">
+    </div>
+    {% endif %}
+    <div class="field">
+      <label for="id_email">{{ t.email }}</label>
+      <input type="email" name="email" id="id_email" maxlength="254" required autocomplete="email" value="{{ form.email.value|default:'' }}"{% if form.email.errors %} aria-invalid="true"{% endif %}>
+      {% for e in form.email.errors %}<span class="field-error">{{ e }}</span>{% endfor %}
+    </div>
+    <div class="hp" aria-hidden="true">
+      <label for="id_website">Website</label>
+      <input type="text" name="website" id="id_website" tabindex="-1" autocomplete="off">
+    </div>
+    <div class="actions">
+      <button type="submit" class="signal">{{ t.submit }}</button>
+    </div>
+    <p class="muted small">{{ t.after }}</p>
+  </form>
+  <p class="muted small">
+    {% if lang == "de" %}
+      {% if kind == "withdrawal" %}Einzelheiten zum Widerrufsrecht: <a href="{% url 'core:legal' 'withdrawal' %}?lang=de">Widerrufsbelehrung</a>. Sie möchten einen laufenden Tarif beenden, ohne zu widerrufen? <a href="{% url 'core:cancel_contract' %}?lang=de">Verträge hier kündigen</a>.
+      {% else %}Innerhalb von 14 Tagen nach der Bestellung können Verbraucher stattdessen widerrufen: <a href="{% url 'core:withdraw' %}?lang=de">Vertrag widerrufen</a>.{% endif %}
+      Wie wir Ihre Angaben verarbeiten, steht in der <a href="{% url 'core:legal' 'privacy' %}?lang=de">Datenschutzerklärung</a>.
+    {% else %}
+      {% if kind == "withdrawal" %}Details on the right of withdrawal: <a href="{% url 'core:legal' 'withdrawal' %}?lang=en">Right of withdrawal</a>. You want to end a running plan without withdrawing? <a href="{% url 'core:cancel_contract' %}?lang=en">Cancel contracts here</a>.
+      {% else %}Within 14 days of the order, consumers can withdraw instead: <a href="{% url 'core:withdraw' %}?lang=en">Withdraw from contract</a>.{% endif %}
+      How we process what you enter is described in the <a href="{% url 'core:legal' 'privacy' %}?lang=en">privacy notice</a>.
+    {% endif %}
+  </p>
+</div>
+{% endblock %}

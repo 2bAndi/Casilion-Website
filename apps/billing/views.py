@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import account_required
+from apps.accounts.models import Account
 from apps.licensing.services import current_entitlement
 
 from . import services
@@ -34,15 +35,28 @@ def overview(request):
 
 
 @account_required
-@require_POST
 def checkout_start(request, code):
+    """The order page: what is ordered, what it costs, how it ends; then the binding order button."""
     plan = get_object_or_404(Plan, code=code, is_public=True)
-    try:
-        _order, url = services.start_checkout(request.account, request.user, plan, request)
-    except services.CheckoutError as exc:
-        messages.error(request, str(exc))
+    account = request.account
+    if plan.price_eur_year <= 0 or not plan.self_service:
+        messages.error(request, f"{plan.name} cannot be bought in the shop.")
         return redirect("billing:pricing")
-    return redirect(url)
+    # Only consumers have a right of withdrawal, so only they are asked about an early start.
+    is_consumer = account.kind == Account.Kind.INDIVIDUAL
+    error = ""
+    if request.method == "POST":
+        early_start = request.POST.get("early_start") == "on"
+        if is_consumer and not early_start:
+            error = "Please confirm that support should start right away. Without this we cannot activate the plan before the withdrawal period has ended."
+        else:
+            try:
+                _order, url = services.start_checkout(account, request.user, plan, request, early_start=is_consumer and early_start)
+            except services.CheckoutError as exc:
+                messages.error(request, str(exc))
+                return redirect("billing:pricing")
+            return redirect(url)
+    return render(request, "billing/checkout.html", {"plan": plan, "is_consumer": is_consumer, "error": error})
 
 
 @account_required

@@ -1,11 +1,21 @@
 {% extends "base.html" %}
+{% block html_lang %}{{ lang }}{% endblock %}
 {% block title %}{{ title }} – Cassilion{% endblock %}
-{% block band %}<div class="wrap page-head"><h1>{{ title }}</h1></div>{% endblock %}
+{% block band %}
+<div class="wrap page-head">
+  <h1>{{ title }}</h1>
+  <p class="lang-switch">
+    {% if lang == "de" %}<span aria-current="true">Deutsch</span> <a href="?lang=en" lang="en" hreflang="en">English</a>
+    {% else %}<a href="?lang=de" lang="de" hreflang="de">Deutsch</a> <span aria-current="true">English</span>{% endif %}
+  </p>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="measure">
-  <div class="notice warning">
-    <p>This page has no text yet. The legal texts are written with legal advice before the site goes live.</p>
-  </div>
-</div>
+<article class="measure legal" lang="{{ lang }}">
+  {% if lang == "en" and slug != "imprint" %}
+    <p class="notice">This is a translation for your convenience. The German version is the binding one. <a href="?lang=de" lang="de" hreflang="de">Deutsche Fassung</a></p>
+  {% endif %}
+  {% include body_template %}
+</article>
 {% endblock %}

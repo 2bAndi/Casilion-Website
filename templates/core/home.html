@@ -407,7 +407,7 @@
         <a class="plan{% if forloop.last and not forloop.counter|divisibleby:2 %} wide{% endif %}" href="{% url 'billing:pricing' %}">
           <span class="tag">{{ plan.name }}</span>
           <b>{% if plan.is_free %}€0{% elif plan.self_service %}€{{ plan.price_eur_year|intcomma }}{% else %}By quote{% endif %}</b>
-          <span>{% if plan.self_service and not plan.is_free %}Per year. {% endif %}{{ plan.tagline }}{% if plan.has_support %} {{ plan.ticket_quota_month }} tickets a month.{% endif %}</span>
+          <span>{% if plan.self_service and not plan.is_free %}Per year, incl. VAT. {% endif %}{{ plan.tagline }}{% if plan.has_support %} {{ plan.ticket_quota_month }} tickets a month.{% endif %}</span>
         </a>
         {% endfor %}
       </div>

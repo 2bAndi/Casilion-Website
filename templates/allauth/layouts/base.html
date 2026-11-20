@@ -5,4 +5,5 @@
 <div class="measure auth">
   {% block content %}{% endblock content %}
 </div>
+<p class="muted small measure">How we handle your data: <a href="{% url 'core:legal' 'privacy' %}">privacy notice</a>. What applies to your account and plans: <a href="{% url 'core:legal' 'terms' %}">terms</a>.</p>
 {% endblock %}

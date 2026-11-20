@@ -22,17 +22,22 @@ Nothing is committed yet. On the development machine, in `D:\Code\Casilion`:
 git add -A
 git commit -m "Cassilion web platform: skeleton"
 git branch -M main
-git remote add origin https://github.com/<account>/<repository>.git   # a private repository
+git remote add origin https://github.com/2bAndi/Casilion-Website.git
 git push -u origin main
 ```
 
 `.gitignore` keeps `var/`, `.env`, `data/`, `backups/` and `_to_delete/` out.
 
-## 2. nginx and certificate
+## 2. Code, nginx and certificate
 
 The DNS records for cassilion.com and cassilion.de (`@` and `*`) already point at this server.
+The nginx files come from the repository, so the code is cloned first.
 
 ```bash
+sudo mkdir -p /opt/cassilion && sudo chown "$USER": /opt/cassilion
+cd /opt/cassilion
+git clone https://github.com/2bAndi/Casilion-Website.git .
+
 ss -ltn | grep ':8150 ' || echo "port 8150 is free"      # pick another port here and in docker-compose.yml if it is not
 
 # Request limit (http context): must exist before the snippet is loaded
@@ -61,13 +66,14 @@ While the container is down, visitors get a short "being updated" page with stat
 ## 3. First deployment
 
 ```bash
-sudo mkdir -p /opt/cassilion && sudo chown "$USER": /opt/cassilion
 cd /opt/cassilion
-git clone https://github.com/<account>/<repository>.git .
 cp .env.example .env
-# Fill in .env: SECRET_KEY, POSTGRES_PASSWORD, SANDBOX_WEBHOOK_SECRET, AI_WORKER_TOKEN
-python3 -c "import secrets; print(secrets.token_urlsafe(50))"   # secret key
-python3 -c "import secrets; print(secrets.token_urlsafe(24))"   # the three others, one each
+# Four secrets, generated and written into .env without showing them:
+for key in SECRET_KEY POSTGRES_PASSWORD SANDBOX_WEBHOOK_SECRET AI_WORKER_TOKEN; do
+  value=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
+  sed -i "s|^$key=.*|$key=$value|" .env
+done
+nano .env                                    # EMAIL_HOST_PASSWORD: the password of the sending mailbox
 mkdir -p data/var data/postgres backups      # data/var must be writable for user id 1000 (the container's user)
 docker compose up -d --build
 docker compose logs -f web      # wait for "Application startup complete"
@@ -122,17 +128,17 @@ cd /opt/cassilion && git pull && docker compose up -d --build
 Until SMTP is configured, mails (address confirmation, ticket notices, alerts to the
 operators) are only written to the app log: `docker compose logs web | grep -A20 Subject`.
 
-For real delivery the site sends through the server's own mail platform, which relays to
-Brevo, as Tango-Kalender does. It needs a technical account of the sending domain on that
-platform (for example `app@cassilion.com`; it does not exist yet). Then in `.env`:
+The site sends through the server's own mail platform, which relays to Brevo, as
+Tango-Kalender does. It signs in as the mailbox of the sending address, `info@cassilion.com`
+(`.env.example` carries these values; only the password is missing):
 
 ```
 EMAIL_HOST=mail.kinhavn.de
 EMAIL_PORT=587
 EMAIL_USE_TLS=1
-EMAIL_HOST_USER=app@cassilion.com
+EMAIL_HOST_USER=info@cassilion.com
 EMAIL_HOST_PASSWORD=...
-DEFAULT_FROM_EMAIL=Cassilion <noreply@cassilion.com>
+DEFAULT_FROM_EMAIL=Cassilion <info@cassilion.com>
 OPERATOR_EMAILS=info@cassilion.com
 ```
 

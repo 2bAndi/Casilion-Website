@@ -43,6 +43,7 @@ LABELS = {
         "replaced": "Ersetzt Rechnung {n}, die storniert wurde.",
         "machine": "Dieses Dokument enthält maschinenlesbare Rechnungsdaten (ZUGFeRD / Factur-X, EN 16931).",
         "partial": "Teilerstattung zu Rechnung {n}", "director": "Geschäftsführer",
+        "test": "TEST – keine Rechnung. Dieser Kauf lief über die Sandbox, es ist kein Geld geflossen.",
     },
     "en": {
         "invoice": "Invoice", "credit_note": "Credit note", "cancellation": "Cancellation invoice", "correction": "Corrected invoice",
@@ -60,6 +61,7 @@ LABELS = {
         "replaced": "Replaces invoice {n}, which has been cancelled.",
         "machine": "This document contains machine-readable invoice data (ZUGFeRD / Factur-X, EN 16931).",
         "partial": "Partial refund for invoice {n}", "director": "Managing director",
+        "test": "TEST – not an invoice. This purchase went through the sandbox; no money moved.",
     },
 }
 
@@ -83,12 +85,16 @@ def _q(value) -> Decimal:
     return Decimal(value).quantize(CENT, rounding=ROUND_HALF_UP)
 
 
-def next_number(year: int) -> str:
-    """Gapless, per year. Must run inside the transaction that saves the invoice."""
-    sequence, _created = InvoiceSequence.objects.select_for_update().get_or_create(year=year)
+def next_number(year: int, test: bool = False) -> str:
+    """Gapless, per year. Must run inside the transaction that saves the invoice.
+
+    Documents of test orders count on their own and are called TEST-…: trying the shop never
+    uses up a number of the real sequence."""
+    sequence, _created = InvoiceSequence.objects.select_for_update().get_or_create(year=year, test=test)
     sequence.last_number += 1
     sequence.save(update_fields=["last_number"])
-    return f"{payment_config().invoice_prefix}-{year}-{sequence.last_number:05d}"
+    prefix = "TEST" if test else payment_config().invoice_prefix
+    return f"{prefix}-{year}-{sequence.last_number:05d}"
 
 
 def invoice_for(order, number: str | None = None) -> Invoice | None:
@@ -223,6 +229,7 @@ def compose(order, kind: str, *, lines_override=None, refers_to: Invoice | None 
         "reason": reason,
         "purpose": purpose,
         "order_number": order.ref,
+        "is_test": order.is_test,
         "account_name": order.account.name,
         "payment_method": order.payment_method,
         "pay_url": settings.CASSILION["SITE_URL"].rstrip("/") + reverse("billing:order", args=[order.ref]),
@@ -269,13 +276,14 @@ def render_pdf(data: dict, language: str) -> bytes:
 def _create(order, kind: str, **options) -> Invoice:
     with transaction.atomic():
         data = compose(order, kind, **options)
-        data["number"] = next_number(data["issue_date"].year)
+        data["number"] = next_number(data["issue_date"].year, test=order.is_test)
         language = order.language or "en"
         pdf = render_pdf(data, language)
         refers_to = options.get("refers_to")
         invoice = Invoice(
             number=data["number"],
             kind=kind,
+            is_test=order.is_test,
             order=order,
             account=order.account,
             refers_to=refers_to,
@@ -384,4 +392,4 @@ def correct_invoice(invoice: Invoice, *, buyer: dict, reason: str):
 
 def annual_turnover(year: int) -> Decimal:
     """Net revenue booked (invoices minus credit notes) in a calendar year."""
-    return sum((invoice.net_total for invoice in Invoice.objects.filter(issue_date__year=year)), Decimal("0"))
+    return sum((invoice.net_total for invoice in Invoice.objects.filter(issue_date__year=year, is_test=False)), Decimal("0"))

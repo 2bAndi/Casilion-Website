@@ -1,5 +1,3 @@
-from django.conf import settings
-
 from .base import PaymentProvider, RefundResult, StartResult, WebhookError, WebhookEvent, WebhookRejected  # noqa: F401
 from .http import ProviderError  # noqa: F401
 
@@ -31,15 +29,25 @@ def is_configured(code: str, cfg=None) -> bool:
     if code == "bank_transfer":
         return bool(cfg.iban)
     if code == "sandbox":
-        return bool(settings.CASSILION["SANDBOX_PAYMENTS"])
+        return bool(cfg.sandbox_enabled)
     return False
 
 
-def usable_methods() -> list[PaymentProvider]:
-    """What a customer can pay with right now, in the order shown on the order page."""
+def real_provider_connected() -> bool:
+    """Is a payment service provider set up? The privacy notice says so."""
+    cfg = config()
+    return is_configured("stripe", cfg) or is_configured("paypal", cfg)
+
+
+def usable_methods(user=None) -> list[PaymentProvider]:
+    """What this login can pay with right now, in the order shown on the order page.
+
+    The sandbox is switched on in the backoffice and can be limited to named testers there.
+    Without ``user`` the question is what is switched on at all.
+    """
     cfg, registry = config(), _registry()
     methods = [registry[code] for code in cfg.method_list if code in registry and code != "sandbox" and is_configured(code, cfg)]
-    if is_configured("sandbox", cfg):
+    if cfg.sandbox_for(user):
         methods.append(registry["sandbox"])
     return methods
 

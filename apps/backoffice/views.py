@@ -29,7 +29,7 @@ def status_snapshot() -> dict:
     now = timezone.now()
     seen = limits.worker_last_seen
     month = now - timedelta(days=30)
-    paid = Order.objects.filter(status=Order.Status.PAID, paid_at__gte=month)
+    paid = Order.objects.filter(status=Order.Status.PAID, paid_at__gte=month, is_test=False)
     return {
         "review_queue": Ticket.objects.filter(status=Ticket.Status.IN_REVIEW).count(),
         "bug_candidates": Ticket.objects.filter(status=Ticket.Status.BUG_CANDIDATE).count(),

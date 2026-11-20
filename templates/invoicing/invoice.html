@@ -24,9 +24,11 @@
   .total td { font-weight: bold; border-top: 2px solid #222; border-bottom: 0; padding-top: 3mm; }
   .note { margin-top: 5mm; font-size: 9.5pt; }
   .small { font-size: 8.5pt; color: #555; margin-top: 8mm; }
+  .test { border: 2px solid #b00020; color: #b00020; font-weight: 700; padding: 3mm 4mm; margin-bottom: 8mm; text-align: center; }
 </style>
 </head>
 <body>
+{% if inv.is_test %}<div class="test">{{ t.test }}</div>{% endif %}
 <div class="brand">{{ inv.seller.name }}</div>
 <div class="head">
   <div>

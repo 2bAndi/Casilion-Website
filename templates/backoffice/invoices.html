@@ -32,5 +32,6 @@
     </tbody>
   </table>
 </div>
+{% if tests %}<p class="muted small">{{ tests }} TEST document{{ tests|pluralize }} of sandbox purchases in this month {{ tests|pluralize:"is,are" }} not listed here and not part of the export.</p>{% endif %}
 <p class="muted small">The ZIP holds every PDF, a journal as CSV, a DATEV booking batch and the list of payments collected. The account numbers for DATEV are set under Payments → Settings.</p>
 {% endblock %}

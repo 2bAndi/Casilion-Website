@@ -9,8 +9,8 @@
 {% endblock %}
 
 {% block content %}
-{% if sandbox_payments %}
-  <div class="notice sandbox"><p>Payments can run against a sandbox in this installation. No money moves there.</p></div>
+{% if sandbox %}
+  <div class="notice sandbox"><p><strong>Test mode.</strong> The payment method "Sandbox" is switched on for you. No money moves there, and what you buy through it is marked as a test.</p></div>
 {% endif %}
 
 {% for entry in products %}

@@ -37,7 +37,8 @@ def _send(order, subject: str, lines: list[str], attachments=()) -> None:
         return
     company = settings.COMPANY
     lines = [*lines, "", "Mit freundlichen Grüßen" if _de(order) else "Kind regards", company["NAME"], f"{company['STREET']}, {company['POSTAL_CODE']} {company['CITY']}", company["EMAIL"]]
-    message = EmailMessage(f"[Cassilion] {subject}", "\n".join(lines), settings.DEFAULT_FROM_EMAIL, [to], reply_to=[company["EMAIL"]])
+    mark = "[TEST] " if order.is_test else ""
+    message = EmailMessage(f"[Cassilion] {mark}{subject}", "\n".join(lines), settings.DEFAULT_FROM_EMAIL, [to], reply_to=[company["EMAIL"]])
     for name, content, mimetype in attachments:
         message.attach(name, content, mimetype)
     message.send(fail_silently=True)

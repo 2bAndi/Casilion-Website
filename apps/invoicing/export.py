@@ -35,7 +35,7 @@ def month_bounds(year: int, month: int) -> tuple[date, date]:
 
 def invoices_of(year: int, month: int):
     start, end = month_bounds(year, month)
-    return Invoice.objects.filter(issue_date__gte=start, issue_date__lt=end).select_related("order", "refers_to").order_by("number")
+    return Invoice.objects.filter(issue_date__gte=start, issue_date__lt=end, is_test=False).select_related("order", "refers_to").order_by("number")
 
 
 def _de(value) -> str:
@@ -167,6 +167,7 @@ def payments_csv(year: int, month: int) -> str:
     tz = timezone.get_current_timezone()
     rows = Payment.objects.filter(
         status__in=COLLECTED,
+        order__is_test=False,
         created_at__gte=datetime.combine(start, datetime.min.time(), tz),
         created_at__lt=datetime.combine(end, datetime.min.time(), tz),
     ).select_related("order").order_by("created_at")

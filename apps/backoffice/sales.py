@@ -87,11 +87,13 @@ def plan_edit(request, code=None):
 def orders(request):
     status, query = request.GET.get("status") or "", (request.GET.get("q") or "").strip()
     rows = Order.objects.select_related("account").prefetch_related("lines__plan__product")
-    if status in Order.Status.values:
+    if status == "test":
+        rows = rows.filter(is_test=True)
+    elif status in Order.Status.values:
         rows = rows.filter(status=status)
     if query:
         rows = rows.filter(Q(ref__icontains=query) | Q(account__name__icontains=query) | Q(invoices__number__icontains=query)).distinct()
-    return render(request, "backoffice/orders.html", {"orders": rows[:200], "statuses": Order.Status.choices, "current": status, "q": query})
+    return render(request, "backoffice/orders.html", {"orders": rows[:200], "statuses": [*Order.Status.choices, ("test", "Test orders (sandbox)")], "current": status, "q": query})
 
 
 @staff_required
@@ -169,6 +171,7 @@ def invoices(request):
     except ValueError:
         year, month = today.year, today.month
     rows = list(export.invoices_of(year, month))
+    tests = Invoice.objects.filter(is_test=True, issue_date__year=year, issue_date__month=month).count()
     return render(
         request,
         "backoffice/invoices.html",
@@ -179,6 +182,7 @@ def invoices(request):
             "net": sum((i.net_total for i in rows), Decimal("0")),
             "gross": sum((i.gross_total for i in rows), Decimal("0")),
             "year_net": invoicing.annual_turnover(year),
+            "tests": tests,
         },
     )
 
@@ -243,59 +247,108 @@ def bank_import(request):
     return render(request, "backoffice/bank_import.html", {"report": report})
 
 
-# --------------------------------------------------------------------------- payment accounts
+# --------------------------------------------------------------------------- payment settings
 
-SECRETS = {"stripe_secret_key": "Stripe secret key", "stripe_webhook_secret": "Stripe webhook signing secret", "paypal_secret": "PayPal secret"}
+SECRETS = {"stripe_secret_key": "Secret key", "stripe_webhook_secret": "Webhook signing secret", "paypal_secret": "Secret"}
+
+# One panel per subject, each saved on its own. "offer": the method can be switched on and off for customers.
+SECTIONS = {
+    "stripe": {
+        "title": "Stripe",
+        "intro": "Cards, Apple Pay and Google Pay on Stripe's own checkout page.",
+        "fields": ["stripe_secret_key", "stripe_webhook_secret"],
+        "offer": "Offer card payment to customers",
+    },
+    "paypal": {
+        "title": "PayPal",
+        "intro": "The REST app from the PayPal developer dashboard. Start with PayPal's test system, then switch to live.",
+        "fields": ["paypal_client_id", "paypal_secret", "paypal_webhook_id", "paypal_sandbox"],
+        "offer": "Offer PayPal to customers",
+    },
+    "bank_transfer": {
+        "title": "Bank transfer",
+        "intro": "The account customers transfer to. It is printed on the order page, in the mails and on invoices that are still to be paid.",
+        "fields": ["bank_account_holder", "iban", "bic", "bank_name"],
+        "offer": "Offer bank transfer to customers",
+    },
+    "sandbox": {
+        "title": "Sandbox (test purchases)",
+        "intro": "A stand-in checkout for trying the shop. No money moves. What is bought there is marked as a test, gets TEST documents "
+        "instead of invoices, stays out of the books and can be deleted below.",
+        "fields": ["sandbox_enabled", "sandbox_testers"],
+    },
+    "invoices": {
+        "title": "Invoices and tax",
+        "intro": "What an invoice needs besides the company data from the server configuration.",
+        "fields": ["invoice_prefix", "tax_number", "vat_rate", "small_business"],
+    },
+    "accounting": {
+        "title": "Alerts and tax adviser",
+        "intro": "Where payment alerts go, and the account numbers for the DATEV booking batch in the month export.",
+        "fields": ["finance_email", "datev_consultant_number", "datev_client_number", "datev_revenue_account", "datev_bank_account", "datev_clearing_account"],
+    },
+}
 
 
-class PaymentSettingsForm(forms.ModelForm):
-    methods = forms.MultipleChoiceField(
-        label="Methods offered to customers",
-        choices=[("stripe", "Card, Apple Pay, Google Pay (Stripe)"), ("paypal", "PayPal"), ("bank_transfer", "Bank transfer")],
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-        help_text="A method is only shown to customers once its account below is filled in.",
-    )
+class SectionForm(forms.ModelForm):
+    """One section of the payment settings. A stored secret is never sent back to the browser:
+    an empty field keeps what is stored, a new value replaces it."""
 
-    class Meta:
-        model = PaymentSettings
-        exclude = list(SECRETS)
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, key: str, **kwargs):
         super().__init__(*args, **kwargs)
-        self.initial["methods"] = self.instance.method_list
-        for name, text in SECRETS.items():
-            stored = bool(getattr(self.instance, name))
-            # A stored secret is never sent back to the browser. Empty = keep what is stored.
-            self.fields[name] = forms.CharField(
-                label=text,
-                required=False,
-                widget=forms.PasswordInput(render_value=False, attrs={"autocomplete": "off"}),
-                help_text="Stored. Leave empty to keep it; enter a new value to replace it." if stored else "Not set.",
-            )
-            self.fields[f"clear_{name}"] = forms.BooleanField(label=f"Remove the stored {text}", required=False)
-        self.order_fields(
-            [
-                "methods", "stripe_secret_key", "clear_stripe_secret_key", "stripe_webhook_secret", "clear_stripe_webhook_secret",
-                "paypal_client_id", "paypal_secret", "clear_paypal_secret", "paypal_webhook_id", "paypal_sandbox",
-            ]
-        )
-
-    def clean_methods(self):
-        return ",".join(self.cleaned_data["methods"])
+        self.key, spec = key, SECTIONS[key]
+        order = []
+        if spec.get("offer"):
+            self.fields["offer"] = forms.BooleanField(label=spec["offer"], required=False, initial=key in self.instance.method_list)
+            order.append("offer")
+        for name in spec["fields"]:
+            order.append(name)
+            if name in SECRETS:
+                stored = bool(getattr(self.instance, name))
+                self.fields[name] = forms.CharField(
+                    label=SECRETS[name],
+                    required=False,
+                    widget=forms.PasswordInput(render_value=False, attrs={"autocomplete": "off"}),
+                    help_text="Stored. Leave empty to keep it; enter a new value to replace it." if stored else "Not set.",
+                )
+                if stored:
+                    self.fields[f"clear_{name}"] = forms.BooleanField(label=f"Remove the stored {SECRETS[name].lower()}", required=False)
+                    order.append(f"clear_{name}")
+        if "sandbox_testers" in self.fields:
+            self.fields["sandbox_testers"].widget = forms.Textarea(attrs={"rows": 3})
+        self.order_fields(order)
 
     def clean_iban(self):
         return " ".join(self.cleaned_data["iban"].upper().split())
 
+    def changed(self) -> list[str]:
+        """Names of what this save changes, for the audit line. Never the values."""
+        return sorted(n for n in self.changed_data if not (n in SECRETS or n.startswith("clear_")) or self.cleaned_data.get(n))
+
     def save(self, commit=True):
         obj = super().save(commit=False)
+        touched = [n for n in SECTIONS[self.key]["fields"] if n not in SECRETS]
         for name in SECRETS:
             if self.cleaned_data.get(f"clear_{name}"):
                 setattr(obj, name, "")
+                touched.append(name)
             elif self.cleaned_data.get(name):
                 setattr(obj, name, self.cleaned_data[name].strip())
-        obj.save()
+                touched.append(name)
+        if "offer" in self.fields:
+            methods = [m for m in obj.method_list if m != self.key]
+            if self.cleaned_data["offer"]:
+                methods.append(self.key)
+            obj.methods = ",".join(m for m in ("stripe", "paypal", "bank_transfer") if m in methods)
+            touched.append("methods")
+        obj.save(update_fields=touched)
         return obj
+
+
+def _section_form(key: str, data, config) -> SectionForm:
+    plain = [name for name in SECTIONS[key]["fields"] if name not in SECRETS]
+    form_class = forms.modelform_factory(PaymentSettings, form=SectionForm, fields=plain)
+    return form_class(data, instance=config, prefix=key, key=key)
 
 
 def _webhook_url(provider: str) -> str:
@@ -305,27 +358,42 @@ def _webhook_url(provider: str) -> str:
 @staff_required
 def payment_settings(request):
     config = PaymentSettings.load()
-    form = PaymentSettingsForm(request.POST or None, instance=config)
-    if request.method == "POST" and form.is_valid():
-        secretive = set(SECRETS) | {f"clear_{n}" for n in SECRETS}
-        changed = sorted(n for n in form.changed_data if n not in secretive or form.cleaned_data.get(n))
+    posted = request.POST.get("section") if request.method == "POST" else None
+    section_forms = {key: _section_form(key, request.POST if key == posted else None, config) for key in SECTIONS}
+    form = section_forms.get(posted)
+    if form is not None and form.is_valid():
+        changed = form.changed()
         form.save()
-        # The audit line names the fields, never their values.
-        audit("payment.settings_changed", actor=request.user, actor_kind="operator", data={"fields": changed})
-        messages.success(request, "Payment settings saved.")
-        return redirect("backoffice:payment_settings")
+        # The audit line names who changed which fields, never their values.
+        audit("payment.settings_changed", actor=request.user, actor_kind="operator", obj=posted, data={"fields": changed})
+        messages.success(request, f"{SECTIONS[posted]['title']}: saved.")
+        return redirect(reverse("backoffice:payment_settings") + f"#{posted}")
+    state = {code: is_configured(code, config) for code in ("stripe", "paypal", "bank_transfer", "sandbox")}
+    offered = config.method_list
+    sections = []
+    for key, spec in SECTIONS.items():
+        if key in ("stripe", "paypal", "bank_transfer"):
+            status = ("offered", "ok") if state[key] and key in offered else ("set up, not offered", "quiet") if state[key] else ("not set up", "quiet")
+        elif key == "sandbox":
+            status = ("on", "action") if state["sandbox"] else ("off", "quiet")
+        else:
+            status = None
+        sections.append({"key": key, "title": spec["title"], "intro": spec["intro"], "form": section_forms[key], "status": status})
     return render(
         request,
         "backoffice/payment_settings.html",
         {
-            "form": form,
-            "state": {code: is_configured(code, config) for code in ("stripe", "paypal", "bank_transfer")},
+            "sections": sections,
+            "state": state,
             "stripe_mode": stripe.mode(config.stripe_secret_key) if config.stripe_secret_key else "",
             "stripe_hook": bool(config.stripe_webhook_secret),
             "paypal_hook": config.paypal_webhook_id,
             "hooks": {"stripe": _webhook_url("stripe"), "paypal": _webhook_url("paypal")},
-            "sandbox": settings.CASSILION["SANDBOX_PAYMENTS"],
+            "sandbox_open": state["sandbox"] and not config.tester_list,
+            "testers": config.tester_list,
+            "test_orders": payments.test_order_count(),
             "vat_id": settings.COMPANY["VAT_ID"],
+            "tax_number": config.tax_number,
         },
     )
 
@@ -337,14 +405,29 @@ def payment_check(request, provider):
     config, module = PaymentSettings.load(), {"stripe": stripe, "paypal": paypal}.get(provider)
     if module is None or not is_configured(provider, config):
         messages.error(request, "Enter and save the keys first.")
-        return redirect("backoffice:payment_settings")
+        return redirect(reverse("backoffice:payment_settings") + f"#{provider}")
     try:
         if request.POST.get("action") == "webhook":
             hook = module.set_up_webhook(config, _webhook_url(provider))
             audit("payment.webhook_set_up", actor=request.user, actor_kind="operator", data={"provider": provider, "id": hook})
-            messages.success(request, f"Webhook {hook} is set up at {provider.title()} and its secret is stored.")
+            messages.success(request, f"Webhook {hook} is set up at {SECTIONS[provider]['title']} and stored here.")
         else:
             messages.success(request, f"Connection works: {module.check_connection(config)}.")
     except ProviderError as exc:
         messages.error(request, str(exc))
-    return redirect("backoffice:payment_settings")
+    return redirect(reverse("backoffice:payment_settings") + f"#{provider}")
+
+
+@staff_required
+@require_POST
+def purge_test_orders(request):
+    """Delete what was bought through the sandbox. Asked for by a person, with a tick to confirm."""
+    if request.POST.get("confirm") != "on":
+        messages.error(request, "Tick the box to confirm. Nothing was deleted.")
+    else:
+        try:
+            count = payments.purge_test_orders(by=request.user)
+            messages.success(request, f"Deleted: {count['orders']} test order(s), {count['documents']} TEST document(s), {count['plans']} test plan(s).")
+        except payments.PurgeError as exc:
+            messages.error(request, str(exc))
+    return redirect(reverse("backoffice:payment_settings") + "#sandbox")

@@ -40,7 +40,7 @@
       {% for order in orders %}
         <tr>
           <td class="num">{{ order.created_at|date:"j M Y" }}</td>
-          <td><a class="strong" href="{% url 'billing:order' order.ref %}">{{ order.ref }}</a></td>
+          <td><a class="strong" href="{% url 'billing:order' order.ref %}">{{ order.ref }}</a>{% if order.is_test %} <span class="tag action">Test</span>{% endif %}</td>
           <td>{{ order.plan }}{% if order.kind == "renewal" %} <span class="tag quiet">Renewal</span>{% endif %}</td>
           <td class="num">€{{ order.total }}</td>
           <td>
@@ -66,7 +66,7 @@
         <tr>
           <td class="num">{{ invoice.issue_date|date:"j M Y" }}</td>
           <td><code>{{ invoice.number }}</code></td>
-          <td>{% if invoice.purpose == "cancellation" %}Cancellation{% elif invoice.is_credit_note %}Credit note{% elif invoice.purpose == "correction" %}Corrected invoice{% else %}Invoice{% endif %}</td>
+          <td>{% if invoice.is_test %}<span class="tag action">Test</span> {% endif %}{% if invoice.purpose == "cancellation" %}Cancellation{% elif invoice.is_credit_note %}Credit note{% elif invoice.purpose == "correction" %}Corrected invoice{% else %}Invoice{% endif %}</td>
           <td class="num">€{{ invoice.gross_total }}</td>
           <td><a href="{% url 'billing:invoice' invoice.number %}">PDF</a></td>
         </tr>

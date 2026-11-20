@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="measure">
+  {% if order.is_test %}<div class="notice sandbox"><p><strong>Test order.</strong> It runs through the sandbox: no money moves, and its documents are not invoices.</p></div>{% endif %}
   <section class="panel">
     <h2>{% if order.kind == "renewal" %}Renewal{% else %}Order{% endif %}</h2>
     <dl class="kv">

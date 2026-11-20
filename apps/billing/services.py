@@ -87,7 +87,7 @@ def start_checkout(account, user, plan: Plan, request=None, *, early_start: bool
     """
     if plan.price_eur_year <= 0 or not plan.self_service:
         raise CheckoutError(f"{plan.name} cannot be bought in the shop.")
-    codes = [m.code for m in usable_methods()]
+    codes = [m.code for m in usable_methods(user)]
     if not codes:
         raise CheckoutError("No payment method is available at the moment. Please write to us.")
     method = method or codes[0]
@@ -108,8 +108,12 @@ def pay(order: Order, method: str, request=None) -> str:
     """Start one payment attempt for a pending order; returns where the customer goes next."""
     if order.status != Order.Status.PENDING:
         raise CheckoutError("This order is not open any more.")
-    if method not in [m.code for m in usable_methods()]:
+    user = getattr(request, "user", None) if request is not None else None
+    user = user if getattr(user, "is_authenticated", False) else order.placed_by
+    if method not in [m.code for m in usable_methods(user)]:
         raise CheckoutError("This payment method is not available.")
+    if order.is_test and method != "sandbox":
+        raise CheckoutError("This is a test order from the sandbox. Place a new order to pay for real.")
     from .providers import ProviderError
 
     if order.payment_method != method:
@@ -164,7 +168,10 @@ def create_renewal(subscription: Subscription) -> Order:
     previous = Order.objects.filter(lines__subscription=subscription).order_by("-created_at").first()
     user = previous.placed_by if previous else None
     language = previous.language if previous else "en"
-    order = _new_order(account, user, plan, subscription, kind=Order.Kind.RENEWAL, language=language, due_date=subscription.period_end)
+    order = _new_order(
+        account, user, plan, subscription, kind=Order.Kind.RENEWAL, language=language, due_date=subscription.period_end,
+        is_test=bool(previous and previous.is_test),  # a plan bought as a test stays a test
+    )
     line = order.lines.get()
     line.period_from, line.period_to = subscription.period_end, subscription.period_end + timedelta(days=365)
     line.save(update_fields=["period_from", "period_to"])

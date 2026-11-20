@@ -43,7 +43,8 @@ def pricing(request):
     for product in services.public_products():
         entitlement = licensing.current_entitlement(account, product) if account else None
         products.append({"product": product, "plans": services.public_plans(product), "current_plan": entitlement.plan if entitlement else None})
-    return render(request, "billing/pricing.html", {"products": products, "default_product": Product.default()})
+    sandbox = config().sandbox_for(request.user if request.user.is_authenticated else None)
+    return render(request, "billing/pricing.html", {"products": products, "default_product": Product.default(), "sandbox": sandbox})
 
 
 @account_required
@@ -70,7 +71,7 @@ def checkout_start(request, code):
     if plan.price_eur_year <= 0 or not plan.self_service:
         messages.error(request, f"{plan.name} cannot be bought in the shop.")
         return redirect("billing:pricing")
-    methods = usable_methods()
+    methods = usable_methods(request.user)
     # Only consumers have a right of withdrawal, so only they are asked about an early start.
     is_consumer = account.kind == Account.Kind.INDIVIDUAL
     address, _ = Address.objects.get_or_create(account=account)
@@ -117,7 +118,7 @@ def order_detail(request, ref):
         {
             "order": order,
             "pending": pending,
-            "methods": usable_methods() if pending else [],
+            "methods": [m for m in usable_methods(request.user) if not order.is_test or m.code == "sandbox"] if pending else [],
             "bank": instructions(order, config()) if transfer or (pending and order.kind == Order.Kind.RENEWAL and config().iban) else None,
             "processing": order.payments.filter(status="processing").exists(),
             "invoices": order.invoices.all(),

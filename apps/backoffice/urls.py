@@ -23,6 +23,7 @@ urlpatterns = [
     path("payments/", sales.payment_issues, name="payment_issues"),
     path("payments/bank/", sales.bank_import, name="bank_import"),
     path("payments/settings/", sales.payment_settings, name="payment_settings"),
+    path("payments/settings/test-orders/delete/", sales.purge_test_orders, name="purge_test_orders"),
     path("payments/settings/<slug:provider>/check/", sales.payment_check, name="payment_check"),
     path("settings/", views.settings_view, name="settings"),
     path("settings/tokens/new/", views.operator_token_create, name="operator_token_create"),

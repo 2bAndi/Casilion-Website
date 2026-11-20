@@ -289,8 +289,8 @@ CASSILION = {
     # Products: the one every account gets its free license for at registration, and that support works for.
     "DEFAULT_PRODUCT": env("DEFAULT_PRODUCT") or "cassilion",
     # Payments. Stripe, PayPal and the bank account are entered in the backoffice (Payments -> Settings)
-    # and stored encrypted with FIELD_ENCRYPTION_KEY. The sandbox is a stand-in where no money moves:
-    # on with DEBUG, and on a staging system only with ALLOW_SANDBOX_PAYMENTS=1.
+    # and stored encrypted with FIELD_ENCRYPTION_KEY. The sandbox (test purchases, no money moves) is
+    # switched on and off there too; this value is only what a fresh installation starts with.
     "SANDBOX_PAYMENTS": env_bool("ALLOW_SANDBOX_PAYMENTS", DEBUG),
     "SANDBOX_WEBHOOK_SECRET": env("SANDBOX_WEBHOOK_SECRET") or ("dev-sandbox-secret" if DEBUG else ""),
     "GRACE_DAYS": int(env("GRACE_DAYS") or 14),

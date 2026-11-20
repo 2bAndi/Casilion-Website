@@ -1,7 +1,9 @@
-"""A stand-in payment provider for local development and staging.
+"""A stand-in payment provider for trying purchases, switched on in the backoffice.
 
 It behaves like a real one where it matters: checkout happens on a separate page, and the
-only thing that changes an order is a signed webhook. No money moves.
+only thing that changes an order is a signed webhook. No money moves. An order that was sent
+to the sandbox is a test order: it is marked as one, its documents are numbered apart from
+the real invoices, and it can be deleted in the backoffice.
 """
 import hashlib
 import hmac
@@ -27,9 +29,12 @@ class SandboxProvider(PaymentProvider):
     label = "Sandbox (no money moves)"
 
     def _secret(self) -> bytes:
-        secret = settings.CASSILION["SANDBOX_WEBHOOK_SECRET"]
-        if not secret or not settings.CASSILION["SANDBOX_PAYMENTS"]:
-            raise WebhookRejected("The sandbox provider is not switched on.")
+        from . import config
+
+        if not config().sandbox_enabled:
+            raise WebhookRejected("The sandbox is not switched on.")
+        # Without a secret of its own the sandbox signs with one derived from SECRET_KEY.
+        secret = settings.CASSILION["SANDBOX_WEBHOOK_SECRET"] or hashlib.sha256(f"sandbox:{settings.SECRET_KEY}".encode()).hexdigest()
         return secret.encode()
 
     def sign(self, body: bytes) -> str:
@@ -38,6 +43,9 @@ class SandboxProvider(PaymentProvider):
     def _payment(self, order) -> Payment:
         payment = order.payments.filter(provider=self.code, status=PaymentStatus.PENDING).last()
         if payment is None:
+            if not order.is_test:  # from here on this is a test order: marked everywhere, deletable
+                order.is_test = True
+                order.save(update_fields=["is_test"])
             payment = Payment.objects.create(order=order, provider=self.code, amount=order.total)
             payment.provider_id = f"sbx_{payment.pk}_{secrets.token_hex(4)}"
             payment.save(update_fields=["provider_id", "updated_at"])

@@ -380,6 +380,67 @@ def _book_refund(order, payment, amount, *, provider_id, reason, by, full, histo
     return refund
 
 
+# --------------------------------------------------------------------------- test orders
+
+
+class PurgeError(Exception):
+    pass
+
+
+def test_order_count() -> int:
+    return Order.objects.filter(is_test=True).count()
+
+
+@transaction.atomic
+def purge_test_orders(by=None) -> dict:
+    """Delete everything that was bought through the sandbox: the orders with their payments,
+    history and TEST documents, and the plans they started. Real orders are never touched; an
+    account that held a test plan goes back to the free one."""
+    from apps.invoicing.models import Invoice
+
+    from .models import OrderLine
+
+    ids = list(Order.objects.filter(is_test=True).values_list("pk", flat=True))
+    if not ids:
+        return {"orders": 0, "documents": 0, "plans": 0}
+    documents = Invoice.objects.filter(order_id__in=ids)
+    if documents.filter(is_test=False).exists():
+        raise PurgeError("A test order carries a real invoice. Nothing was deleted; look at the order first.")
+    lines = OrderLine.objects.filter(order_id__in=ids)
+    affected = set(lines.values_list("order__account_id", "plan__product_id"))
+    subscription_ids = set(lines.exclude(subscription=None).values_list("subscription_id", flat=True))
+    subscription_ids -= set(OrderLine.objects.exclude(order_id__in=ids).filter(subscription_id__in=subscription_ids).values_list("subscription_id", flat=True))
+    files = [(document.pdf.storage, document.pdf.name) for document in documents]
+    count = {"orders": len(ids), "documents": len(files), "plans": len(subscription_ids)}
+
+    PaymentEvent.objects.filter(Q(order_id__in=ids) | Q(payment__order_id__in=ids)).delete()
+    Refund.objects.filter(order_id__in=ids).delete()
+    left = Invoice.objects.filter(order_id__in=ids)  # asked anew each round, unlike ``documents`` read above
+    for _round in range(len(files) + 1):  # a document that others refer to goes after them
+        if not left.all().exists():
+            break
+        referred = list(left.exclude(refers_to=None).values_list("refers_to_id", flat=True))
+        left.exclude(pk__in=referred).delete()
+    Payment.objects.filter(order_id__in=ids).delete()
+    ReconciliationIssue.objects.filter(order_id__in=ids).delete()
+    lines.delete()
+    Order.objects.filter(pk__in=ids).delete()
+    Subscription.objects.filter(pk__in=subscription_ids).delete()
+
+    from apps.accounts.models import Account
+    from apps.billing.models import Product
+
+    for account_id, product_id in affected:
+        account, product = Account.objects.get(pk=account_id), Product.objects.get(pk=product_id)
+        paid_for = account.subscriptions.filter(status__in=Subscription.LIVE, plan__product=product).exists()
+        current = account.entitlements.filter(is_active=True, product=product).first()
+        if not paid_for and current and current.source == "subscription":
+            licensing.grant_free(account, product)
+    transaction.on_commit(lambda: [storage.delete(name) for storage, name in files])
+    audit("billing.test_orders_purged", actor=by, actor_kind="operator" if by else "system", data=count)
+    return count
+
+
 # --------------------------------------------------------------------------- bank statements
 
 

@@ -227,7 +227,8 @@ the list for a person (collect or void).
 | Step | Where |
 |---|---|
 | Products and plans | Backoffice → Products. Prices are final prices per year, VAT included. |
-| Payment accounts, bank account, invoice prefix, tax number, VAT rate, DATEV accounts | Backoffice → Payments → Settings. Keys are stored encrypted (`FIELD_ENCRYPTION_KEY`) and never shown again. "Set up webhook" creates the endpoint at Stripe or PayPal. |
+| Payment accounts, bank account, invoice prefix, tax number, VAT rate, DATEV accounts | Backoffice → Payments → Settings, one section each (Stripe, PayPal, Bank transfer, Sandbox, Invoices and tax, Alerts and tax adviser), each saved on its own. Keys are stored encrypted (`FIELD_ENCRYPTION_KEY`) and never shown again. "Set up webhook" creates the endpoint at Stripe or PayPal. |
+| Test purchases | Backoffice → Payments → Settings → Sandbox switches the payment method "Sandbox" on, for everyone or for named logins only. No money moves. An order sent there is a **test order**: tagged "Test" for customer and team, mails start with `[TEST]`, its documents are numbered `TEST-…` apart from the invoices and are left out of the invoice list, the month export and the sales figures. "Delete test purchases" in the same section removes them all with their payments, history, documents and plans. |
 | Order | The customer picks a method on the order page. Stripe and PayPal send them to their own pages; "paid" comes only from a signed webhook or from asking the provider when the customer returns. |
 | Bank transfer | The order waits (`BANK_TRANSFER_DAYS`). Backoffice → Payments → Import a bank statement (CAMT.053 or CSV) books transfers by order number and amount; an order can also be marked paid by hand. |
 | Invoice | Written when the order is paid (renewals: with the notice), sent with the confirmation, in the customer's "Plan and billing" and in Backoffice → Invoices. Never changed: a refund issues a credit note, a new recipient voids and replaces. |
@@ -239,7 +240,8 @@ Every payment keeps an append-only history (who or what changed its state, when,
 provider's own message). Invoices live in `var/invoices` and are part of the backup.
 
 Going live with Stripe: enter the secret key, press "Test connection", press "Set up webhook",
-buy the smallest plan once with a real card, refund it, then remove `ALLOW_SANDBOX_PAYMENTS`.
+buy the smallest plan once with a real card, refund it, then switch the sandbox off (or limit
+it to your testers) and delete the test purchases.
 The nginx password in front of the site lets `/billing/webhook/stripe/` and `/paypal/` through
 (`deploy/nginx/cassilion-app.conf`); reload nginx after updating that file.
 
@@ -321,5 +323,5 @@ The start-up sequence was rehearsed under production settings without Docker and
 ## Before this goes anywhere public
 
 With `DEBUG=0` the application refuses to start without `SECRET_KEY` and `AI_WORKER_TOKEN`,
-and offers the sandbox payment method only when `.env` says so (`ALLOW_SANDBOX_PAYMENTS=1`). Beyond that, see the status table above and
+and the sandbox payment method is a switch in the backoffice. Beyond that, see the status table above and
 sections 10 to 13 of the architecture concept.

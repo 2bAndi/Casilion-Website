@@ -109,7 +109,7 @@ Everything runs, and several parts are stand-ins. Before real customers arrive:
 | Part | State | Switch |
 |---|---|---|
 | Search engines | Kept out: header, meta tag, closed `robots.txt` | `SITE_NOINDEX=0` when the site is meant to be found |
-| Payments | Sandbox still on: no money moves there, **anyone who registers can give themselves any plan**. Stripe, PayPal and bank transfer are entered in the backoffice (Payments → Settings) | remove `ALLOW_SANDBOX_PAYMENTS` once Stripe is set up and tried with a real card (README, "Payments and invoices") |
+| Payments | Sandbox still on: no money moves there, **anyone who registers can give themselves any plan**. Stripe, PayPal and bank transfer are entered in the backoffice (Payments → Settings) | Backoffice → Payments → Settings → Sandbox: limit it to named testers or switch it off once Stripe is set up and tried with a real card (README, "Payments and invoices"). `ALLOW_SANDBOX_PAYMENTS` in `.env` is no longer needed |
 | Tax | One rule: German VAT for every customer | the tax adviser's rules for other countries, before selling there |
 | Licenses | Stand-in file signed by the website; not what a cluster verifies | open, see README |
 | Documentation, known issues | Invented examples | replace the files in `knowledge/` |

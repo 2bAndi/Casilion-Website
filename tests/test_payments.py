@@ -96,10 +96,11 @@ class MethodTests(PaymentTestCase):
         self.config.stripe_secret_key, self.config.methods = "", "paypal,stripe"
         self.config.save()
         self.assertEqual([m.code for m in usable_methods()], ["paypal", "sandbox"])
-        with self.settings(CASSILION={**__import__("django.conf").conf.settings.CASSILION, "SANDBOX_PAYMENTS": False}):
-            self.assertEqual([m.code for m in usable_methods()], ["paypal"])
-            # With the sandbox off, its webhook and checkout page do not exist.
-            self.assertEqual(self.client.post(reverse("billing:webhook", args=["sandbox"]), b"{}", content_type="application/json").status_code, 400)
+        self.config.sandbox_enabled = False
+        self.config.save()
+        self.assertEqual([m.code for m in usable_methods()], ["paypal"])
+        # With the sandbox off, its webhook and checkout page do not exist.
+        self.assertEqual(self.client.post(reverse("billing:webhook", args=["sandbox"]), b"{}", content_type="application/json").status_code, 400)
 
     def test_keys_are_stored_encrypted_and_never_shown(self):
         from django.db import connection
@@ -110,18 +111,136 @@ class MethodTests(PaymentTestCase):
         self.assertTrue(all(value.startswith("enc:") for value in stored))
         operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
         self.client.force_login(operator)
-        page = self.client.get(reverse("backoffice:payment_settings"))
+        url = reverse("backoffice:payment_settings")
+        page = self.client.get(url)
         self.assertNotContains(page, "sk_test_abc")
         self.assertNotContains(page, "pp-secret")
         # An empty key field keeps what is stored; the audit line names fields, not values.
-        data = {"methods": ["stripe", "bank_transfer"], "iban": "de02 1203 0000 0000 2020 51", "invoice_prefix": "RE", "vat_rate": "19",
-                "datev_revenue_account": "8400", "datev_bank_account": "1200", "datev_clearing_account": "1360", "stripe_webhook_secret": "whsec_new"}
-        self.assertEqual(self.client.post(reverse("backoffice:payment_settings"), data).status_code, 302)
+        response = self.client.post(url, {"section": "stripe", "stripe-offer": "on", "stripe-stripe_webhook_secret": "whsec_new"})
+        self.assertRedirects(response, url + "#stripe", fetch_redirect_response=False)
         config = PaymentSettings.load()
-        self.assertEqual((config.stripe_secret_key, config.stripe_webhook_secret, config.methods), ("sk_test_abc", "whsec_new", "stripe,bank_transfer"))
+        self.assertEqual((config.stripe_secret_key, config.stripe_webhook_secret), ("sk_test_abc", "whsec_new"))
         line = AuditEvent.objects.filter(action="payment.settings_changed").get()
-        self.assertIn("stripe_webhook_secret", line.data["fields"])
+        self.assertEqual((line.actor, line.object_ref, line.data["fields"]), (operator, "stripe", ["stripe_webhook_secret"]))
         self.assertNotIn("whsec_new", json.dumps(line.data))
+
+    def test_each_section_is_saved_on_its_own(self):
+        operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+        self.client.force_login(operator)
+        url = reverse("backoffice:payment_settings")
+        # Saving the bank section touches neither Stripe nor PayPal nor the invoice settings.
+        self.client.post(url, {"section": "bank_transfer", "bank_transfer-offer": "on", "bank_transfer-bank_account_holder": "Zuri-AI GmbH",
+                               "bank_transfer-iban": "de89 3704 0044 0532 0130 00", "bank_transfer-bic": "COBADEFFXXX", "bank_transfer-bank_name": "Commerzbank"})
+        config = PaymentSettings.load()
+        self.assertEqual((config.iban, config.stripe_secret_key, config.paypal_secret, config.tax_number), ("DE89 3704 0044 0532 0130 00", "sk_test_abc", "pp-secret", "035 123 45678"))
+        # Unticking "offer" takes PayPal off the order page and keeps its keys.
+        self.client.post(url, {"section": "paypal", "paypal-paypal_client_id": "pp-client", "paypal-paypal_sandbox": "on"})
+        config = PaymentSettings.load()
+        self.assertEqual((config.methods, config.paypal_secret, config.paypal_webhook_id), ("stripe,bank_transfer", "pp-secret", ""))
+        self.assertEqual([m.code for m in usable_methods()], ["stripe", "bank_transfer", "sandbox"])
+        # Removing a key is its own tick.
+        self.client.post(url, {"section": "stripe", "stripe-offer": "on", "stripe-clear_stripe_secret_key": "on"})
+        self.assertEqual(PaymentSettings.load().stripe_secret_key, "")
+        self.client.post(url, {"section": "invoices", "invoices-invoice_prefix": "ZA", "invoices-tax_number": "", "invoices-vat_rate": "19"})
+        self.assertEqual(PaymentSettings.load().invoice_prefix, "ZA")
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+
+class SandboxTests(PaymentTestCase):
+    def setUp(self):
+        super().setUp()
+        self.operator = User.objects.create_user("ops@example.com", "a-long-test-password", is_staff=True)
+
+    def buy(self, plan="professional"):
+        response = self.client.post(reverse("billing:checkout_start", args=[plan]), {**ADDRESS, "method": "sandbox"})
+        self.client.post(response.url, {"outcome": "pay"})
+        return Order.objects.order_by("-pk").first()
+
+    def test_the_switch_and_the_tester_list_decide_who_sees_the_sandbox(self):
+        page = reverse("billing:checkout_start", args=["professional"])
+        self.assertContains(self.client.get(page), "id_method_sandbox")
+        self.client.force_login(self.operator)
+        url = reverse("backoffice:payment_settings")
+        self.assertContains(self.client.get(url), "The sandbox is on for every customer")
+        self.client.post(url, {"section": "sandbox", "sandbox-sandbox_enabled": "on", "sandbox-sandbox_testers": "tester@example.com\n"})
+        self.assertNotContains(self.client.get(url), "The sandbox is on for every customer")
+        self.client.force_login(self.user)
+        self.assertNotContains(self.client.get(page), "id_method_sandbox")
+        with self.assertRaises(services.CheckoutError):  # not offered, and not accepted either
+            services.start_checkout(self.account, self.user, Plan.objects.get(code="professional"), method="sandbox")
+        tester, _account = make_customer(email="tester@example.com", plan="community", name="Tester GmbH")
+        self.client.force_login(tester)
+        self.assertContains(self.client.get(page), "id_method_sandbox")
+        self.assertContains(self.client.get(reverse("billing:pricing")), "Test mode")
+        self.client.force_login(self.operator)
+        self.client.post(url, {"section": "sandbox", "sandbox-sandbox_testers": "tester@example.com"})
+        self.client.force_login(tester)
+        self.assertNotContains(self.client.get(page), "id_method_sandbox")
+
+    def test_test_purchases_are_marked_and_stay_out_of_the_books(self):
+        real = self.order()
+        self.stripe_event("checkout.session.completed", self.session(real))
+        test = self.buy(plan="business")
+        self.assertTrue(test.is_test)
+        self.assertFalse(Order.objects.get(pk=real.pk).is_test)
+        year = timezone.localdate().year
+        document = test.invoices.get()
+        # Its own numbers: the real sequence has no gap and no test in it.
+        self.assertEqual((document.number, document.is_test, real.invoices.get().number), (f"TEST-{year}-00001", True, f"RE-{year}-00001"))
+        self.assertIn("[TEST]", mail.outbox[-1].subject)
+        self.assertContains(self.client.get(reverse("billing:order", args=[test.ref])), "Test order")
+        # A test order cannot be turned into a real one.
+        pending = self.client.post(reverse("billing:checkout_start", args=["supporter"]), {**ADDRESS, "method": "sandbox"})
+        open_order = Order.objects.order_by("-pk").first()
+        self.assertEqual(pending.status_code, 302)
+        with self.assertRaises(services.CheckoutError):
+            services.pay(open_order, "bank_transfer", self.request())
+
+        self.client.force_login(self.operator)
+        today = timezone.localdate()
+        listing = self.client.get(reverse("backoffice:invoices"))
+        self.assertContains(listing, f"RE-{year}-00001")
+        self.assertNotContains(listing, f"TEST-{year}-00001</a>")
+        archive = zipfile.ZipFile(io.BytesIO(self.client.get(reverse("backoffice:invoice_export", args=[today.year, today.month])).content))
+        self.assertEqual([n for n in archive.namelist() if n.startswith("belege/")], [f"belege/RE-{year}-00001.pdf"])
+        self.assertNotIn("sandbox", archive.read("zahlungen.csv").decode())
+        from apps.backoffice.views import status_snapshot
+
+        self.assertEqual((status_snapshot()["paid_orders_30d"], status_snapshot()["revenue_eur_30d"]), (1, 100.0))
+        self.assertContains(self.client.get(reverse("backoffice:orders") + "?status=test"), test.ref)
+        self.assertNotContains(self.client.get(reverse("backoffice:orders") + "?status=test"), real.ref)
+
+    def test_test_purchases_can_be_deleted_and_real_ones_stay(self):
+        real = self.order()
+        self.stripe_event("checkout.session.completed", self.session(real))
+        _other, other_account = make_customer(email="second@example.com", plan="community", name="Second GmbH")
+        test = self.buy(plan="business")  # replaces the real plan of this account with a test plan
+        document = test.invoices.get()
+        path = document.pdf.path
+        self.assertEqual(current_entitlement(self.account).plan.code, "business")
+
+        self.client.force_login(self.operator)
+        url = reverse("backoffice:purge_test_orders")
+        self.client.post(url)  # without the tick nothing happens
+        self.assertEqual(Order.objects.filter(is_test=True).count(), 1)
+        with self.captureOnCommitCallbacks(execute=True):
+            self.client.post(url, {"confirm": "on"})
+        self.assertEqual(Order.objects.filter(is_test=True).count(), 0)
+        self.assertFalse(Invoice.objects.filter(is_test=True).exists())
+        self.assertFalse(Payment.objects.filter(provider="sandbox").exists())
+        self.assertFalse(PaymentEvent.objects.filter(provider="sandbox").exists())
+        import os
+
+        self.assertFalse(os.path.exists(path))
+        # The real order, its payment, history and invoice are untouched.
+        real.refresh_from_db()
+        self.assertEqual((real.status, real.invoices.count(), real.payments.get().status, real.payment_events.count()), ("paid", 1, "succeeded", 2))
+        self.assertTrue(os.path.exists(real.invoices.get().pdf.path))
+        # The account that held the test plan is back on the free one.
+        self.assertEqual(current_entitlement(self.account).plan.code, "community")
+        self.assertEqual(current_entitlement(other_account).plan.code, "community")
+        line = AuditEvent.objects.get(action="billing.test_orders_purged")
+        self.assertEqual((line.actor, line.data["orders"]), (self.operator, 1))
 
 
 class StripeTests(PaymentTestCase):

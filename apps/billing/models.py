@@ -143,6 +143,9 @@ class Order(models.Model):
     language = models.CharField(max_length=8, default="en")
     billing = models.JSONField(default=dict, blank=True, help_text="Invoice recipient as given when the order was placed.")
     due_date = models.DateField(null=True, blank=True)
+    is_test = models.BooleanField(
+        default=False, db_index=True, help_text="Paid through the sandbox: no money moved. Test orders can be deleted in the backoffice."
+    )
     reminded_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
@@ -362,6 +365,15 @@ class PaymentSettings(models.Model):
     paypal_secret = EncryptedTextField(blank=True)
     paypal_webhook_id = models.CharField(max_length=100, blank=True)
     paypal_sandbox = models.BooleanField(default=True, help_text="Use PayPal's sandbox (test) instead of the live system.")
+    # The sandbox: a stand-in checkout for trying purchases. No money moves; what is bought there is marked as a test.
+    sandbox_enabled = models.BooleanField(
+        "Sandbox switched on", default=False, help_text="Offers the payment method \"Sandbox\" on the order page. No money moves."
+    )
+    sandbox_testers = models.TextField(
+        "Who may use the sandbox",
+        blank=True,
+        help_text="E-mail addresses of the logins that see the sandbox, one per line. Empty = every customer, who can then give themselves any plan for free.",
+    )
     bank_account_holder = models.CharField(max_length=200, blank=True)
     iban = models.CharField("IBAN", max_length=40, blank=True)
     bic = models.CharField("BIC", max_length=20, blank=True)
@@ -388,11 +400,25 @@ class PaymentSettings(models.Model):
 
     @classmethod
     def load(cls) -> "PaymentSettings":
-        obj, _ = cls.objects.get_or_create(pk=1)
+        # On a fresh installation the sandbox starts as the environment says (on with DEBUG).
+        obj, _ = cls.objects.get_or_create(pk=1, defaults={"sandbox_enabled": bool(settings.CASSILION["SANDBOX_PAYMENTS"])})
         return obj
 
     def __str__(self):
         return "Payment settings"
+
+    @property
+    def tester_list(self) -> list[str]:
+        return [line.strip().lower() for line in self.sandbox_testers.replace(",", "\n").splitlines() if line.strip()]
+
+    def sandbox_for(self, user) -> bool:
+        """May this login pay through the sandbox? ``None`` asks whether it is switched on at all."""
+        if not self.sandbox_enabled:
+            return False
+        testers = self.tester_list
+        if user is None or not testers:
+            return True
+        return getattr(user, "email", "").lower() in testers
 
     @property
     def method_list(self) -> list[str]:

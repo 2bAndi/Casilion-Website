@@ -18,7 +18,7 @@
     {% for order in orders %}
       <tr>
         <td class="num">{{ order.created_at|date:"j M Y" }}</td>
-        <td><a class="strong" href="{% url 'backoffice:order' order.ref %}">{{ order.ref }}</a></td>
+        <td><a class="strong" href="{% url 'backoffice:order' order.ref %}">{{ order.ref }}</a>{% if order.is_test %} <span class="tag action">Test</span>{% endif %}</td>
         <td>{{ order.account.name }}</td>
         <td>{{ order.plan }}{% if order.kind == "renewal" %} <span class="tag quiet">Renewal</span>{% endif %}</td>
         <td class="num">€{{ order.total }}</td>

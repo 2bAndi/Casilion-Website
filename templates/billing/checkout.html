@@ -32,7 +32,7 @@
     <h2>Payment</h2>
     <div class="form-fields">
       {% for method in methods %}
-        <div><label class="check" for="id_method_{{ method.code }}"><input type="radio" name="method" id="id_method_{{ method.code }}" value="{{ method.code }}"{% if forloop.first %} checked{% endif %}> <span>{{ method.label }}{% if method.code == "bank_transfer" %} – the plan starts when the money has arrived{% endif %}</span></label></div>
+        <div><label class="check" for="id_method_{{ method.code }}"><input type="radio" name="method" id="id_method_{{ method.code }}" value="{{ method.code }}"{% if forloop.first %} checked{% endif %}> <span>{{ method.label }}{% if method.code == "bank_transfer" %} – the plan starts when the money has arrived{% elif method.code == "sandbox" %} – test purchase, marked as a test{% endif %}</span></label></div>
       {% endfor %}
     </div>
 

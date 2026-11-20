@@ -1,40 +1,60 @@
 {% extends "backoffice/base.html" %}
 {% block page_title %}Payment settings{% endblock %}
-{% block heading %}Payment accounts and invoices{% endblock %}
-{% block intro %}<p>Keys are stored encrypted and are never shown again. Every change is written to the audit log with your name, without the values.</p>{% endblock %}
+{% block heading %}Payment settings{% endblock %}
+{% block intro %}<p>Each section is saved on its own. Keys are stored encrypted and are never shown again. Every change is written to the audit log with your name, without the values.</p>{% endblock %}
 
 {% block content %}
-{% if sandbox %}<div class="notice sandbox"><p><strong>The sandbox is switched on</strong> (ALLOW_SANDBOX_PAYMENTS or DEBUG). Customers can "pay" there without money. Remove <code>ALLOW_SANDBOX_PAYMENTS</code> from <code>.env</code> before real customers buy.</p></div>{% endif %}
-{% if not vat_id %}<div class="notice"><p>No VAT ID is set (<code>COMPANY_VAT_ID</code> in <code>.env</code>). Enter it there or the tax number below: an invoice needs one of the two.</p></div>{% endif %}
+<nav aria-label="Sections">
+  <ul class="subnav">
+    {% for section in sections %}<li><a href="#{{ section.key }}">{{ section.title }}{% if section.status %} <span class="tag {{ section.status.1 }}">{{ section.status.0 }}</span>{% endif %}</a></li>{% endfor %}
+  </ul>
+</nav>
 
-<div class="grid cols-3">
-  <section class="panel">
-    <h2>Stripe {% if state.stripe %}<span class="tag ok">{{ stripe_mode }}</span>{% else %}<span class="tag quiet">not set</span>{% endif %}</h2>
-    <p class="muted small">Webhook address:<br><code>{{ hooks.stripe }}</code><br>{% if stripe_hook %}Signing secret stored.{% else %}No signing secret yet: payments are then confirmed only when the customer comes back to the site.{% endif %}</p>
-    <form method="post" action="{% url 'backoffice:payment_check' 'stripe' %}" class="actions">{% csrf_token %}
-      <button type="submit" name="action" value="check" class="small ghost">Test connection</button>
-      <button type="submit" name="action" value="webhook" class="small ghost">Set up webhook at Stripe</button>
-    </form>
-  </section>
-  <section class="panel">
-    <h2>PayPal {% if state.paypal %}<span class="tag ok">set</span>{% else %}<span class="tag quiet">not set</span>{% endif %}</h2>
-    <p class="muted small">Webhook address:<br><code>{{ hooks.paypal }}</code><br>{% if paypal_hook %}Webhook <code>{{ paypal_hook }}</code>.{% else %}No webhook yet.{% endif %}</p>
-    <form method="post" action="{% url 'backoffice:payment_check' 'paypal' %}" class="actions">{% csrf_token %}
-      <button type="submit" name="action" value="check" class="small ghost">Test connection</button>
-      <button type="submit" name="action" value="webhook" class="small ghost">Set up webhook at PayPal</button>
-    </form>
-  </section>
-  <section class="panel">
-    <h2>Bank transfer {% if state.bank_transfer %}<span class="tag ok">set</span>{% else %}<span class="tag quiet">not set</span>{% endif %}</h2>
-    <p class="muted small">Offered once an IBAN is entered. Incoming money is booked from a bank statement or by hand.</p>
-  </section>
-</div>
+{% if sandbox_open %}<div class="notice error"><p><strong>The sandbox is on for every customer.</strong> Anyone who registers can give themselves any plan without paying. Name the testers in the <a href="#sandbox">Sandbox</a> section, or switch it off before real customers buy.</p></div>{% endif %}
 
 <div class="measure">
-  <form method="post" autocomplete="off">
-    {% csrf_token %}
-    <div class="form-fields">{{ form.as_div }}</div>
-    <div class="actions"><button type="submit">Save settings</button><a class="btn ghost" href="{% url 'backoffice:payment_issues' %}">Back</a></div>
-  </form>
+{% for section in sections %}
+  <section class="panel" id="{{ section.key }}">
+    <h2>{{ section.title }}{% if section.status %} <span class="tag {{ section.status.1 }}">{{ section.status.0 }}</span>{% endif %}</h2>
+    <p class="muted small">{{ section.intro }}</p>
+
+    {% if section.key == "stripe" %}
+      <p class="muted small">{% if state.stripe %}The stored key is a <strong>{{ stripe_mode }}</strong> key. {% endif %}Webhook address: <code>{{ hooks.stripe }}</code>. {% if stripe_hook %}A signing secret is stored.{% else %}No signing secret yet: until then a payment is confirmed only when the customer comes back to the site. "Set up webhook" creates the endpoint at Stripe and stores its secret.{% endif %}</p>
+    {% elif section.key == "paypal" %}
+      <p class="muted small">Webhook address: <code>{{ hooks.paypal }}</code>. {% if paypal_hook %}Webhook <code>{{ paypal_hook }}</code> is stored.{% else %}No webhook yet. "Set up webhook" creates it at PayPal and stores its id.{% endif %}</p>
+    {% elif section.key == "sandbox" %}
+      {% if state.sandbox and testers %}<p class="muted small">On for: {{ testers|join:", " }}.</p>{% endif %}
+    {% elif section.key == "invoices" %}
+      {% if not vat_id and not tax_number %}<div class="notice"><p>An invoice needs the tax number or the VAT ID. Enter the tax number here, or set <code>COMPANY_VAT_ID</code> in <code>.env</code>.</p></div>{% elif vat_id %}<p class="muted small">VAT ID from the server configuration: {{ vat_id }}.</p>{% endif %}
+    {% endif %}
+
+    <form method="post" action="{% url 'backoffice:payment_settings' %}#{{ section.key }}" autocomplete="off">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="{{ section.key }}">
+      <div class="form-fields">{{ section.form.as_div }}</div>
+      <div class="actions"><button type="submit">Save {{ section.title }}</button></div>
+    </form>
+
+    {% if section.key == "stripe" or section.key == "paypal" %}
+      <form method="post" action="{% url 'backoffice:payment_check' section.key %}" class="actions">{% csrf_token %}
+        <button type="submit" name="action" value="check" class="small ghost">Test connection</button>
+        <button type="submit" name="action" value="webhook" class="small ghost">Set up webhook</button>
+      </form>
+      <p class="muted small">Both use the keys as saved. Save first.</p>
+    {% elif section.key == "sandbox" %}
+      <h3>Test purchases</h3>
+      {% if test_orders %}
+        <p>{{ test_orders }} test order{{ test_orders|pluralize }} exist{{ test_orders|pluralize:"s," }}. <a href="{% url 'backoffice:orders' %}?status=test">Show them</a></p>
+        <form method="post" action="{% url 'backoffice:purge_test_orders' %}">{% csrf_token %}
+          <label class="consent" for="id_confirm_purge"><input type="checkbox" name="confirm" id="id_confirm_purge" required> <span>Delete all {{ test_orders }} test order{{ test_orders|pluralize }} with their payments, history and TEST documents, and end the plans they started. This cannot be undone. Real orders and invoices are not touched.</span></label>
+          <button type="submit" class="danger">Delete test purchases</button>
+        </form>
+      {% else %}
+        <p class="muted">There are no test orders.</p>
+      {% endif %}
+    {% endif %}
+  </section>
+{% endfor %}
 </div>
+<p><a class="btn ghost" href="{% url 'backoffice:payment_issues' %}">Back to payments</a></p>
 {% endblock %}

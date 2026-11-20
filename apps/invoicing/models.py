@@ -39,10 +39,15 @@ class ImmutableError(Exception):
 
 
 class InvoiceSequence(models.Model):
-    """One counter per year; invoices and credit notes share it."""
+    """One counter per year; invoices and credit notes share it. Documents of test orders
+    count on their own, so that trying the shop never uses up a real invoice number."""
 
-    year = models.PositiveSmallIntegerField(unique=True)
+    year = models.PositiveSmallIntegerField()
+    test = models.BooleanField(default=False)
     last_number = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["year", "test"], name="one_sequence_per_year")]
 
     def __str__(self):
         return f"{self.year}: {self.last_number}"
@@ -51,6 +56,7 @@ class InvoiceSequence(models.Model):
 class Invoice(models.Model):
     number = models.CharField(max_length=30, unique=True)
     kind = models.CharField(max_length=12, choices=InvoiceKind.choices, default=InvoiceKind.INVOICE)
+    is_test = models.BooleanField(default=False, db_index=True, help_text="Belongs to a test order: not an invoice, not in the books.")
     order = models.ForeignKey("billing.Order", on_delete=models.PROTECT, related_name="invoices")
     account = models.ForeignKey("accounts.Account", on_delete=models.PROTECT, related_name="invoices")
     refers_to = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT, related_name="credit_notes")
